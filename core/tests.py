@@ -240,3 +240,21 @@ class CentralAdminAndPermissionTests(TestCase):
         self.assertTrue(len(user_logs) >= 1)
         self.assertEqual(res.json()['username'], 'normaluser')
 
+    def test_superadmin_always_admin_and_cannot_be_downgraded(self):
+        # Superuser role is always admin
+        self.assertEqual(get_user_app_role(self.admin, 'scquizz'), 'admin')
+        self.assertTrue(has_app_permission(self.admin, 'scquizz', min_role='admin'))
+
+        # Even if a 'none' UserAppPermission or Group is created, superuser remains admin
+        UserAppPermission.objects.create(user=self.admin, app_name='scquizz', role='none')
+        self.assertEqual(get_user_app_role(self.admin, 'scquizz'), 'admin')
+        self.assertTrue(has_app_permission(self.admin, 'scquizz', min_role='admin'))
+
+        # Check API users list: superuser app_permissions always returns admin
+        self.client.login(username='admin', password='adminpassword123')
+        res = self.client.get('/api/admin/users')
+        self.assertEqual(res.status_code, 200)
+        admin_data = next(u for u in res.json()['users'] if u['id'] == self.admin.id)
+        self.assertEqual(admin_data['app_permissions']['scquizz'], 'admin')
+
+

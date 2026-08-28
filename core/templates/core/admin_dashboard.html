@@ -960,18 +960,26 @@
                         <input type="email" id="user-email" class="form-control" placeholder="user@example.com">
                     </div>
 
-                    <div style="display: flex; gap: 20px; margin: 4px 0;">
+                    <div style="display: flex; gap: 20px; margin: 4px 0; flex-wrap: wrap;">
                         <label class="checkbox-group">
                             <input type="checkbox" id="user-is-active" checked>
                             <span>เปิดใช้งานบัญชี (Active)</span>
                         </label>
                         <label class="checkbox-group">
                             <input type="checkbox" id="user-is-staff">
-                            <span>ผู้ดูแลระบบ (Staff / Admin Access)</span>
+                            <span>ผู้ดูแลระบบ (Staff Access)</span>
+                        </label>
+                        <label class="checkbox-group">
+                            <input type="checkbox" id="user-is-superuser" onchange="toggleSuperuserAppPermissions()">
+                            <span style="color:#fbbf24; font-weight:700;">⚡ Superadmin (Admin ทุกแอป)</span>
                         </label>
                     </div>
 
-                    <div class="form-group">
+                    <div id="superuser-perm-notice" style="display:none; margin-top:8px; padding:10px 14px; background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.3); border-radius:8px; font-size:12.5px; color:#fbbf24;">
+                        ⚡ <strong>Superadmin</strong> จะได้รับสิทธิ์ <strong>Admin สูงสุดในทุกแอปพลิเคชันโดยอัตโนมัติ</strong> และไม่สามารถถูกปรับลดสิทธิ์ได้
+                    </div>
+
+                    <div class="form-group" style="margin-top:12px;">
                         <label>กลุ่มผู้ใช้ (Groups)</label>
                         <div id="user-groups-container" style="display: flex; flex-wrap: wrap; gap: 10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
                             <!-- Populated dynamically -->
@@ -1142,17 +1150,21 @@
                     : '<span style="color:var(--text-dim); font-size:12px;">-</span>';
 
                 let permsHtml = '';
-                allApps.forEach(a => {
-                    const role = u.app_permissions[a.app_name] || 'default';
-                    let roleClass = 'role-viewer';
-                    let roleLabel = 'Viewer';
-                    if (role === 'admin') { roleClass = 'role-admin'; roleLabel = 'Admin'; }
-                    else if (role === 'moderator') { roleClass = 'role-moderator'; roleLabel = 'Moderator'; }
-                    else if (role === 'none') { roleClass = 'role-none'; roleLabel = 'No Access'; }
-                    else if (role === 'default') { roleClass = 'badge-gray'; roleLabel = 'ตามกลุ่ม/ทั่วไป'; }
+                if (u.is_superuser) {
+                    permsHtml = '<span class="role-pill role-admin" style="font-weight:700; background:rgba(245,158,11,0.2); border-color:#f59e0b; color:#fbbf24;">⚡ Superadmin (Admin ทุกแอป)</span>';
+                } else {
+                    allApps.forEach(a => {
+                        const role = u.app_permissions[a.app_name] || 'default';
+                        let roleClass = 'role-viewer';
+                        let roleLabel = 'Viewer';
+                        if (role === 'admin') { roleClass = 'role-admin'; roleLabel = 'Admin'; }
+                        else if (role === 'moderator') { roleClass = 'role-moderator'; roleLabel = 'Moderator'; }
+                        else if (role === 'none') { roleClass = 'role-none'; roleLabel = 'No Access'; }
+                        else if (role === 'default') { roleClass = 'badge-gray'; roleLabel = 'ตามกลุ่ม/ทั่วไป'; }
 
-                    permsHtml += `<span class="role-pill ${roleClass}">${a.icon} ${a.name}: ${roleLabel}</span>`;
-                });
+                        permsHtml += `<span class="role-pill ${roleClass}">${a.icon} ${a.name}: ${roleLabel}</span>`;
+                    });
+                }
 
                 const statusBadge = u.is_active 
                     ? '<span class="badge badge-success">Active</span>' 
@@ -1283,30 +1295,31 @@
         function renderGroupsTable() {
             const tbody = document.getElementById('groups-table-body');
             if (allGroups.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><span>🏷️</span>ยังไม่มีกลุ่มผู้ใช้ในระบบ</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><span>🏷️</span>ยังไม่มีกลุ่มผู้ใช้งาน</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = allGroups.map(g => {
                 const membersHtml = g.members.length > 0 
-                    ? g.members.map(m => `<span class="badge badge-gray">${escapeHtml(m.username)}</span>`).join(' ')
+                    ? g.members.map(m => `<span class="badge badge-primary">${escapeHtml(m.username)}</span>`).join(' ') 
                     : '<span style="color:var(--text-dim); font-size:12px;">ไม่มีสมาชิก</span>';
 
                 let permsHtml = '';
                 allApps.forEach(a => {
                     const role = g.app_permissions[a.app_name] || 'viewer';
                     let roleClass = 'role-viewer';
-                    if (role === 'admin') roleClass = 'role-admin';
-                    else if (role === 'moderator') roleClass = 'role-moderator';
-                    else if (role === 'none') roleClass = 'role-none';
+                    let roleLabel = 'Viewer';
+                    if (role === 'admin') { roleClass = 'role-admin'; roleLabel = 'Admin'; }
+                    else if (role === 'moderator') { roleClass = 'role-moderator'; roleLabel = 'Moderator'; }
+                    else if (role === 'none') { roleClass = 'role-none'; roleLabel = 'No Access'; }
 
-                    permsHtml += `<span class="role-pill ${roleClass}">${a.icon} ${a.name}: ${role}</span>`;
+                    permsHtml += `<span class="role-pill ${roleClass}">${a.icon} ${a.name}: ${roleLabel}</span>`;
                 });
 
                 return `
                     <tr>
                         <td><strong style="color:#fff; font-size:15px;">${escapeHtml(g.name)}</strong></td>
-                        <td><span class="badge badge-primary">${g.member_count} คน</span></td>
+                        <td><span class="badge badge-gray">${g.member_count} คน</span></td>
                         <td>${membersHtml}</td>
                         <td>${permsHtml}</td>
                         <td style="text-align: right;">
@@ -1320,11 +1333,11 @@
             }).join('');
         }
 
-        // --- Render App Access Grid ---
+        // --- Render Apps ---
         function renderAppsGrid() {
             const container = document.getElementById('apps-grid-container');
             if (allApps.length === 0) {
-                container.innerHTML = `<div class="empty-state"><span>📱</span>ไม่พบแอปพลิเคชัน</div>`;
+                container.innerHTML = `<div class="empty-state"><span>📱</span>ไม่พบแอปพลิเคชันในระบบ</div>`;
                 return;
             }
 
@@ -1411,6 +1424,32 @@
             }
         }
 
+        // --- Superuser Permission Locker ---
+        function toggleSuperuserAppPermissions() {
+            const isSuper = document.getElementById('user-is-superuser').checked;
+            const selects = document.querySelectorAll('#user-perm-matrix select');
+            const notice = document.getElementById('superuser-perm-notice');
+            const staffCheckbox = document.getElementById('user-is-staff');
+            
+            if (isSuper) {
+                staffCheckbox.checked = true;
+                staffCheckbox.disabled = true;
+                if (notice) notice.style.display = 'block';
+                selects.forEach(s => {
+                    s.value = 'admin';
+                    s.disabled = true;
+                    s.style.opacity = '0.6';
+                });
+            } else {
+                staffCheckbox.disabled = false;
+                if (notice) notice.style.display = 'none';
+                selects.forEach(s => {
+                    s.disabled = false;
+                    s.style.opacity = '1';
+                });
+            }
+        }
+
         // --- User Modal & CRUD ---
         function openUserModal(user = null) {
             document.getElementById('user-id').value = user ? user.id : '';
@@ -1421,7 +1460,8 @@
             document.getElementById('user-lastname').value = user ? user.last_name : '';
             document.getElementById('user-email').value = user ? user.email : '';
             document.getElementById('user-is-active').checked = user ? user.is_active : true;
-            document.getElementById('user-is-staff').checked = user ? user.is_staff : false;
+            document.getElementById('user-is-staff').checked = user ? (user.is_staff || user.is_superuser) : false;
+            document.getElementById('user-is-superuser').checked = user ? user.is_superuser : false;
 
             const pwdInput = document.getElementById('user-password');
             const pwdLabel = document.getElementById('user-password-label');
@@ -1467,6 +1507,7 @@
                 `;
             }).join('');
 
+            toggleSuperuserAppPermissions();
             openModal('user-modal');
         }
 
@@ -1489,18 +1530,21 @@
             const last_name = document.getElementById('user-lastname').value.trim();
             const email = document.getElementById('user-email').value.trim();
             const is_active = document.getElementById('user-is-active').checked;
-            const is_staff = document.getElementById('user-is-staff').checked;
+            const is_superuser = document.getElementById('user-is-superuser').checked;
+            const is_staff = is_superuser || document.getElementById('user-is-staff').checked;
 
             const selectedGroups = Array.from(document.querySelectorAll('input[name="user-group-select"]:checked'))
                 .map(cb => parseInt(cb.value));
 
             const app_permissions = {};
-            allApps.forEach(a => {
-                const role = document.querySelector(`select[name="user-perm-${a.app_name}"]`).value;
-                if (role !== 'default') {
-                    app_permissions[a.app_name] = role;
-                }
-            });
+            if (!is_superuser) {
+                allApps.forEach(a => {
+                    const role = document.querySelector(`select[name="user-perm-${a.app_name}"]`).value;
+                    if (role !== 'default') {
+                        app_permissions[a.app_name] = role;
+                    }
+                });
+            }
 
             const payload = {
                 username,
@@ -1509,6 +1553,7 @@
                 email,
                 is_active,
                 is_staff,
+                is_superuser,
                 groups: selectedGroups,
                 app_permissions
             };

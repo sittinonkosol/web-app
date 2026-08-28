@@ -164,9 +164,13 @@ def admin_dashboard_view(request):
 def api_users_list_create(request):
     if request.method == "GET":
         users = User.objects.all().prefetch_related('groups', 'app_permissions').order_by('id')
+        installed_apps = get_installed_user_apps()
         user_list = []
         for u in users:
-            perms = {p.app_name: p.role for p in u.app_permissions.all()}
+            if u.is_superuser:
+                perms = {a['app_name']: 'admin' for a in installed_apps}
+            else:
+                perms = {p.app_name: p.role for p in u.app_permissions.all()}
             user_list.append({
                 'id': u.id,
                 'username': u.username,
@@ -194,6 +198,8 @@ def api_users_list_create(request):
             is_active = bool(data.get('is_active', True))
             is_staff = bool(data.get('is_staff', False))
             is_superuser = bool(data.get('is_superuser', False))
+            if is_superuser:
+                is_staff = True
             group_ids = data.get('groups', [])
             app_perms = data.get('app_permissions', {})
 
@@ -221,10 +227,11 @@ def api_users_list_create(request):
                     groups = Group.objects.filter(id__in=group_ids)
                     user.groups.set(groups)
 
-                # App permissions
-                for app_name, role in app_perms.items():
-                    if role in ROLE_LEVELS:
-                        UserAppPermission.objects.create(user=user, app_name=app_name, role=role)
+                # App permissions (Superusers always have admin on all apps)
+                if not is_superuser:
+                    for app_name, role in app_perms.items():
+                        if role in ROLE_LEVELS:
+                            UserAppPermission.objects.create(user=user, app_name=app_name, role=role)
 
             return JsonResponse({'success': True, 'id': user.id, 'username': user.username})
         except Exception as e:
@@ -237,7 +244,11 @@ def api_user_detail(request, user_id):
     user = get_object_or_404(User, id=user_id)
 
     if request.method == "GET":
-        perms = {p.app_name: p.role for p in user.app_permissions.all()}
+        installed_apps = get_installed_user_apps()
+        if user.is_superuser:
+            perms = {a['app_name']: 'admin' for a in installed_apps}
+        else:
+            perms = {p.app_name: p.role for p in user.app_permissions.all()}
         return JsonResponse({
             'id': user.id,
             'username': user.username,
@@ -278,10 +289,12 @@ def api_user_detail(request, user_id):
                 user.last_name = last_name
             if is_active is not None:
                 user.is_active = bool(is_active)
-            if is_staff is not None:
-                user.is_staff = bool(is_staff)
             if is_superuser is not None:
                 user.is_superuser = bool(is_superuser)
+                if user.is_superuser:
+                    user.is_staff = True
+            elif is_staff is not None:
+                user.is_staff = bool(is_staff)
 
             if password:
                 user.set_password(password)
@@ -293,7 +306,10 @@ def api_user_detail(request, user_id):
                     groups = Group.objects.filter(id__in=group_ids)
                     user.groups.set(groups)
 
-                if app_perms is not None and isinstance(app_perms, dict):
+                if user.is_superuser:
+                    # Superusers always have admin on all apps, clean any lower perms
+                    UserAppPermission.objects.filter(user=user).delete()
+                elif app_perms is not None and isinstance(app_perms, dict):
                     UserAppPermission.objects.filter(user=user).delete()
                     for app_name, role in app_perms.items():
                         if role in ROLE_LEVELS:
