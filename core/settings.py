@@ -17,7 +17,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'scquizz.apps.ScquizzConfig',
-    'map_locator.apps.MapLocatorConfig',
 ]
 
 MIDDLEWARE = [
@@ -38,7 +37,6 @@ TEMPLATES = [
         'DIRS': [
             BASE_DIR / 'core' / 'templates',
             BASE_DIR / 'scquizz' / 'template',
-            BASE_DIR / 'map_locator' / 'template',
             BASE_DIR / 'another_project' / 'templates',
         ],
         'APP_DIRS': True,
@@ -66,14 +64,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'database.db',
-    },
-    'map_locator_db': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'map_locator.db',
     }
 }
-
-DATABASE_ROUTERS = ['core.db_routers.MapLocatorRouter']
 
 AUTH_PASSWORD_VALIDATORS = [
     {
