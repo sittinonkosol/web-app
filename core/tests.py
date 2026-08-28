@@ -209,7 +209,8 @@ class CentralAdminAndPermissionTests(TestCase):
         self.assertIsNotNone(success_log)
         self.assertEqual(success_log.user, self.normal_user)
 
-        # 2. Trigger Failed Login via wrong password
+        # 2. Trigger Failed Login via wrong password (after logout)
+        self.client.logout()
         self.client.post('/login/', {
             'username': 'normaluser',
             'password': 'wrongpassword'
