@@ -94,9 +94,15 @@ def admin_view(request):
             'user': request.user
         }, status=403)
 
+    sessions = QuizSession.objects.all().order_by("-created_at")
+    if not sessions.exists():
+        get_or_create_active_session()
+        sessions = QuizSession.objects.all().order_by("-created_at")
+
     return render(request, 'admin/admin.html', {
         'app_base': app_base,
-        'user': request.user
+        'user': request.user,
+        'sessions': sessions
     })
 
 def sanitize_text(val, max_len=1000):

@@ -117,7 +117,13 @@
                         <div style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 5px 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
                             <span style="font-size: 13px;">🎪</span>
                             <select id="admin-session-switcher" style="background: transparent; border: none; font-size: 13px; font-weight: 600; color: #1e293b; outline: none; cursor: pointer;">
-                                <option value="">กำลังโหลด Session...</option>
+                                {% for s in sessions %}
+                                <option value="{{ s.id }}" {% if s.is_active %}selected{% endif %}>
+                                    {% if s.is_active %}🟢{% else %}⚪{% endif %} {{ s.title }}
+                                </option>
+                                {% empty %}
+                                <option value="">General Session</option>
+                                {% endfor %}
                             </select>
                         </div>
                         {% if user and user.is_authenticated %}

@@ -1273,6 +1273,7 @@
     if (hash === '#admin' || isDocAdmin) {
       document.body.classList.add('admin-theme');
       showOnly(viewAdmin);
+      fetchSessions();
       startRealtimePolling();
       refreshRealtimeData(true);
 
