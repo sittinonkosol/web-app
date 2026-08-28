@@ -177,26 +177,49 @@
     }
   };
 
-  window.deleteSessionAPI = async (sessionId, title) => {
-    if (!confirm(`คุณต้องการลบ Session "${title}" และข้อความ/โพลทั้งหมดใน Session นี้ใช่หรือไม่?`)) return;
-    try {
-      const res = await fetch(`${API_BASE}/api/sessions/${sessionId}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Delete failed');
+  function openConfirmDeleteSessionDialog(sessionId, title) {
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9999;';
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:18px;padding:26px;width:90%;max-width:440px;box-shadow:0 20px 40px rgba(0,0,0,0.3);font-family:'Outfit','Noto Sans Thai',sans-serif;">
+        <h2 style="margin:0 0 10px 0;font-size:20px;color:#0f172a;font-weight:700;">ลบเซสชันกิจกรรม?</h2>
+        <p style="margin:0 0 20px 0;color:#64748b;font-size:14px;line-height:1.5;">คุณต้องการลบ Session <strong style="color:#0f172a;">"${escapeHtml(title)}"</strong> ใช่หรือไม่?<br>ข้อความ Q&A และโพลทั้งหมดใน Session นี้จะถูกลบออกอย่างถาวร</p>
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button type="button" id="cancel-del-session" style="padding:9px 16px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:10px;font-size:14px;cursor:pointer;color:#475569;font-weight:500;">ยกเลิก</button>
+          <button type="button" id="confirm-del-session" style="padding:9px 18px;background:#ef4444;border:none;border-radius:10px;font-size:14px;cursor:pointer;color:#fff;font-weight:600;box-shadow:0 4px 12px rgba(239,68,68,0.35);">ยืนยัน ลบ</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('#cancel-del-session').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector('#confirm-del-session').addEventListener('click', async () => {
+      overlay.remove();
+      try {
+        const res = await fetch(`${API_BASE}/api/sessions/${sessionId}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || 'Delete failed');
+        }
+        if (currentAdminSessionId === sessionId) {
+          currentAdminSessionId = '';
+          localStorage.removeItem('scquizz_admin_session_id');
+        }
+        showToast('ลบ Session เรียบร้อย');
+        await fetchSessions();
+        fetchMessages();
+        fetchPolls();
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'ลบ Session ไม่สำเร็จ');
       }
-      if (currentAdminSessionId === sessionId) {
-        currentAdminSessionId = '';
-        localStorage.removeItem('scquizz_admin_session_id');
-      }
-      showToast('ลบ Session เรียบร้อย');
-      await fetchSessions();
-      fetchMessages();
-      fetchPolls();
-    } catch (err) {
-      console.error(err);
-      showToast(err.message || 'ลบ Session ไม่สำเร็จ');
-    }
+    });
+  }
+
+  window.deleteSessionAPI = (sessionId, title) => {
+    openConfirmDeleteSessionDialog(sessionId, title);
   };
 
   // ส่งข้อความผ่าน API (ระบุ session_id)

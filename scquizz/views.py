@@ -194,8 +194,6 @@ def delete_session(request, session_id):
         if remaining:
             remaining.is_active = True
             remaining.save()
-        else:
-            get_or_create_active_session()
     notify_update()
     return JsonResponse({"success": True})
 
