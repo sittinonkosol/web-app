@@ -133,8 +133,12 @@ def staff_member_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
+            if request.path.startswith('/api/'):
+                return JsonResponse({'error': 'กรุณาเข้าสู่ระบบก่อนทำรายการ'}, status=401)
             return redirect(f'/login/?next={request.path}')
         if not (request.user.is_staff or request.user.is_superuser):
+            if request.path.startswith('/api/'):
+                return JsonResponse({'error': 'ไม่มีสิทธิ์เข้าถึงส่วนผู้ดูแลระบบ'}, status=403)
             return render(request, 'core/permission_denied.html', {
                 'display_name': 'Central Admin Dashboard',
                 'required_role': 'Staff / Superuser',
@@ -154,6 +158,7 @@ def admin_dashboard_view(request):
 
 # --- Users API ---
 
+@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET", "POST"])
 def api_users_list_create(request):
@@ -225,6 +230,7 @@ def api_users_list_create(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 
+@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET", "PUT", "DELETE"])
 def api_user_detail(request, user_id):
@@ -306,6 +312,7 @@ def api_user_detail(request, user_id):
 
 # --- Groups API ---
 
+@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET", "POST"])
 def api_groups_list_create(request):
@@ -350,6 +357,7 @@ def api_groups_list_create(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 
+@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET", "PUT", "DELETE"])
 def api_group_detail(request, group_id):
@@ -399,12 +407,14 @@ def api_group_detail(request, group_id):
 
 # --- App Settings API ---
 
+@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET"])
 def api_app_settings_list(request):
     apps_list = get_installed_user_apps()
     return JsonResponse({'apps': apps_list})
 
+@csrf_exempt
 @staff_member_required
 @require_http_methods(["PUT"])
 def api_app_setting_detail(request, app_name):

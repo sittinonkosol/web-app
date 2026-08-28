@@ -1002,18 +1002,32 @@
                 .replace(/'/g, "&#039;");
         }
 
+        // --- Safe JSON Fetcher ---
+        async function safeFetchJson(url, options = {}) {
+            const res = await fetch(url, options);
+            const contentType = res.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                if (res.status === 401 || res.status === 403 || res.redirected) {
+                    window.location.href = `/login/?next=${encodeURIComponent(window.location.pathname)}`;
+                    throw new Error('กรุณาเข้าสู่ระบบก่อนทำรายการ');
+                }
+                throw new Error(`เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง (HTTP ${res.status})`);
+            }
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || `เกิดข้อผิดพลาด (${res.status})`);
+            }
+            return data;
+        }
+
         // --- Data Fetching ---
         async function loadAllData() {
             try {
-                const [usersRes, groupsRes, appsRes] = await Promise.all([
-                    fetch('/api/admin/users'),
-                    fetch('/api/admin/groups'),
-                    fetch('/api/admin/app-settings')
+                const [usersData, groupsData, appsData] = await Promise.all([
+                    safeFetchJson('/api/admin/users'),
+                    safeFetchJson('/api/admin/groups'),
+                    safeFetchJson('/api/admin/app-settings')
                 ]);
-
-                const usersData = await usersRes.json();
-                const groupsData = await groupsRes.json();
-                const appsData = await appsRes.json();
 
                 allUsers = usersData.users || [];
                 allGroups = groupsData.groups || [];
@@ -1025,7 +1039,7 @@
                 renderAppsGrid();
             } catch (err) {
                 console.error('Error loading data', err);
-                showToast('โหลดข้อมูลระบบไม่สำเร็จ', true);
+                showToast(err.message || 'โหลดข้อมูลระบบไม่สำเร็จ', true);
             }
         }
 
@@ -1218,33 +1232,31 @@
         // --- App Settings Handlers ---
         async function updateAppPublic(appName, isPublic) {
             try {
-                const res = await fetch(`/api/admin/app-settings/${appName}`, {
+                await safeFetchJson(`/api/admin/app-settings/${appName}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ is_public: isPublic })
                 });
-                if (!res.ok) throw new Error('Save failed');
                 showToast(`บันทึกสถานะของ ${appName} เรียบร้อย`);
                 loadAllData();
             } catch (err) {
                 console.error(err);
-                showToast('บันทึกไม่สำเร็จ', true);
+                showToast(err.message || 'บันทึกไม่สำเร็จ', true);
             }
         }
 
         async function updateAppMinRole(appName, minRole) {
             try {
-                const res = await fetch(`/api/admin/app-settings/${appName}`, {
+                await safeFetchJson(`/api/admin/app-settings/${appName}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ min_role_required: minRole })
                 });
-                if (!res.ok) throw new Error('Save failed');
                 showToast(`อัปเดตสิทธิ์ขั้นต่ำของ ${appName} เรียบร้อย`);
                 loadAllData();
             } catch (err) {
                 console.error(err);
-                showToast('บันทึกไม่สำเร็จ', true);
+                showToast(err.message || 'บันทึกไม่สำเร็จ', true);
             }
         }
 
@@ -1309,13 +1321,11 @@
 
         async function editUser(userId) {
             try {
-                const res = await fetch(`/api/admin/users/${userId}`);
-                if (!res.ok) throw new Error('Fetch failed');
-                const user = await res.json();
+                const user = await safeFetchJson(`/api/admin/users/${userId}`);
                 openUserModal(user);
             } catch (err) {
                 console.error(err);
-                showToast('ดึงข้อมูลผู้ใช้ไม่สำเร็จ', true);
+                showToast(err.message || 'ดึงข้อมูลผู้ใช้ไม่สำเร็จ', true);
             }
         }
 
@@ -1357,13 +1367,11 @@
             const method = id ? 'PUT' : 'POST';
 
             try {
-                const res = await fetch(url, {
+                await safeFetchJson(url, {
                     method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Operation failed');
 
                 closeModal('user-modal');
                 showToast(id ? 'แก้ไขข้อมูลผู้ใช้เรียบร้อย' : 'เพิ่มผู้ใช้ใหม่เรียบร้อย');
@@ -1377,10 +1385,7 @@
         async function deleteUser(userId, username) {
             if (!confirm(`คุณต้องการลบผู้ใช้ "${username}" ออกจากระบบถาวรหรือไม่?`)) return;
             try {
-                const res = await fetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Delete failed');
-
+                await safeFetchJson(`/api/admin/users/${userId}`, { method: 'DELETE' });
                 showToast(`ลบผู้ใช้ "${username}" เรียบร้อย`);
                 loadAllData();
             } catch (err) {
@@ -1427,13 +1432,11 @@
 
         async function editGroup(groupId) {
             try {
-                const res = await fetch(`/api/admin/groups/${groupId}`);
-                if (!res.ok) throw new Error('Fetch failed');
-                const group = await res.json();
+                const group = await safeFetchJson(`/api/admin/groups/${groupId}`);
                 openGroupModal(group);
             } catch (err) {
                 console.error(err);
-                showToast('ดึงข้อมูลกลุ่มไม่สำเร็จ', true);
+                showToast(err.message || 'ดึงข้อมูลกลุ่มไม่สำเร็จ', true);
             }
         }
 
@@ -1461,13 +1464,11 @@
             const method = id ? 'PUT' : 'POST';
 
             try {
-                const res = await fetch(url, {
+                await safeFetchJson(url, {
                     method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Operation failed');
 
                 closeModal('group-modal');
                 showToast(id ? 'แก้ไขกลุ่มเรียบร้อย' : 'สร้างกลุ่มใหม่เรียบร้อย');
@@ -1481,10 +1482,7 @@
         async function deleteGroup(groupId, groupName) {
             if (!confirm(`คุณต้องการลบกลุ่ม "${groupName}" ออกจากระบบหรือไม่?`)) return;
             try {
-                const res = await fetch(`/api/admin/groups/${groupId}`, { method: 'DELETE' });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Delete failed');
-
+                await safeFetchJson(`/api/admin/groups/${groupId}`, { method: 'DELETE' });
                 showToast(`ลบกลุ่ม "${groupName}" เรียบร้อย`);
                 loadAllData();
             } catch (err) {
