@@ -26,12 +26,11 @@ class AppSpecificAuthAndTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/', response.url)
 
-    def test_central_login_renders_with_app_context(self):
+    def test_central_login_renders(self):
         admin_url = self.app_url.rstrip('/') + '/admin'
         response = self.client.get(f'/login/?next={admin_url}')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('เข้าสู่ระบบกลาง', response.content.decode('utf-8'))
-        self.assertIn('SC Quiz', response.content.decode('utf-8'))
+        self.assertIn('เข้าสู่ระบบ', response.content.decode('utf-8'))
 
     def test_admin_redirects_to_central_login(self):
         admin_url = self.app_url.rstrip('/') + '/admin'

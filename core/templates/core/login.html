@@ -297,14 +297,9 @@
     </div>
 
     <div class="login-card">
-        <div class="card-header">
+        <div class="card-header" style="margin-bottom: 1.5rem;">
             <div class="badge-icon">🔐</div>
-            <h1>เข้าสู่ระบบกลาง</h1>
-            {% if app_context_name %}
-            <p class="subtitle">เข้าสู่ระบบเพื่อใช้งาน <strong>{{ app_context_name }}</strong></p>
-            {% else %}
-            <p class="subtitle">ระบบยืนยันตัวตนส่วนกลาง (Central Authentication)</p>
-            {% endif %}
+            <h1>เข้าสู่ระบบ</h1>
         </div>
 
         {% if error_message %}
