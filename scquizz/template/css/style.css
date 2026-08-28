@@ -638,6 +638,10 @@ body.admin-theme #sky {
   cursor: pointer;
 }
 
+.board-join-mobile-toggle {
+  display: none;
+}
+
 .board-main {
   flex: 1;
   min-width: 0;
@@ -960,12 +964,54 @@ body.admin-theme #answer-msg:hover {
     justify-content: center;
   }
 
+  .board-join-mobile-toggle {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding: 9px 14px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #475569 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    margin-bottom: 2px !important;
+    font-family: inherit !important;
+  }
+
+  .board-join-mobile-toggle:hover {
+    background: #f1f5f9 !important;
+  }
+
+  .board-join-mobile-toggle .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .board-join-mobile-toggle .toggle-arrow {
+    font-size: 10px;
+    color: #94a3b8;
+    transition: transform 0.25s ease;
+  }
+
   .board-sidebar .board-join-info {
+    display: none;
     text-align: center;
     width: 100%;
-    display: flex;
     flex-direction: column;
     align-items: center;
+    padding-top: 12px;
+    border-top: 1px dashed #e2e8f0;
+    margin-top: 8px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .board-sidebar .board-join-info.is-open {
+    display: flex !important;
   }
 
   .board-sidebar .board-join-text {

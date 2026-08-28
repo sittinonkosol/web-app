@@ -345,6 +345,18 @@
     }
   };
 
+  // --- Mobile Collapsible Join Info ---
+  window.toggleMobileJoinInfo = () => {
+    const info = document.getElementById('board-join-info');
+    const toggleBtn = document.getElementById('join-info-toggle');
+    const arrow = document.getElementById('join-info-arrow');
+    if (!info) return;
+
+    const isOpen = info.classList.toggle('is-open');
+    if (toggleBtn) toggleBtn.classList.toggle('is-open', isOpen);
+    if (arrow) arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+  };
+
   document.addEventListener('click', (e) => {
     const menu = document.getElementById('user-dropdown-menu');
     const container = document.querySelector('.user-menu-container');
