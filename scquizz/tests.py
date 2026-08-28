@@ -166,4 +166,80 @@ class AppSpecificAuthAndTests(TestCase):
         self.assertEqual(data["name"], "ไม่บอกชื่อ")
         self.assertEqual(len(data["text"]), 1000)
 
+    def test_multi_session_crud_and_isolation(self):
+        sessions_url = self.app_url.rstrip('/') + '/api/sessions'
+        messages_url = self.app_url.rstrip('/') + '/api/messages'
+        polls_url = self.app_url.rstrip('/') + '/api/polls'
+
+        # 1. Create two sessions: Science Day and Freshmen Day
+        res = self.client.post(sessions_url, data=json.dumps({
+            'title': 'วันวิทยาศาสตร์ 2569',
+            'description': 'กิจกรรมวันวิทยาศาสตร์',
+            'is_active': True
+        }), content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+        science_session_id = res.json()['id']
+
+        res = self.client.post(sessions_url, data=json.dumps({
+            'title': 'วันรับน้อง ICT',
+            'description': 'กิจกรรมรับน้อง',
+            'is_active': False
+        }), content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+        welcome_session_id = res.json()['id']
+
+        # 2. Post message to Science Day session
+        res = self.client.post(messages_url, data=json.dumps({
+            'name': 'น้องวิทย์',
+            'text': 'คำถามงานวันวิทย์',
+            'session_id': science_session_id
+        }), content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+
+        # 3. Post message to Welcome Day session
+        res = self.client.post(messages_url, data=json.dumps({
+            'name': 'รุ่นพี่',
+            'text': 'ยินดีต้อนรับน้องใหม่',
+            'session_id': welcome_session_id
+        }), content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+
+        # 4. Verify message isolation
+        res_science = self.client.get(f'{messages_url}?session_id={science_session_id}')
+        self.assertEqual(res_science.status_code, 200)
+        science_msgs = res_science.json()
+        self.assertEqual(len(science_msgs), 1)
+        self.assertEqual(science_msgs[0]['text'], 'คำถามงานวันวิทย์')
+
+        res_welcome = self.client.get(f'{messages_url}?session_id={welcome_session_id}')
+        self.assertEqual(res_welcome.status_code, 200)
+        welcome_msgs = res_welcome.json()
+        self.assertEqual(len(welcome_msgs), 1)
+        self.assertEqual(welcome_msgs[0]['text'], 'ยินดีต้อนรับน้องใหม่')
+
+        # 5. Create poll in Science Day and verify poll isolation
+        res_poll = self.client.post(polls_url, data=json.dumps({
+            'question': 'ชอบฐานการทดลองไหน?',
+            'options': ['ฟิสิกส์', 'เคมี', 'คอมพิวเตอร์'],
+            'session_id': science_session_id
+        }), content_type='application/json')
+        self.assertEqual(res_poll.status_code, 200)
+
+        res_science_polls = self.client.get(f'{polls_url}?session_id={science_session_id}')
+        self.assertEqual(len(res_science_polls.json()), 1)
+
+        res_welcome_polls = self.client.get(f'{polls_url}?session_id={welcome_session_id}')
+        self.assertEqual(len(res_welcome_polls.json()), 0)
+
+        # 6. Test Activate session
+        activate_url = f'{sessions_url}/{welcome_session_id}/activate'
+        res_act = self.client.post(activate_url)
+        self.assertEqual(res_act.status_code, 200)
+
+        # 7. Test Delete session
+        del_url = f'{sessions_url}/{science_session_id}'
+        res_del = self.client.delete(del_url)
+        self.assertEqual(res_del.status_code, 200)
+
+
 

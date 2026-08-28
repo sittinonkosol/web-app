@@ -104,15 +104,22 @@
             </div>
             <div class="board-main">
                 <div class="board-header">
-                    <div class="board-header-left" style="display: flex; align-items: center; gap: 10px;">
+                    <div class="board-header-left" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <a href="{{ app_base }}/" class="btn" style="text-decoration: none; width: auto; padding: 6px 14px; font-size: 13px; background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='#e0f2fe'" onmouseout="this.style.background='#f0f9ff'">
                             <span>←</span>
                             <span>กลับสู่หน้า SC Quiz</span>
                         </a>
                         <button class="admin-tab-btn active" id="admin-tab-qa">💬 Q&A</button>
                         <button class="admin-tab-btn" id="admin-tab-poll">📊 Polls</button>
+                        <button class="admin-tab-btn" id="admin-tab-session">🎪 Sessions</button>
                     </div>
-                    <div class="board-header-right" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="board-header-right" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 5px 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                            <span style="font-size: 13px;">🎪</span>
+                            <select id="admin-session-switcher" style="background: transparent; border: none; font-size: 13px; font-weight: 600; color: #1e293b; outline: none; cursor: pointer;">
+                                <option value="">กำลังโหลด Session...</option>
+                            </select>
+                        </div>
                         {% if user and user.is_authenticated %}
                         <div style="font-size: 13.5px; color: #475569; display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 5px 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
                             <span style="font-size: 14px;">👤</span>
@@ -147,6 +154,50 @@
                         <!-- Loaded dynamically via JS -->
                     </div>
                 </div>
+
+                <!-- Admin Session Section -->
+                <div id="admin-session-section" class="hidden">
+                    <div class="session-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h2 style="margin: 0 0 4px 0; font-size: 20px; color: #1a1a1a;">เซสชันกิจกรรมทั้งหมด (Sessions)</h2>
+                            <p style="margin: 0; font-size: 13px; color: #64748b;">สร้างและสลับเซสชัน เช่น วันวิทยาศาสตร์, วันรับน้อง เพื่อแยกข้อความ Q&A และโพลอย่างอิสระ</p>
+                        </div>
+                        <button class="btn btn-primary" id="create-session-btn" style="width: auto; padding: 10px 18px; font-size: 14px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border: none; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);">+ สร้าง Session ใหม่</button>
+                    </div>
+                    <div id="admin-session-list" style="display: flex; flex-direction: column; gap: 14px;">
+                        <!-- Loaded dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CREATE SESSION MODAL -->
+        <div class="modal-overlay hidden" id="create-session-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+            <div style="background: #fff; border-radius: 18px; padding: 26px; width: 90%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); font-family: 'Outfit', 'Noto Sans Thai', sans-serif;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                    <h3 style="margin: 0; font-size: 19px; color: #0f172a; font-weight: 700;">สร้าง Session กิจกรรมใหม่</h3>
+                    <button type="button" id="close-session-modal" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">✕</button>
+                </div>
+                <form id="create-session-form">
+                    <div style="margin-bottom: 14px;">
+                        <label style="display: block; font-size: 13.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">ชื่อเซสชัน / กิจกรรม *</label>
+                        <input type="text" id="session-title-input" required placeholder="เช่น วันวิทยาศาสตร์ 2569, วันรับน้อง ICT" style="width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; font-family: inherit;">
+                    </div>
+                    <div style="margin-bottom: 14px;">
+                        <label style="display: block; font-size: 13.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">คำอธิบายเพิ่มเติม (ไม่บังคับ)</label>
+                        <textarea id="session-desc-input" placeholder="รายละเอียดหรือบันทึกของกิจกรรมนี้..." style="width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; font-family: inherit; height: 80px; resize: vertical;"></textarea>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #334155; cursor: pointer;">
+                            <input type="checkbox" id="session-active-input" checked style="width: 16px; height: 16px; cursor: pointer;">
+                            <span>เปิดใช้งานเป็น Active Session ทันที</span>
+                        </label>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" id="cancel-session-btn" style="padding: 9px 16px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; cursor: pointer; color: #475569; font-weight: 500;">ยกเลิก</button>
+                        <button type="submit" style="padding: 9px 18px; background: #6366f1; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; color: #fff; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);">สร้าง Session</button>
+                    </div>
+                </form>
             </div>
         </div>
 

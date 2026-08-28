@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 
-from .models import Message, Poll
+from .models import Message, Poll, QuizSession
 from .consumers import notify_update
 
 # --- Server-Sent Events (SSE) Pub/Sub ---
@@ -29,6 +29,19 @@ from django.contrib.auth import authenticate, login
 
 from core.permissions import require_app_access, has_app_permission, get_user_app_role
 
+# --- Session Helpers ---
+def get_or_create_active_session(session_id=None):
+    if session_id:
+        sess = QuizSession.objects.filter(id=session_id).first()
+        if sess:
+            return sess
+    sess = QuizSession.objects.filter(is_active=True).first()
+    if not sess:
+        sess = QuizSession.objects.first()
+    if not sess:
+        sess = QuizSession.objects.create(id='default_session', title='General Session', is_active=True)
+    return sess
+
 # --- HTML & Static Views ---
 def get_app_base(request):
     path = request.path.rstrip('/')
@@ -40,9 +53,12 @@ def get_app_base(request):
 
 @require_app_access('scquizz', min_role='viewer')
 def index_view(request):
+    session_id = request.GET.get('session')
+    session = get_or_create_active_session(session_id)
     return render(request, 'client/index.html', {
         'app_base': get_app_base(request),
-        'user': request.user
+        'user': request.user,
+        'current_session': session
     })
 
 def login_view(request):
@@ -89,11 +105,101 @@ def sanitize_text(val, max_len=1000):
     val = str(val).replace('\x00', '').strip()
     return val[:max_len]
 
+# --- Sessions API ---
+@csrf_exempt
+def sessions_view(request):
+    if request.method == "GET":
+        sessions = QuizSession.objects.all().order_by("-created_at")
+        if not sessions.exists():
+            get_or_create_active_session()
+            sessions = QuizSession.objects.all().order_by("-created_at")
+
+        data = [
+            {
+                "id": s.id,
+                "title": s.title,
+                "description": s.description,
+                "is_active": s.is_active,
+                "created_at": s.created_at.strftime('%Y-%m-%d %H:%M'),
+                "messages_count": s.messages.count(),
+                "polls_count": s.polls.count(),
+            }
+            for s in sessions
+        ]
+        return JsonResponse(data, safe=False)
+
+    elif request.method == "POST":
+        try:
+            body = json.loads(request.body)
+            title = sanitize_text(body.get("title", ""), max_len=200)
+            if not title:
+                return JsonResponse({"error": "กรุณาระบุชื่อ Session"}, status=400)
+            desc = sanitize_text(body.get("description", ""), max_len=1000)
+            is_active = bool(body.get("is_active", False))
+
+            session_id = f"session_{uuid.uuid4().hex[:8]}"
+            if is_active:
+                QuizSession.objects.update(is_active=False)
+
+            sess = QuizSession.objects.create(
+                id=session_id,
+                title=title,
+                description=desc,
+                is_active=is_active or not QuizSession.objects.filter(is_active=True).exists()
+            )
+            notify_update()
+            return JsonResponse({
+                "success": True,
+                "id": sess.id,
+                "title": sess.title,
+                "description": sess.description,
+                "is_active": sess.is_active,
+                "created_at": sess.created_at.strftime('%Y-%m-%d %H:%M'),
+                "messages_count": 0,
+                "polls_count": 0,
+            })
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    return JsonResponse({"error": "Method not allowed"}, status=405)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def activate_session(request, session_id):
+    sess = QuizSession.objects.filter(id=session_id).first()
+    if not sess:
+        return JsonResponse({"error": "Session not found"}, status=404)
+    QuizSession.objects.update(is_active=False)
+    sess.is_active = True
+    sess.save()
+    notify_update()
+    return JsonResponse({"success": True, "active_id": sess.id, "active_title": sess.title})
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def delete_session(request, session_id):
+    sess = QuizSession.objects.filter(id=session_id).first()
+    if not sess:
+        return JsonResponse({"error": "Session not found"}, status=404)
+    was_active = sess.is_active
+    sess.delete()
+    if was_active:
+        remaining = QuizSession.objects.first()
+        if remaining:
+            remaining.is_active = True
+            remaining.save()
+        else:
+            get_or_create_active_session()
+    notify_update()
+    return JsonResponse({"success": True})
+
 # --- Messages API ---
 @csrf_exempt
 def messages_view(request):
     if request.method == "GET":
-        messages = Message.objects.all().order_by("ts")
+        session_id = request.GET.get("session_id")
+        session = get_or_create_active_session(session_id)
+        messages = Message.objects.filter(session=session).order_by("ts")
         data = [
             {
                 "id": m.id,
@@ -101,6 +207,7 @@ def messages_view(request):
                 "text": m.text,
                 "ts": m.ts,
                 "answered": m.answered,
+                "session_id": m.session_id,
             }
             for m in messages
         ]
@@ -109,6 +216,9 @@ def messages_view(request):
     elif request.method == "POST":
         try:
             body = json.loads(request.body)
+            session_id = body.get("session_id") or request.GET.get("session_id")
+            session = get_or_create_active_session(session_id)
+
             name = sanitize_text(body.get("name", ""), max_len=60)
             if not name:
                 name = 'ไม่บอกชื่อ'
@@ -121,6 +231,7 @@ def messages_view(request):
 
             msg = Message.objects.create(
                 id=msg_id,
+                session=session,
                 name=name,
                 text=text,
                 ts=ts,
@@ -134,6 +245,7 @@ def messages_view(request):
                 "text": msg.text,
                 "ts": msg.ts,
                 "answered": msg.answered,
+                "session_id": session.id,
             })
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
@@ -173,8 +285,11 @@ def message_tts(request, msg_id):
 # --- Polls API ---
 @csrf_exempt
 def polls_view(request):
+    session_id = request.GET.get("session_id")
+    session = get_or_create_active_session(session_id)
+
     if request.method == "GET":
-        polls = Poll.objects.all()
+        polls = Poll.objects.filter(session=session)
         data = [
             {
                 "id": p.id,
@@ -184,6 +299,7 @@ def polls_view(request):
                 "active": p.active,
                 "type": p.type or "standard",
                 "scope": p.scope,
+                "session_id": p.session_id,
             }
             for p in polls
         ]
@@ -220,6 +336,7 @@ def polls_view(request):
 
             poll = Poll.objects.create(
                 id=poll_id,
+                session=session,
                 question=question,
                 options=options,
                 votes=votes,
@@ -235,7 +352,8 @@ def polls_view(request):
                 "question": poll.question,
                 "options": poll.options,
                 "type": poll.type,
-                "scope": poll.scope
+                "scope": poll.scope,
+                "session_id": session.id,
             })
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
@@ -243,7 +361,9 @@ def polls_view(request):
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
 def active_poll_view(request):
-    poll = Poll.objects.filter(active=1).first()
+    session_id = request.GET.get("session_id")
+    session = get_or_create_active_session(session_id)
+    poll = Poll.objects.filter(session=session, active=1).first()
     if not poll:
         return JsonResponse(None, safe=False)
     return JsonResponse({
@@ -253,14 +373,20 @@ def active_poll_view(request):
         "votes": poll.votes,
         "active": poll.active,
         "type": poll.type or "standard",
-        "scope": poll.scope
+        "scope": poll.scope,
+        "session_id": poll.session_id,
     })
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def activate_poll(request, poll_id):
-    Poll.objects.update(active=0)
-    Poll.objects.filter(id=poll_id).update(active=1)
+    poll = Poll.objects.filter(id=poll_id).first()
+    if not poll:
+        return JsonResponse({"error": "Poll not found"}, status=404)
+    # Deactivate other polls in this same session
+    Poll.objects.filter(session=poll.session).update(active=0)
+    poll.active = 1
+    poll.save()
     notify_update()
     return JsonResponse({"success": True})
 

@@ -51,6 +51,15 @@
                     </div>
                 </div>
 
+                {% if current_session %}
+                <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+                    <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #c7d2fe; font-size: 12.5px; font-weight: 600; padding: 4px 14px; border-radius: 99px; backdrop-filter: blur(8px);">
+                        <span>🎪</span>
+                        <span>{{ current_session.title }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Sender Tabs -->
                 <div class="sender-tabs">
                     <button class="sender-tab-btn active" id="sender-tab-qa">💬 Q&A</button>

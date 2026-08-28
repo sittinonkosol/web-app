@@ -77,14 +77,127 @@
     });
   }
 
-  // ---------- API Helpers ----------
+  // ---------- Multi-Session State & API Helpers ----------
+  let allSessions = [];
+  let currentAdminSessionId = localStorage.getItem('scquizz_admin_session_id') || '';
+  const urlParams = new URLSearchParams(window.location.search);
+  let clientSessionParam = urlParams.get('session') || '';
 
-  // ส่งข้อความผ่าน API
+  // ดึงรายการ Sessions ทั้งหมด
+  async function fetchSessions() {
+    try {
+      const res = await fetch(`${API_BASE}/api/sessions`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to fetch sessions');
+      allSessions = await res.json();
+
+      if (!currentAdminSessionId || !allSessions.some(s => s.id === currentAdminSessionId)) {
+        const activeSess = allSessions.find(s => s.is_active) || allSessions[0];
+        if (activeSess) {
+          currentAdminSessionId = activeSess.id;
+          localStorage.setItem('scquizz_admin_session_id', currentAdminSessionId);
+        }
+      }
+
+      renderSessionSwitcher();
+      renderAdminSessions();
+      updateAdminJoinQR();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function renderSessionSwitcher() {
+    const switcher = document.getElementById('admin-session-switcher');
+    if (!switcher) return;
+    switcher.innerHTML = allSessions.map(s => `
+      <option value="${s.id}" ${s.id === currentAdminSessionId ? 'selected' : ''}>
+        ${s.is_active ? '🟢 ' : '⚪ '}${escapeHtml(s.title)}
+      </option>
+    `).join('');
+  }
+
+  function renderAdminSessions() {
+    const listContainer = document.getElementById('admin-session-list');
+    if (!listContainer) return;
+
+    if (allSessions.length === 0) {
+      listContainer.innerHTML = `<div style="text-align:center;padding:40px;color:#888;">ยังไม่มี Session ในระบบ</div>`;
+      return;
+    }
+
+    listContainer.innerHTML = allSessions.map(s => {
+      const isSelected = s.id === currentAdminSessionId;
+      const isActive = s.is_active;
+      return `
+        <div style="background:#fff;border-radius:14px;padding:18px 22px;border:1px solid ${isSelected ? '#6366f1' : '#e2e8f0'};box-shadow:0 2px 10px rgba(0,0,0,0.04);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+              <h3 style="margin:0;font-size:17px;color:#0f172a;font-weight:700;">${escapeHtml(s.title)}</h3>
+              ${isActive ? '<span style="font-size:11.5px;padding:3px 10px;border-radius:99px;background:#dcfce7;color:#15803d;font-weight:700;">🟢 Active Session</span>' : '<span style="font-size:11.5px;padding:3px 10px;border-radius:99px;background:#f1f5f9;color:#64748b;font-weight:600;">⚪ Inactive</span>'}
+              ${isSelected ? '<span style="font-size:11.5px;padding:3px 10px;border-radius:99px;background:#ede9fe;color:#6366f1;font-weight:700;">กำลังดูข้อมูล</span>' : ''}
+            </div>
+            ${s.description ? `<p style="margin:0 0 6px 0;font-size:13.5px;color:#64748b;">${escapeHtml(s.description)}</p>` : ''}
+            <div style="display:flex;align-items:center;gap:14px;font-size:12.5px;color:#94a3b8;">
+              <span>💬 ${s.messages_count} ข้อความ</span>
+              <span>📊 ${s.polls_count} โพล</span>
+              <span>📅 สร้างเมื่อ: ${s.created_at}</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            ${!isSelected ? `<button class="btn btn-ghost" style="width:auto;padding:7px 14px;font-size:13px;" onclick="switchAdminSession('${s.id}')">👁️ ดูข้อมูล</button>` : ''}
+            ${!isActive ? `<button class="btn btn-primary" style="width:auto;padding:7px 14px;font-size:13px;background:#22c55e;border:none;" onclick="activateSessionAPI('${s.id}')">⚡ ตั้งเป็น Active</button>` : ''}
+            ${allSessions.length > 1 ? `<button class="btn btn-ghost btn-danger-outline" style="width:auto;padding:7px 12px;font-size:13px;" onclick="deleteSessionAPI('${s.id}', '${escapeHtml(s.title)}')">🗑️</button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.switchAdminSession = (sessionId) => {
+    currentAdminSessionId = sessionId;
+    localStorage.setItem('scquizz_admin_session_id', currentAdminSessionId);
+    renderSessionSwitcher();
+    renderAdminSessions();
+    updateAdminJoinQR();
+    fetchMessages();
+    fetchPolls();
+  };
+
+  window.activateSessionAPI = async (sessionId) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/sessions/${sessionId}/activate`, { method: 'POST' });
+      if (!res.ok) throw new Error('Activate failed');
+      showToast('สลับ Active Session เรียบร้อย');
+      await fetchSessions();
+      fetchMessages();
+      fetchPolls();
+    } catch (err) {
+      console.error(err);
+      showToast('สลับ Session ไม่สำเร็จ');
+    }
+  };
+
+  window.deleteSessionAPI = async (sessionId, title) => {
+    if (!confirm(`คุณต้องการลบ Session "${title}" และข้อความ/โพลทั้งหมดใน Session นี้ใช่หรือไม่?`)) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/sessions/${sessionId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
+      showToast('ลบ Session เรียบร้อย');
+      await fetchSessions();
+      fetchMessages();
+      fetchPolls();
+    } catch (err) {
+      console.error(err);
+      showToast('ลบ Session ไม่สำเร็จ');
+    }
+  };
+
+  // ส่งข้อความผ่าน API (ระบุ session_id)
   async function sendMessageToAPI(name, text) {
     const res = await fetch(`${API_BASE}/api/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, text })
+      body: JSON.stringify({ name, text, session_id: clientSessionParam || undefined })
     });
     if (!res.ok) throw new Error('Send failed');
   }
@@ -101,11 +214,13 @@
     if (!res.ok) throw new Error('Answer failed');
   }
 
-  // ดึงข้อความทั้งหมด
+  // ดึงข้อความทั้งหมดตาม Session
   let currentList = [];
   async function fetchMessages() {
     try {
-      const res = await fetch(`${API_BASE}/api/messages`, { cache: 'no-store' });
+      const sid = (isAdminAuthed && viewAdmin && !viewAdmin.classList.contains('hidden')) ? currentAdminSessionId : clientSessionParam;
+      const url = sid ? `${API_BASE}/api/messages?session_id=${encodeURIComponent(sid)}` : `${API_BASE}/api/messages`;
+      const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error(res.statusText);
       currentList = await res.json();
       renderAdmin();
@@ -120,7 +235,8 @@
   let activePoll = null;
   async function fetchActivePoll() {
     try {
-      const res = await fetch(`${API_BASE}/api/polls/active`, { cache: 'no-store' });
+      const url = clientSessionParam ? `${API_BASE}/api/polls/active?session_id=${encodeURIComponent(clientSessionParam)}` : `${API_BASE}/api/polls/active`;
+      const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch active poll');
       activePoll = await res.json();
       renderActivePoll();
@@ -333,7 +449,8 @@
   let allPolls = [];
   async function fetchPolls() {
     try {
-      const res = await fetch(`${API_BASE}/api/polls`, { cache: 'no-store' });
+      const url = currentAdminSessionId ? `${API_BASE}/api/polls?session_id=${encodeURIComponent(currentAdminSessionId)}` : `${API_BASE}/api/polls`;
+      const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed to fetch polls');
       allPolls = await res.json();
       renderAdminPolls();
@@ -1047,7 +1164,7 @@
         const res = await fetch(`${API_BASE}/api/polls`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, options, type: pollType, scope })
+          body: JSON.stringify({ question, options, type: pollType, scope, session_id: currentAdminSessionId || undefined })
         });
         if (!res.ok) throw new Error('Create poll failed');
         overlay.remove();
@@ -1465,24 +1582,97 @@
   // Init admin tabs
   const adminTabQa = document.getElementById('admin-tab-qa');
   const adminTabPoll = document.getElementById('admin-tab-poll');
+  const adminTabSession = document.getElementById('admin-tab-session');
   const adminQaSection = document.getElementById('admin-qa-section');
   const adminPollSection = document.getElementById('admin-poll-section');
+  const adminSessionSection = document.getElementById('admin-session-section');
+
+  function clearAdminTabs() {
+    [adminTabQa, adminTabPoll, adminTabSession].forEach(t => t && t.classList.remove('active'));
+    [adminQaSection, adminPollSection, adminSessionSection].forEach(s => s && s.classList.add('hidden'));
+  }
 
   if (adminTabQa && adminTabPoll) {
     adminTabQa.addEventListener('click', () => {
+      clearAdminTabs();
       adminTabQa.classList.add('active');
-      adminTabPoll.classList.remove('active');
       adminQaSection.classList.remove('hidden');
-      adminPollSection.classList.add('hidden');
       fetchMessages();
     });
     adminTabPoll.addEventListener('click', () => {
+      clearAdminTabs();
       adminTabPoll.classList.add('active');
-      adminTabQa.classList.remove('active');
       adminPollSection.classList.remove('hidden');
-      adminQaSection.classList.add('hidden');
       fetchPolls();
     });
+    if (adminTabSession && adminSessionSection) {
+      adminTabSession.addEventListener('click', () => {
+        clearAdminTabs();
+        adminTabSession.classList.add('active');
+        adminSessionSection.classList.remove('hidden');
+        fetchSessions();
+      });
+    }
+  }
+
+  // Bind session switcher dropdown in admin topbar
+  const sessionSwitcher = document.getElementById('admin-session-switcher');
+  if (sessionSwitcher) {
+    sessionSwitcher.addEventListener('change', (e) => {
+      switchAdminSession(e.target.value);
+    });
+  }
+
+  // Bind create session modal
+  const createSessionBtn = document.getElementById('create-session-btn');
+  const createSessionModal = document.getElementById('create-session-modal');
+  const closeSessionModal = document.getElementById('close-session-modal');
+  const cancelSessionBtn = document.getElementById('cancel-session-btn');
+  const createSessionForm = document.getElementById('create-session-form');
+
+  if (createSessionBtn && createSessionModal) {
+    createSessionBtn.addEventListener('click', () => {
+      createSessionModal.classList.remove('hidden');
+      const input = document.getElementById('session-title-input');
+      if (input) input.focus();
+    });
+    const hideSessionModal = () => {
+      createSessionModal.classList.add('hidden');
+      if (createSessionForm) createSessionForm.reset();
+    };
+    if (closeSessionModal) closeSessionModal.addEventListener('click', hideSessionModal);
+    if (cancelSessionBtn) cancelSessionBtn.addEventListener('click', hideSessionModal);
+    createSessionModal.addEventListener('click', (e) => {
+      if (e.target === createSessionModal) hideSessionModal();
+    });
+
+    if (createSessionForm) {
+      createSessionForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('session-title-input').value.trim();
+        const description = document.getElementById('session-desc-input').value.trim();
+        const is_active = document.getElementById('session-active-input').checked;
+
+        if (!title) return;
+
+        try {
+          const res = await fetch(`${API_BASE}/api/sessions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, description, is_active })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to create session');
+          showToast('สร้าง Session เรียบร้อย');
+          hideSessionModal();
+          await fetchSessions();
+          switchAdminSession(data.id);
+        } catch (err) {
+          console.error(err);
+          showToast(err.message || 'สร้าง Session ไม่สำเร็จ');
+        }
+      });
+    }
   }
 
   // Bind create poll button
@@ -1512,6 +1702,7 @@
         if (isAdminAuthed) {
           fetchPolls();
           fetchMessages();
+          fetchSessions();
         }
       };
 
@@ -1533,6 +1724,9 @@
           fetchMessages();
           fetchPolls();
           fetchActivePoll();
+          if (isAdminAuthed) {
+            fetchSessions();
+          }
         }
       };
     } catch (e) {

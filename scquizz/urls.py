@@ -12,6 +12,11 @@ urlpatterns = [
     path('admin', views.admin_view, name='admin'),
     path('admin.html', views.admin_view, name='admin_html'),
 
+    # Sessions API
+    path('api/sessions', views.sessions_view, name='sessions_api'),
+    path('api/sessions/<str:session_id>/activate', views.activate_session, name='activate_session'),
+    path('api/sessions/<str:session_id>', views.delete_session, name='delete_session'),
+
     # Messages API
     path('api/messages', views.messages_view, name='messages_api'),
     path('api/messages/ws', views.ws_probe, name='ws_probe'),
