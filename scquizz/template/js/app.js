@@ -380,7 +380,12 @@
       body: JSON.stringify({ name, text, session_id: clientSessionParam || undefined })
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Send failed');
+    if (!res.ok) {
+      const err = new Error(data.error || 'Send failed');
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
     return data;
   }
 
@@ -1603,9 +1608,14 @@
         const errMsg = err.message || 'ส่งไม่สำเร็จ ลองใหม่อีกครั้ง';
         showToast(errMsg);
         // ถ้าเป็น rate limit / cooldown (429) ให้เริ่ม cooldown ตามเวลาที่เซิร์ฟเวอร์แจ้ง
-        if (errMsg.includes('รอ') || errMsg.includes('เกิน') || errMsg.includes('ขีดจำกัด')) {
-          const match = errMsg.match(/(\d+)/);
-          const seconds = match ? parseInt(match[1], 10) : _cooldownSeconds;
+        if (err.status === 429 || errMsg.includes('รอ') || errMsg.includes('เกิน') || errMsg.includes('ขีดจำกัด')) {
+          let seconds = 0;
+          if (err.data && err.data.retry_after !== undefined) {
+            seconds = parseInt(err.data.retry_after, 10);
+          } else {
+            const match = errMsg.match(/(\d+)/);
+            seconds = match ? parseInt(match[1], 10) : _cooldownSeconds;
+          }
           startCooldown(seconds || _cooldownSeconds);
         } else if (submitBtn) {
           submitBtn.disabled = false;
