@@ -78,6 +78,12 @@ def admin_view(request):
         'user': request.user
     })
 
+def sanitize_text(val, max_len=1000):
+    if val is None:
+        return ""
+    val = str(val).replace('\x00', '').strip()
+    return val[:max_len]
+
 # --- Messages API ---
 @csrf_exempt
 def messages_view(request):
@@ -98,8 +104,13 @@ def messages_view(request):
     elif request.method == "POST":
         try:
             body = json.loads(request.body)
-            name = body.get("name", "")
-            text = body.get("text", "")
+            name = sanitize_text(body.get("name", ""), max_len=60)
+            if not name:
+                name = 'มังกรผู้เร้าใจ'
+            text = sanitize_text(body.get("text", ""), max_len=1000)
+            if not text:
+                return JsonResponse({"error": "ข้อความต้องไม่ว่างเปล่า"}, status=400)
+
             msg_id = str(uuid.uuid4())
             ts = int(time.time() * 1000)
 
@@ -144,7 +155,9 @@ def message_tts(request, msg_id):
         return JsonResponse({"error": "Message not found"}, status=404)
     
     try:
-        tts = gTTS(text=msg.text, lang='th')
+        # Limit TTS input length to avoid overload
+        tts_text = sanitize_text(msg.text, max_len=500)
+        tts = gTTS(text=tts_text, lang='th')
         fp = io.BytesIO()
         tts.write_to_fp(fp)
         fp.seek(0)
@@ -174,12 +187,30 @@ def polls_view(request):
     elif request.method == "POST":
         try:
             body = json.loads(request.body)
-            question = body.get("question", "")
-            options = body.get("options", [])
-            poll_type = body.get("type", "standard")
-            scope = body.get("scope", None)
-            poll_id = str(uuid.uuid4())
+            question = sanitize_text(body.get("question", ""), max_len=500)
+            if not question:
+                return JsonResponse({"error": "กรุณาป้อนคำถาม"}, status=400)
 
+            poll_type = body.get("type", "standard")
+            if poll_type not in ["standard", "location"]:
+                poll_type = "standard"
+
+            raw_options = body.get("options", [])
+            options = []
+            if isinstance(raw_options, list):
+                for opt in raw_options:
+                    opt_str = sanitize_text(opt, max_len=200)
+                    if opt_str:
+                        options.append(opt_str)
+
+            if poll_type == "standard" and len(options) < 2:
+                return JsonResponse({"error": "กรุณาป้อนตัวเลือกอย่างน้อย 2 ตัวเลือก"}, status=400)
+
+            scope = body.get("scope", None)
+            if scope and isinstance(scope, str):
+                scope = sanitize_text(scope, max_len=500)
+
+            poll_id = str(uuid.uuid4())
             votes = {} if poll_type == "location" else [0] * len(options)
 
             poll = Poll.objects.create(
@@ -289,7 +320,7 @@ def vote_poll(request, poll_id):
     votes = poll.votes
 
     if poll_type == "location":
-        loc = body.get("location")
+        loc = sanitize_text(body.get("location"), max_len=100)
         if not loc:
             return JsonResponse({"error": "Location value is required"}, status=400)
         

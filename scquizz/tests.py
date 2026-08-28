@@ -136,3 +136,30 @@ class AppSpecificAuthAndTests(TestCase):
         response = self.client.get(sse_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/event-stream')
+
+    def test_messages_api_sanitization_and_validation(self):
+        messages_url = self.app_url.rstrip('/') + '/api/messages'
+        
+        # Test empty message rejected
+        response = self.client.post(
+            messages_url,
+            data=json.dumps({"name": "Test", "text": "   "}),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 400)
+
+        # Test long input clipping & default name
+        payload = {
+            "name": "   ",
+            "text": "A" * 1500
+        }
+        response = self.client.post(
+            messages_url,
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["name"], "มังกรผู้เร้าใจ")
+        self.assertEqual(len(data["text"]), 1000)
+
