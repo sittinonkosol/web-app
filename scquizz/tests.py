@@ -1,11 +1,14 @@
 import json
+import uuid
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from scquizz.models import Message, Poll, QuizSession
 from core.views import get_mounted_app_url
 
 class AppSpecificAuthAndTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.client = Client()
         self.app_url = get_mounted_app_url('scquizz')
         # Create test superuser in central User database
@@ -255,6 +258,108 @@ class AppSpecificAuthAndTests(TestCase):
         res_index = self.client.get(self.app_url)
         self.assertEqual(res_index.status_code, 200)
         self.assertIn('ไม่มี Session ในขณะนี้', res_index.content.decode('utf-8'))
+
+    def test_profanity_filter(self):
+        """Test blocking messages containing Thai or English profanity"""
+        self.client.login(username='superadmin', password='superpassword123')
+        msg_url = f'{self.app_url}api/messages'
+
+        # Test Thai profanity
+        res = self.client.post(msg_url, data=json.dumps({
+            'name': 'น้องทดสอบ',
+            'text': 'ข้อความนี้มี ควย อยู่ข้างใน',
+            'session_id': str(self.test_session.id)
+        }), content_type='application/json')
+        self.assertEqual(res.status_code, 400)
+        self.assertIn('ไม่เหมาะสม', res.json().get('error', ''))
+
+        # Test English profanity in name
+        res2 = self.client.post(msg_url, data=json.dumps({
+            'name': 'fuckyou',
+            'text': 'สวัสดีครับอาจารย์',
+            'session_id': str(self.test_session.id)
+        }), content_type='application/json')
+        self.assertEqual(res2.status_code, 400)
+        self.assertIn('ไม่เหมาะสม', res2.json().get('error', ''))
+
+        # Test clean message passes
+        res3 = self.client.post(msg_url, data=json.dumps({
+            'name': 'นักศึกษาคนดี',
+            'text': 'สอบถามเรื่องเนื้อหาการบรรยายวันนี้ครับ',
+            'session_id': str(self.test_session.id)
+        }), content_type='application/json')
+        self.assertEqual(res3.status_code, 200)
+
+    def test_pagination(self):
+        """Test pagination and total count in messages API"""
+        self.client.login(username='superadmin', password='superpassword123')
+        msg_url = f'{self.app_url}api/messages'
+
+        for i in range(15):
+            Message.objects.create(
+                id=str(uuid.uuid4()),
+                session=self.test_session,
+                name=f'ผู้ใช้คนที่ {i+1}',
+                text=f'คำถามหมายเลข {i+1}',
+                ts=1000 + i,
+                answered=0
+            )
+
+        # Request first page limit=5 offset=0
+        res = self.client.get(f'{msg_url}?session_id={self.test_session.id}&limit=5&offset=0')
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertEqual(len(data), 5)
+        self.assertEqual(res.headers.get('X-Total-Count'), '15')
+
+        # Request second page limit=5 offset=5
+        res2 = self.client.get(f'{msg_url}?session_id={self.test_session.id}&limit=5&offset=5')
+        self.assertEqual(res2.status_code, 200)
+        data2 = res2.json()
+        self.assertEqual(len(data2), 5)
+
+    def test_session_settings_and_rate_limit(self):
+        """Test updating rate limit and cooldown settings via PATCH"""
+        self.client.login(username='superadmin', password='superpassword123')
+        settings_url = f'{self.app_url}api/sessions/{self.test_session.id}/settings'
+
+        res = self.client.patch(settings_url, data=json.dumps({
+            'rate_limit_per_minute': 5,
+            'cooldown_seconds': 30
+        }), content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()['rate_limit_per_minute'], 5)
+        self.assertEqual(res.json()['cooldown_seconds'], 30)
+
+        # Verify DB updated
+        self.test_session.refresh_from_db()
+        self.assertEqual(self.test_session.rate_limit_per_minute, 5)
+        self.assertEqual(self.test_session.cooldown_seconds, 30)
+
+    def test_rate_limit_middleware(self):
+        """Test rate limit middleware blocks spamming messages"""
+        self.client.login(username='superadmin', password='superpassword123')
+        msg_url = f'{self.app_url}api/messages'
+
+        self.test_session.rate_limit_per_minute = 3
+        self.test_session.save()
+
+        # Send 3 messages (should succeed)
+        for i in range(3):
+            self.client.post(msg_url, data=json.dumps({
+                'name': f'Tester {i}',
+                'text': f'Clean message {i}',
+                'session_id': str(self.test_session.id)
+            }), content_type='application/json')
+
+        # 4th message should get 429 Too Many Requests
+        res = self.client.post(msg_url, data=json.dumps({
+            'name': 'Spammer',
+            'text': 'Spam message',
+            'session_id': str(self.test_session.id)
+        }), content_type='application/json')
+        self.assertEqual(res.status_code, 429)
+        self.assertIn('ขีดจำกัด', res.json().get('error', ''))
 
 
 

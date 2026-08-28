@@ -3,15 +3,36 @@ import uuid
 import time
 import io
 import asyncio
+import logging
 from gtts import gTTS
+from tnprofanity.tnprofanity import Profane
 
 from django.http import JsonResponse, HttpResponse, FileResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
+from django.core.paginator import Paginator
 
 from .models import Message, Poll, QuizSession
 from .consumers import notify_update
+
+logger = logging.getLogger('scquizz')
+
+# --- Profanity Filter ---
+EXTRA_BLACKLIST = [
+    'fuck', 'shit', 'bitch', 'asshole', 'dick', 'pussy', 'bastard', 'cunt', 'bullshit',
+    'เย็ด', 'เหี้ย', 'สัส', 'ควย', 'มึง', 'กู', 'ห่า', 'ดอกทอง', 'ระยำ', 'จัญไร', 'ชาติหมา'
+]
+
+def check_profanity(text):
+    if not text:
+        return False
+    try:
+        res = Profane.check(str(text), blacklist=EXTRA_BLACKLIST)
+        return len(res) > 0
+    except Exception:
+        lower = str(text).lower()
+        return any(w in lower for w in EXTRA_BLACKLIST)
 
 # --- Server-Sent Events (SSE) Pub/Sub ---
 _sse_subscribers = set()
@@ -119,6 +140,8 @@ def sessions_view(request):
                 "created_at": s.created_at.strftime('%Y-%m-%d %H:%M'),
                 "messages_count": s.messages.count(),
                 "polls_count": s.polls.count(),
+                "rate_limit_per_minute": s.rate_limit_per_minute,
+                "cooldown_seconds": s.cooldown_seconds,
             }
             for s in sessions
         ]
@@ -143,6 +166,7 @@ def sessions_view(request):
                 description=desc,
                 is_active=is_active or not QuizSession.objects.filter(is_active=True).exists()
             )
+            logger.info(f"Session created: {sess.id!r} title={sess.title!r}")
             notify_update()
             return JsonResponse({
                 "success": True,
@@ -153,11 +177,38 @@ def sessions_view(request):
                 "created_at": sess.created_at.strftime('%Y-%m-%d %H:%M'),
                 "messages_count": 0,
                 "polls_count": 0,
+                "rate_limit_per_minute": sess.rate_limit_per_minute,
+                "cooldown_seconds": sess.cooldown_seconds,
             })
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
+
+@csrf_exempt
+@require_http_methods(["PATCH"])
+def update_session_settings(request, session_id):
+    """อัปเดตการตั้งค่า Rate Limit และ Cooldown ของ Session"""
+    sess = QuizSession.objects.filter(id=session_id).first()
+    if not sess:
+        return JsonResponse({"error": "Session not found"}, status=404)
+    try:
+        body = json.loads(request.body)
+        if 'rate_limit_per_minute' in body:
+            val = int(body['rate_limit_per_minute'])
+            sess.rate_limit_per_minute = max(0, val)
+        if 'cooldown_seconds' in body:
+            val = int(body['cooldown_seconds'])
+            sess.cooldown_seconds = max(0, val)
+        sess.save()
+        logger.info(f"Session settings updated: {sess.id!r} rate={sess.rate_limit_per_minute}/min cooldown={sess.cooldown_seconds}s")
+        return JsonResponse({
+            "success": True,
+            "rate_limit_per_minute": sess.rate_limit_per_minute,
+            "cooldown_seconds": sess.cooldown_seconds,
+        })
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -178,6 +229,7 @@ def delete_session(request, session_id):
     if not sess:
         return JsonResponse({"error": "Session not found"}, status=404)
     was_active = sess.is_active
+    logger.info(f"Session deleted: {sess.id!r} title={sess.title!r}")
     sess.delete()
     if was_active:
         remaining = QuizSession.objects.first()
@@ -195,7 +247,17 @@ def messages_view(request):
         session = get_active_session(session_id)
         if not session:
             return JsonResponse([], safe=False)
-        messages = Message.objects.filter(session=session).order_by("ts")
+
+        # Pagination: ?limit=50&offset=0
+        try:
+            limit = min(int(request.GET.get("limit", 50)), 200)
+            offset = max(int(request.GET.get("offset", 0)), 0)
+        except (ValueError, TypeError):
+            limit, offset = 50, 0
+
+        messages_qs = Message.objects.filter(session=session).order_by("ts")
+        total = messages_qs.count()
+        messages = messages_qs[offset:offset + limit]
         data = [
             {
                 "id": m.id,
@@ -207,7 +269,9 @@ def messages_view(request):
             }
             for m in messages
         ]
-        return JsonResponse(data, safe=False)
+        resp = JsonResponse(data, safe=False)
+        resp['X-Total-Count'] = str(total)
+        return resp
 
     elif request.method == "POST":
         try:
@@ -224,6 +288,11 @@ def messages_view(request):
             if not text:
                 return JsonResponse({"error": "ข้อความต้องไม่ว่างเปล่า"}, status=400)
 
+            # Profanity Filter
+            if check_profanity(name) or check_profanity(text):
+                logger.warning(f"Profanity blocked: name={name[:30]!r}")
+                return JsonResponse({"error": "ข้อความมีเนื้อหาที่ไม่เหมาะสม กรุณาแก้ไขก่อนส่ง"}, status=400)
+
             msg_id = str(uuid.uuid4())
             ts = int(time.time() * 1000)
 
@@ -236,16 +305,21 @@ def messages_view(request):
                 answered=0
             )
 
+            logger.info(f"Message posted: session={session.id!r} name={name!r}")
             notify_update()
-            return JsonResponse({
+            resp = JsonResponse({
                 "id": msg.id,
                 "name": msg.name,
                 "text": msg.text,
                 "ts": msg.ts,
                 "answered": msg.answered,
                 "session_id": session.id,
+                "cooldown_seconds": session.cooldown_seconds,
             })
+            resp['X-Cooldown-Seconds'] = str(session.cooldown_seconds)
+            return resp
         except Exception as e:
+            logger.error(f"messages_view POST error: {e}")
             return JsonResponse({"error": str(e)}, status=400)
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
@@ -330,9 +404,11 @@ def polls_view(request):
             if poll_type == "standard" and len(options) < 2:
                 return JsonResponse({"error": "กรุณาป้อนตัวเลือกอย่างน้อย 2 ตัวเลือก"}, status=400)
 
-            scope = body.get("scope", None)
+            scope = body.get("scope", "")
             if scope and isinstance(scope, str):
-                scope = sanitize_text(scope, max_len=500)
+                scope = sanitize_text(scope, max_len=100)
+            else:
+                scope = ""
 
             poll_id = str(uuid.uuid4())
             votes = {} if poll_type == "location" else [0] * len(options)

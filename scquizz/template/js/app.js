@@ -39,6 +39,37 @@
   }
 
   let activeAudioCue = null;
+  let isTTSMuted = localStorage.getItem('scquizz_tts_muted') === 'true';
+
+  function updateMuteButtonUI() {
+    const btn = document.getElementById('tts-mute-btn');
+    if (!btn) return;
+    if (isTTSMuted) {
+      btn.innerHTML = '<span class="mute-text">เสียงอ่าน: ปิด</span>';
+      btn.title = 'คลิกเพื่อเปิดเสียงอ่านข้อความ (TTS)';
+      btn.style.background = '#fef2f2';
+      btn.style.color = '#ef4444';
+      btn.style.borderColor = '#fecaca';
+    } else {
+      btn.innerHTML = '<span class="mute-text">เสียงอ่าน: เปิด</span>';
+      btn.title = 'คลิกเพื่อปิดเสียงอ่านข้อความ (TTS)';
+      btn.style.background = '#f0fdf4';
+      btn.style.color = '#16a34a';
+      btn.style.borderColor = '#bbf7d0';
+    }
+  }
+
+  window.toggleTTSMute = () => {
+    isTTSMuted = !isTTSMuted;
+    localStorage.setItem('scquizz_tts_muted', isTTSMuted ? 'true' : 'false');
+    if (isTTSMuted) {
+      stopMessageCue();
+      showToast('ปิดเสียงอ่านข้อความ (TTS) เรียบร้อย');
+    } else {
+      showToast('เปิดเสียงอ่านข้อความ (TTS) เรียบร้อย');
+    }
+    updateMuteButtonUI();
+  };
 
   function stopMessageCue() {
     if (activeAudioCue) {
@@ -48,7 +79,7 @@
   }
 
   function playMessageCue(text, msgId) {
-    if (!text || !msgId) return;
+    if (!text || !msgId || isTTSMuted) return;
 
     stopMessageCue();
 
@@ -57,7 +88,7 @@
     activeAudioCue = audio;
 
     function speakText() {
-      if (activeAudioCue !== audio) return;
+      if (activeAudioCue !== audio || isTTSMuted) return;
 
       const ttsAudio = new Audio(`${API_BASE}/api/messages/${msgId}/tts`);
       activeAudioCue = ttsAudio;
@@ -127,7 +158,6 @@
     if (allSessions.length === 0) {
       listContainer.innerHTML = `
         <div style="text-align:center;padding:48px 20px;background:#fff;border-radius:14px;border:1px dashed #cbd5e1;">
-          <span style="font-size:40px;display:block;margin-bottom:12px;">🎪</span>
           <h4 style="margin:0 0 6px 0;font-size:16px;font-weight:700;color:#334155;">ยังไม่มี Session ในระบบ</h4>
           <p style="margin:0;font-size:13.5px;color:#94a3b8;">คลิกปุ่ม "+ สร้าง Session ใหม่" ด้านบนเพื่อเริ่มต้นใช้งาน</p>
         </div>
@@ -138,25 +168,28 @@
     listContainer.innerHTML = allSessions.map(s => {
       const isSelected = s.id === currentAdminSessionId;
       const isActive = s.is_active;
+      const cooldownInfo = `${s.rate_limit_per_minute || 10}/นาที · Cooldown ${s.cooldown_seconds || 60}s`;
       return `
-        <div style="background:#fff;border-radius:14px;padding:18px 22px;border:1px solid ${isSelected ? '#6366f1' : '#e2e8f0'};box-shadow:0 2px 10px rgba(0,0,0,0.04);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+        <div style="background:#fff;border-radius:14px;padding:18px 22px;border:1px solid ${isSelected ? '#6366f1' : '#e2e8f0'};box-shadow:${isSelected ? '0 4px 14px rgba(99,102,241,0.12)' : '0 2px 10px rgba(0,0,0,0.04)'};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
           <div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
               <h3 style="margin:0;font-size:17px;color:#0f172a;font-weight:700;">${escapeHtml(s.title)}</h3>
-              ${isActive ? '<span style="font-size:11.5px;padding:3px 10px;border-radius:99px;background:#dcfce7;color:#15803d;font-weight:700;">🟢 Active Session</span>' : '<span style="font-size:11.5px;padding:3px 10px;border-radius:99px;background:#f1f5f9;color:#64748b;font-weight:600;">⚪ Inactive</span>'}
-              ${isSelected ? '<span style="font-size:11.5px;padding:3px 10px;border-radius:99px;background:#ede9fe;color:#6366f1;font-weight:700;">กำลังดูข้อมูล</span>' : ''}
+              ${isActive ? '<span style="font-size:12px;padding:3px 10px;border-radius:99px;background:#dcfce7;color:#15803d;font-weight:700;display:inline-flex;align-items:center;gap:4px;">Active</span>' : '<span style="font-size:12px;padding:3px 10px;border-radius:99px;background:#f1f5f9;color:#64748b;font-weight:600;">Inactive</span>'}
+              ${isSelected ? '<span style="font-size:12px;padding:3px 10px;border-radius:99px;background:#ede9fe;color:#6366f1;font-weight:700;">กำลังดูข้อมูล</span>' : ''}
             </div>
             ${s.description ? `<p style="margin:0 0 6px 0;font-size:13.5px;color:#64748b;">${escapeHtml(s.description)}</p>` : ''}
-            <div style="display:flex;align-items:center;gap:14px;font-size:12.5px;color:#94a3b8;">
-              <span>💬 ${s.messages_count} ข้อความ</span>
-              <span>📊 ${s.polls_count} โพล</span>
-              <span>📅 สร้างเมื่อ: ${s.created_at}</span>
+            <div style="display:flex;align-items:center;gap:14px;font-size:12.5px;color:#94a3b8;flex-wrap:wrap;">
+              <span>${s.messages_count} ข้อความ</span>
+              <span>${s.polls_count} โพล</span>
+              <span>สร้างเมื่อ: ${s.created_at}</span>
+              <span title="Rate Limit">Rate Limit: ${cooldownInfo}</span>
             </div>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            ${!isSelected ? `<button class="btn btn-ghost" style="width:auto;padding:7px 14px;font-size:13px;" onclick="switchAdminSession('${s.id}')">👁️ ดูข้อมูล</button>` : ''}
-            ${!isActive ? `<button class="btn btn-primary" style="width:auto;padding:7px 14px;font-size:13px;background:#22c55e;border:none;" onclick="activateSessionAPI('${s.id}')">⚡ ตั้งเป็น Active</button>` : ''}
-            <button class="btn btn-ghost btn-danger-outline" style="width:auto;padding:7px 12px;font-size:13px;" onclick="deleteSessionAPI('${s.id}', '${escapeHtml(s.title)}')">🗑️ ลบ</button>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            ${!isActive ? `<button class="btn btn-primary" style="width:auto;padding:7px 14px;font-size:13px;background:linear-gradient(135deg, #10b981 0%, #059669 100%);border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 6px rgba(16,185,129,0.3);" onclick="activateSessionAPI('${s.id}')">ตั้งเป็น Active</button>` : ''}
+            ${!isSelected ? `<button class="btn btn-ghost" style="width:auto;padding:7px 14px;font-size:13px;border:1px solid #cbd5e1;border-radius:8px;" onclick="switchAdminSession('${s.id}')">ดูข้อมูล</button>` : ''}
+            <button class="btn btn-ghost" style="width:auto;padding:7px 12px;font-size:13px;border:1px solid #e0e7ff;color:#6366f1;border-radius:8px;" onclick="openRateLimitSettings('${s.id}', '${escapeHtml(s.title)}', ${s.rate_limit_per_minute || 10}, ${s.cooldown_seconds || 60})">ตั้งค่า Rate Limit</button>
+            <button class="btn btn-ghost btn-danger-outline" style="width:auto;padding:7px 12px;font-size:13px;border-radius:8px;" onclick="deleteSessionAPI('${s.id}', '${escapeHtml(s.title)}')">ลบ</button>
           </div>
         </div>
       `;
@@ -177,7 +210,9 @@
     try {
       const res = await fetch(`${API_BASE}/api/sessions/${sessionId}/activate`, { method: 'POST' });
       if (!res.ok) throw new Error('Activate failed');
-      showToast('สลับ Active Session เรียบร้อย');
+      currentAdminSessionId = sessionId;
+      localStorage.setItem('scquizz_admin_session_id', currentAdminSessionId);
+      showToast('เปิดใช้งานและสลับ Active Session เรียบร้อย');
       await fetchSessions();
       fetchMessages();
       fetchPolls();
@@ -186,6 +221,7 @@
       showToast('สลับ Session ไม่สำเร็จ');
     }
   };
+
 
   function openConfirmDeleteSessionDialog(sessionId, title) {
     const overlay = document.createElement('div');
@@ -232,6 +268,97 @@
     openConfirmDeleteSessionDialog(sessionId, title);
   };
 
+  // --- Rate Limit Settings Modal ---
+  let _rateLimitSessionId = null;
+
+  window.openRateLimitSettings = (sessionId, title, currentLimit, currentCooldown) => {
+    _rateLimitSessionId = sessionId;
+    const modal = document.getElementById('ratelimit-modal');
+    const label = document.getElementById('ratelimit-session-label');
+    const limitInput = document.getElementById('ratelimit-limit-input');
+    const cooldownInput = document.getElementById('ratelimit-cooldown-input');
+    if (!modal) return;
+    if (label) label.textContent = `Session: ${title}`;
+    if (limitInput) limitInput.value = currentLimit;
+    if (cooldownInput) cooldownInput.value = currentCooldown;
+    modal.classList.remove('hidden');
+  };
+
+  const rateLimitModal = document.getElementById('ratelimit-modal');
+  const closeRateLimitBtn = document.getElementById('close-ratelimit-modal');
+  const cancelRateLimitBtn = document.getElementById('cancel-ratelimit-btn');
+  const rateLimitForm = document.getElementById('ratelimit-form');
+
+  function closeRateLimitModal() {
+    if (rateLimitModal) rateLimitModal.classList.add('hidden');
+    _rateLimitSessionId = null;
+  }
+
+  if (closeRateLimitBtn) closeRateLimitBtn.addEventListener('click', closeRateLimitModal);
+  if (cancelRateLimitBtn) cancelRateLimitBtn.addEventListener('click', closeRateLimitModal);
+  if (rateLimitModal) rateLimitModal.addEventListener('click', (e) => { if (e.target === rateLimitModal) closeRateLimitModal(); });
+
+  if (rateLimitForm) {
+    rateLimitForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!_rateLimitSessionId) return;
+      const limitVal = parseInt(document.getElementById('ratelimit-limit-input').value, 10);
+      const cooldownVal = parseInt(document.getElementById('ratelimit-cooldown-input').value, 10);
+      if (isNaN(limitVal) || isNaN(cooldownVal)) { showToast('กรุณากรอกตัวเลขให้ถูกต้อง'); return; }
+      try {
+        const saveBtn = document.getElementById('save-ratelimit-btn');
+        if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'กำลังบันทึก...'; }
+        const res = await fetch(`${API_BASE}/api/sessions/${_rateLimitSessionId}/settings`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rate_limit_per_minute: limitVal, cooldown_seconds: cooldownVal })
+        });
+        if (!res.ok) throw new Error('Save failed');
+        showToast('บันทึกการตั้งค่าเรียบร้อย');
+        closeRateLimitModal();
+        await fetchSessions();
+      } catch (err) {
+        console.error(err);
+        showToast('บันทึกไม่สำเร็จ');
+      } finally {
+        const saveBtn = document.getElementById('save-ratelimit-btn');
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'บันทึก'; }
+      }
+    });
+  }
+
+  // --- User Account Dropdown Menu ---
+  window.toggleUserDropdown = (event) => {
+    if (event && event.stopPropagation) event.stopPropagation();
+    const menu = document.getElementById('user-dropdown-menu');
+    const arrow = document.getElementById('user-menu-arrow');
+    if (!menu) return;
+    const isHidden = menu.style.display === 'none' || menu.classList.contains('hidden');
+    if (isHidden) {
+      menu.style.display = 'block';
+      menu.classList.remove('hidden');
+      if (arrow) arrow.style.transform = 'rotate(180deg)';
+    } else {
+      menu.style.display = 'none';
+      menu.classList.add('hidden');
+      if (arrow) arrow.style.transform = 'rotate(0deg)';
+    }
+  };
+
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('user-dropdown-menu');
+    const container = document.querySelector('.user-menu-container');
+    if (menu && (menu.style.display === 'block' || !menu.classList.contains('hidden'))) {
+      if (!container || !container.contains(e.target)) {
+        menu.style.display = 'none';
+        menu.classList.add('hidden');
+        const arrow = document.getElementById('user-menu-arrow');
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+      }
+    }
+  });
+
+
   // ส่งข้อความผ่าน API (ระบุ session_id)
   async function sendMessageToAPI(name, text) {
     const res = await fetch(`${API_BASE}/api/messages`, {
@@ -239,7 +366,9 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, text, session_id: clientSessionParam || undefined })
     });
-    if (!res.ok) throw new Error('Send failed');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Send failed');
+    return data;
   }
 
   // ลบข้อความผ่าน API
@@ -1365,9 +1494,42 @@
     textInput.addEventListener('input', updateFormState);
   }
 
+  // Cooldown state สำหรับปุ่มส่งข้อความ
+  let _cooldownTimer = null;
+  let _cooldownSeconds = 60; // ค่า default จะถูก override โดย API response
+
+  function startCooldown(seconds) {
+    if (_cooldownTimer) clearInterval(_cooldownTimer);
+    let remaining = seconds;
+    submitBtn.disabled = true;
+    submitBtn.style.transition = 'opacity 0.5s, background 0.5s, box-shadow 0.5s';
+    submitBtn.style.opacity = '0.4';
+    submitBtn.style.boxShadow = 'none';
+    submitBtn.textContent = `ส่งอีกครั้งใน ${remaining}s`;
+    _cooldownTimer = setInterval(() => {
+      remaining--;
+      const progress = 1 - remaining / seconds;
+      submitBtn.style.opacity = String(0.4 + 0.6 * progress);
+      submitBtn.style.boxShadow = progress > 0.5
+        ? `0 0 ${Math.round(12 * progress)}px rgba(99,102,241,${(progress - 0.5) * 1.2})`
+        : 'none';
+      if (remaining > 0) {
+        submitBtn.textContent = `ส่งอีกครั้งใน ${remaining}s`;
+      } else {
+        clearInterval(_cooldownTimer);
+        _cooldownTimer = null;
+        submitBtn.disabled = textInput.value.trim().length === 0;
+        submitBtn.textContent = 'ปล่อยข้อความ';
+        submitBtn.style.opacity = '1';
+        submitBtn.style.boxShadow = '';
+      }
+    }, 1000);
+  }
+
   if (sendForm) {
     sendForm.addEventListener('submit', async function (e) {
       e.preventDefault();
+      if (_cooldownTimer) return; // ยังอยู่ใน cooldown
       const name = nameInput.value.trim() || 'มังกรผู้เร้าใจ';
       const text = textInput.value.trim();
       if (!text) return;
@@ -1376,10 +1538,14 @@
       submitBtn.textContent = 'กำลังปล่อย…';
 
       try {
-        await sendMessageToAPI(name, text);
+        const data = await sendMessageToAPI(name, text);
         if (isAdminAuthed && !viewAdmin.classList.contains('hidden')) {
           refreshRealtimeData(true);
         }
+        // อ่าน cooldown จาก API response
+        const cooldown = data.cooldown_seconds || _cooldownSeconds;
+        _cooldownSeconds = cooldown;
+
         // Success screen
         sendCard.innerHTML = `
           <div style="text-align:center;padding:20px 0;">
@@ -1394,9 +1560,15 @@
         });
       } catch (err) {
         console.error('send error', err);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'ปล่อยข้อความ';
-        showToast('ส่งไม่สำเร็จ ลองใหม่อีกครั้ง');
+        const errMsg = err.message || 'ส่งไม่สำเร็จ ลองใหม่อีกครั้ง';
+        showToast(errMsg);
+        // ถ้าเป็น rate limit (429) ให้เริ่ม cooldown ด้วย
+        if (errMsg.includes('รอ') || errMsg.includes('เกิน') || errMsg.includes('ขีดจำกัด')) {
+          startCooldown(_cooldownSeconds);
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'ปล่อยข้อความ';
+        }
       }
     });
   }
@@ -1409,7 +1581,7 @@
     const list = currentList;
 
     const headerCount = document.getElementById('header-count');
-    if (headerCount) headerCount.textContent = `${list.length} 💬`;
+    if (headerCount) headerCount.textContent = `${list.length} ข้อความ`;
 
     if (list.length === 0) {
       if (emptyState) emptyState.classList.remove('hidden');
@@ -1426,13 +1598,13 @@
     // Render Unanswered messages
     unanswered.forEach((m, i) => {
       if (i === 1) {
-        html += '<div style="text-align:center; font-size:13px; color:#777; margin: 10px 0;">Latest question</div>';
+        html += '<div style="text-align:center; font-size:13px; color:#777; margin: 10px 0;">คำถามล่าสุด</div>';
       }
       const isHighlight = i === 0 ? 'highlight-card' : '';
       html += `
       <div class="note-card board-card ${isHighlight}" data-id="${m.id}">
         <div class="note-top board-top">
-          <span class="board-author">👤 ${escapeHtml(m.name)}</span>
+          <span class="board-author">${escapeHtml(m.name)}</span>
           <span class="board-time mono">${formatTime(m.ts)}</span>
         </div>
         <div class="note-preview board-text">${escapeHtml(m.text)}</div>
@@ -1447,7 +1619,7 @@
         html += `
         <div class="note-card board-card answered-card" data-id="${m.id}">
           <div class="note-top board-top">
-            <span class="board-author">👤 ${escapeHtml(m.name)} (ตอบแล้ว)</span>
+            <span class="board-author">${escapeHtml(m.name)} (ตอบแล้ว)</span>
             <span class="board-time mono">${formatTime(m.ts)}</span>
           </div>
           <div class="note-preview board-text">${escapeHtml(m.text)}</div>
@@ -1781,5 +1953,6 @@
   startRealtimeListener();
   route();
   updateFormState();
+  updateMuteButtonUI();
 
 })();

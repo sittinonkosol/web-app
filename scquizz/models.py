@@ -7,6 +7,9 @@ class QuizSession(models.Model):
     description = models.TextField(blank=True, default='')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    # Rate limiting settings per session
+    rate_limit_per_minute = models.PositiveIntegerField(default=10, help_text='จำนวนข้อความสูงสุดต่อ IP ต่อนาที (0 = ไม่จำกัด)')
+    cooldown_seconds = models.PositiveIntegerField(default=60, help_text='เวลารอระหว่างข้อความ (วินาที) ที่แสดงใน UI')
 
     class Meta:
         db_table = 'quiz_sessions'
@@ -39,7 +42,7 @@ class Poll(models.Model):
     votes = models.JSONField(default=list)
     active = models.IntegerField(default=0)
     type = models.CharField(max_length=50, default='standard')
-    scope = models.CharField(max_length=100, null=True, blank=True)
+    scope = models.CharField(max_length=100, blank=True, default='')
 
     class Meta:
         db_table = 'polls'

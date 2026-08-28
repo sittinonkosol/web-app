@@ -22,8 +22,8 @@
             <div class="send-card" id="send-card">
                 <!-- Sender Tabs -->
                 <div class="sender-tabs">
-                    <button class="sender-tab-btn active" id="sender-tab-qa">💬 Q&A</button>
-                    <button class="sender-tab-btn" id="sender-tab-poll">📊 Poll</button>
+                    <button class="sender-tab-btn active" id="sender-tab-qa">Q&A</button>
+                    <button class="sender-tab-btn" id="sender-tab-poll">Poll</button>
                 </div>
 
                 <!-- QA Tab Content -->
@@ -109,40 +109,54 @@
                             <span>←</span>
                             <span>กลับสู่หน้า SC Quiz</span>
                         </a>
-                        <button class="admin-tab-btn active" id="admin-tab-qa" onclick="switchAdminTab('qa')">💬 Q&A</button>
-                        <button class="admin-tab-btn" id="admin-tab-poll" onclick="switchAdminTab('poll')">📊 Polls</button>
-                        <button class="admin-tab-btn" id="admin-tab-session" onclick="switchAdminTab('session')">🎪 Sessions</button>
+                        <button class="admin-tab-btn active" id="admin-tab-qa" onclick="switchAdminTab('qa')">Q&A</button>
+                        <button class="admin-tab-btn" id="admin-tab-poll" onclick="switchAdminTab('poll')">Polls</button>
+                        <button class="admin-tab-btn" id="admin-tab-session" onclick="switchAdminTab('session')">Sessions</button>
                     </div>
                     <div class="board-header-right" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <div style="display: flex; align-items: center; background: #f8fafc; padding: 5px 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                            <select id="admin-session-switcher" style="background: transparent; border: none; font-size: 13px; font-weight: 600; color: #1e293b; outline: none; cursor: pointer;">
-                                {% for s in sessions %}
-                                <option value="{{ s.id }}" {% if s.is_active %}selected{% endif %}>
-                                    {{ s.title }}
-                                </option>
-                                {% empty %}
-                                <option value="">ไม่มี Session</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <!-- 1. จำนวนข้อความ -->
+                        <span class="board-count" id="header-count">0 ข้อความ</span>
+
+                        <!-- 2. เปิดปิดเสียงอ่าน (TTS) -->
+                        <button type="button" id="tts-mute-btn" onclick="toggleTTSMute()" class="btn" style="text-decoration: none; width: auto; padding: 6px 12px; font-size: 13px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; transition: all 0.2s; border: 1px solid #bbf7d0; background: #f0fdf4; color: #16a34a;" title="คลิกเพื่อปิด/เปิดเสียงอ่านข้อความ (TTS)">
+                            <span class="mute-text">เสียงอ่าน: เปิด</span>
+                        </button>
+
+                        <!-- 3. Username พร้อม Account Dropdown Menu -->
                         {% if user and user.is_authenticated %}
-                        <div style="font-size: 13.5px; color: #475569; display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 5px 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <span style="font-size: 14px;">👤</span>
-                            <strong>{{ user.username }}</strong>
+                        <div class="user-menu-container" style="position: relative; display: inline-block;">
+                            <button type="button" id="user-menu-btn" onclick="toggleUserDropdown(event)" style="border: 1px solid #cbd5e1; background: #fff; padding: 6px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; font-size: 13.5px; color: #334155; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: all 0.2s; font-family: inherit;">
+                                <span>{{ user.username }}</span>
+                                <span style="font-size: 10px; color: #94a3b8; transition: transform 0.2s;" id="user-menu-arrow">▼</span>
+                            </button>
+                            <div id="user-dropdown-menu" style="display: none; position: absolute; right: 0; top: calc(100% + 8px); background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; min-width: 220px; z-index: 99999;">
+                                <div style="padding: 10px 16px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                                    <div style="font-size: 10.5px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">เข้าสู่ระบบในชื่อ</div>
+                                    <div style="font-size: 13.5px; font-weight: 700; color: #0f172a; margin-top: 2px;">{{ user.first_name }} {{ user.last_name|default:user.username }}</div>
+                                    <div style="font-size: 12px; color: #64748b; margin-top: 1px;">@{{ user.username }}</div>
+                                </div>
+                                <div style="padding: 6px 0;">
+                                    <a href="{{ app_base }}/" style="display: flex; align-items: center; gap: 8px; padding: 9px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                                        <span>หน้าหลัก SC Quiz</span>
+                                    </a>
+                                    <a href="/admin/" style="display: flex; align-items: center; gap: 8px; padding: 9px 16px; font-size: 13px; color: #334155; text-decoration: none; transition: background 0.15s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                                        <span>จัดการระบบส่วนกลาง</span>
+                                    </a>
+                                </div>
+                                <div style="border-top: 1px solid #f1f5f9; padding: 4px 0;">
+                                    <a href="/logout/?next={{ app_base }}/" style="display: flex; align-items: center; gap: 8px; padding: 9px 16px; font-size: 13px; color: #ef4444; text-decoration: none; font-weight: 600; transition: background 0.15s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+                                        <span>ออกจากระบบ (Logout)</span>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                         {% endif %}
-                        <span class="board-count" id="header-count">0 💬</span>
-                        <a href="/logout/?next={{ app_base }}/" class="btn" style="text-decoration: none; width: auto; padding: 6px 12px; font-size: 13px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
-                            <span>🚪</span>
-                            <span>ออกจากระบบ</span>
-                        </a>
                     </div>
                 </div>
 
                 <!-- Admin QA Section -->
                 <div id="admin-qa-section">
                     <div id="admin-empty" class="empty-state hidden">
-                        <span class="lantern">🏮</span>
                         <h3>ท้องฟ้ายังโล่งอยู่</h3>
                         <p>เมื่อมีคนปล่อยข้อความ มันจะลอยขึ้นมาที่นี่</p>
                     </div>
@@ -206,9 +220,46 @@
             </div>
         </div>
 
+        <!-- RATE LIMIT SETTINGS MODAL -->
+        <div class="modal-overlay hidden" id="ratelimit-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+            <div style="background: #fff; border-radius: 18px; padding: 26px; width: 90%; max-width: 460px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); font-family: 'Outfit', 'Noto Sans Thai', sans-serif;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                    <h3 style="margin: 0; font-size: 18px; color: #0f172a; font-weight: 700;">ตั้งค่า Rate Limit</h3>
+                    <button type="button" id="close-ratelimit-modal" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">✕</button>
+                </div>
+                <p style="margin: 0 0 18px 0; font-size: 13px; color: #64748b;" id="ratelimit-session-label">กำลังตั้งค่า Session...</p>
+                <form id="ratelimit-form">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 13.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">จำนวนข้อความสูงสุดต่อ IP ต่อนาที <span style="color:#64748b;font-weight:400;">(0 = ไม่จำกัด)</span></label>
+                        <input type="number" id="ratelimit-limit-input" min="0" max="100" style="width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 16px; font-family: inherit;" placeholder="10">
+                    </div>
+                    <div style="margin-bottom: 22px;">
+                        <label style="display: block; font-size: 13.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">เวลา Cooldown ระหว่างข้อความ (วินาที)</label>
+                        <input type="number" id="ratelimit-cooldown-input" min="0" max="3600" style="width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 16px; font-family: inherit;" placeholder="60">
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" id="cancel-ratelimit-btn" style="padding: 9px 16px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; cursor: pointer; color: #475569; font-weight: 500;">ยกเลิก</button>
+                        <button type="submit" id="save-ratelimit-btn" style="padding: 9px 18px; background: #6366f1; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; color: #fff; font-weight: 600;">บันทึก</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- CONFIRM DELETE SESSION MODAL -->
+        <div class="modal-overlay hidden" id="confirm-delete-session-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+            <div style="background: #fff; border-radius: 16px; padding: 28px 26px; width: 90%; max-width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); font-family: 'Outfit','Noto Sans Thai',sans-serif; text-align: center;">
+                <h3 style="margin: 0 0 8px 0; font-size: 18px; color: #0f172a; font-weight: 700;">ยืนยันการลบ Session</h3>
+                <p id="confirm-delete-session-text" style="margin: 0 0 22px 0; font-size: 14px; color: #64748b; line-height: 1.5;"></p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="cancel-delete-session-btn" style="flex: 1; padding: 10px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: #475569;">ยกเลิก</button>
+                    <button id="confirm-delete-session-btn" style="flex: 1; padding: 10px; background: linear-gradient(135deg, #ef4444, #dc2626); border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: #fff;">ยืนยัน ลบ</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <script src="{{ app_base }}/js/app.js?v=2.4"></script>
+    <script src="{{ app_base }}/js/app.js?v=3.2"></script>
 </body>
 
 </html>
