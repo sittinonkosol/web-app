@@ -82,8 +82,18 @@ def landing_page(request):
         'user': request.user
     })
 
+def sanitize_next_url(url):
+    if not url:
+        return '/'
+    clean = url.strip()
+    # Prevent redirecting back to login or logout endpoints which causes loops
+    if clean in ['/login', '/login/', '/logout', '/logout/'] or clean.startswith('/login?') or clean.startswith('/logout?'):
+        return '/'
+    return clean
+
 def login_view(request):
-    next_url = request.GET.get('next') or request.POST.get('next') or '/'
+    raw_next = request.POST.get('next') or request.GET.get('next')
+    next_url = sanitize_next_url(raw_next)
     
     if request.user.is_authenticated:
         return redirect(next_url)
@@ -109,7 +119,9 @@ def login_view(request):
     })
 
 def logout_view(request):
-    next_url = request.GET.get('next') or request.POST.get('next')
+    raw_next = request.POST.get('next') or request.GET.get('next')
+    next_url = sanitize_next_url(raw_next) if raw_next else None
+    
     if not next_url:
         referer = request.META.get('HTTP_REFERER')
         if referer:
@@ -118,7 +130,7 @@ def logout_view(request):
                 if clean_ref.endswith(suffix):
                     clean_ref = clean_ref[:-len(suffix)]
                     break
-            next_url = clean_ref + '/'
+            next_url = sanitize_next_url(clean_ref + '/')
         else:
             next_url = '/'
             
