@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>กล่องข้อความ — แอดมิน</title>
+    <title>จัดการข้อความ — SC Quiz</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ app_base }}/css/style.css?v=4.0">
+    <link rel="stylesheet" href="{{ app_base }}/css/style.css?v=4.1">
     <script src="{{ app_base }}/js/locations.js"></script>
 </head>
 
@@ -28,24 +28,24 @@
 
                 <!-- QA Tab Content -->
                 <div id="sender-qa-content">
-                    <div class="eyebrow" style="margin-top: 15px;">ข้อความไม่ระบุตัวตน</div>
-                    <h1>ปล่อยข้อความของคุณลอยไป</h1>
-                    <p class="sub">พิมพ์ชื่อ เขียนสิ่งที่อยากบอก แล้วปล่อยให้ลอยไปถึงแอดมิน ไม่ต้องเปิดเผยตัวตนมากไปกว่านี้</p>
+                    <div class="eyebrow" style="margin-top: 15px;">ส่งข้อความ</div>
+                    <h1>ส่งคำถามและข้อความ</h1>
+                    <p class="sub">พิมพ์ชื่อและข้อความที่ต้องการส่ง</p>
 
                     <form id="send-form">
                         <div class="field">
                             <label for="f-name">ชื่อของคุณ</label>
-                            <input type="text" id="f-name" maxlength="60" placeholder="เช่น คนแปลกหน้า หรือชื่อจริงก็ได้"
+                            <input type="text" id="f-name" maxlength="60" placeholder="ชื่อหรือนามแฝง"
                                 autocomplete="off">
                         </div>
                         <div class="field">
                             <label for="f-text">ข้อความ</label>
-                            <textarea id="f-text" maxlength="1000" placeholder="อยากบอกอะไรกับเรา…"></textarea>
+                            <textarea id="f-text" maxlength="1000" placeholder="พิมพ์ข้อความที่นี่..."></textarea>
                             <div class="counter mono" id="f-counter">0/1000</div>
                         </div>
-                        <button type="submit" class="btn btn-primary" id="f-submit" disabled>ปล่อยข้อความ</button>
+                        <button type="submit" class="btn btn-primary" id="f-submit" disabled>ส่งข้อความ</button>
                     </form>
-                    <div class="trust">เราไม่เก็บข้อมูลส่วนตัวใด ๆ นอกจากชื่อที่คุณตั้งเอง</div>
+                    <div class="trust">ไม่มีการเก็บข้อมูลส่วนตัว</div>
                 </div>
 
                 <!-- Poll Tab Content -->
@@ -163,8 +163,8 @@
                 <!-- Admin QA Section -->
                 <div id="admin-qa-section">
                     <div id="admin-empty" class="empty-state hidden">
-                        <h3>ท้องฟ้ายังโล่งอยู่</h3>
-                        <p>เมื่อมีคนปล่อยข้อความ มันจะลอยขึ้นมาที่นี่</p>
+                        <h3>ยังไม่มีข้อความ</h3>
+                        <p>ข้อความใหม่จะแสดงที่นี่แบบเรียลไทม์</p>
                     </div>
                     <div id="note-list" class="note-list"></div>
                 </div>
