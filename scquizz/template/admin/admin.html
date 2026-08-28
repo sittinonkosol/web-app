@@ -109,9 +109,9 @@
                             <span>←</span>
                             <span>กลับสู่หน้า SC Quiz</span>
                         </a>
-                        <button class="admin-tab-btn active" id="admin-tab-qa">💬 Q&A</button>
-                        <button class="admin-tab-btn" id="admin-tab-poll">📊 Polls</button>
-                        <button class="admin-tab-btn" id="admin-tab-session">🎪 Sessions</button>
+                        <button class="admin-tab-btn active" id="admin-tab-qa" onclick="switchAdminTab('qa')">💬 Q&A</button>
+                        <button class="admin-tab-btn" id="admin-tab-poll" onclick="switchAdminTab('poll')">📊 Polls</button>
+                        <button class="admin-tab-btn" id="admin-tab-session" onclick="switchAdminTab('session')">🎪 Sessions</button>
                     </div>
                     <div class="board-header-right" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 5px 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
@@ -209,7 +209,7 @@
 
     </div>
 
-    <script src="{{ app_base }}/js/app.js?v=1.6"></script>
+    <script src="{{ app_base }}/js/app.js?v=2.0"></script>
 </body>
 
 </html>

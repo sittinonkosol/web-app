@@ -1593,28 +1593,26 @@
     [adminQaSection, adminPollSection, adminSessionSection].forEach(s => s && s.classList.add('hidden'));
   }
 
-  if (adminTabQa && adminTabPoll) {
-    adminTabQa.addEventListener('click', () => {
-      clearAdminTabs();
-      adminTabQa.classList.add('active');
-      adminQaSection.classList.remove('hidden');
+  window.switchAdminTab = function(tabName) {
+    clearAdminTabs();
+    if (tabName === 'qa') {
+      if (adminTabQa) adminTabQa.classList.add('active');
+      if (adminQaSection) adminQaSection.classList.remove('hidden');
       fetchMessages();
-    });
-    adminTabPoll.addEventListener('click', () => {
-      clearAdminTabs();
-      adminTabPoll.classList.add('active');
-      adminPollSection.classList.remove('hidden');
+    } else if (tabName === 'poll') {
+      if (adminTabPoll) adminTabPoll.classList.add('active');
+      if (adminPollSection) adminPollSection.classList.remove('hidden');
       fetchPolls();
-    });
-    if (adminTabSession && adminSessionSection) {
-      adminTabSession.addEventListener('click', () => {
-        clearAdminTabs();
-        adminTabSession.classList.add('active');
-        adminSessionSection.classList.remove('hidden');
-        fetchSessions();
-      });
+    } else if (tabName === 'session') {
+      if (adminTabSession) adminTabSession.classList.add('active');
+      if (adminSessionSection) adminSessionSection.classList.remove('hidden');
+      fetchSessions();
     }
-  }
+  };
+
+  if (adminTabQa) adminTabQa.addEventListener('click', () => window.switchAdminTab('qa'));
+  if (adminTabPoll) adminTabPoll.addEventListener('click', () => window.switchAdminTab('poll'));
+  if (adminTabSession) adminTabSession.addEventListener('click', () => window.switchAdminTab('session'));
 
   // Bind session switcher dropdown in admin topbar
   const sessionSwitcher = document.getElementById('admin-session-switcher');
