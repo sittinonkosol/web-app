@@ -170,8 +170,8 @@
       const isActive = s.is_active;
       const cooldownInfo = `${s.rate_limit_per_minute || 10}/นาที · Cooldown ${s.cooldown_seconds || 60}s`;
       return `
-        <div style="background:#fff;border-radius:14px;padding:18px 22px;border:1px solid ${isSelected ? '#6366f1' : '#e2e8f0'};box-shadow:${isSelected ? '0 4px 14px rgba(99,102,241,0.12)' : '0 2px 10px rgba(0,0,0,0.04)'};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
-          <div>
+        <div class="admin-session-card-item ${isSelected ? 'is-selected' : ''}" style="background:#fff;border-radius:14px;padding:18px 22px;border:1px solid ${isSelected ? '#6366f1' : '#e2e8f0'};box-shadow:${isSelected ? '0 4px 14px rgba(99,102,241,0.12)' : '0 2px 10px rgba(0,0,0,0.04)'};display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+          <div class="admin-session-info">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
               <h3 style="margin:0;font-size:17px;color:#0f172a;font-weight:700;">${escapeHtml(s.title)}</h3>
               ${isActive ? '<span style="font-size:12px;padding:3px 10px;border-radius:99px;background:#dcfce7;color:#15803d;font-weight:700;display:inline-flex;align-items:center;gap:4px;">Active</span>' : '<span style="font-size:12px;padding:3px 10px;border-radius:99px;background:#f1f5f9;color:#64748b;font-weight:600;">Inactive</span>'}
@@ -185,11 +185,11 @@
               <span title="Rate Limit">Rate Limit: ${cooldownInfo}</span>
             </div>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            ${!isActive ? `<button class="btn btn-primary" style="width:auto;padding:7px 14px;font-size:13px;background:linear-gradient(135deg, #10b981 0%, #059669 100%);border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 6px rgba(16,185,129,0.3);" onclick="activateSessionAPI('${s.id}')">ตั้งเป็น Active</button>` : ''}
-            ${!isSelected ? `<button class="btn btn-ghost" style="width:auto;padding:7px 14px;font-size:13px;border:1px solid #cbd5e1;border-radius:8px;" onclick="switchAdminSession('${s.id}')">ดูข้อมูล</button>` : ''}
-            <button class="btn btn-ghost" style="width:auto;padding:7px 12px;font-size:13px;border:1px solid #e0e7ff;color:#6366f1;border-radius:8px;" onclick="openRateLimitSettings('${s.id}', '${escapeHtml(s.title)}', ${s.rate_limit_per_minute || 10}, ${s.cooldown_seconds || 60})">ตั้งค่า Rate Limit</button>
-            <button class="btn btn-ghost btn-danger-outline" style="width:auto;padding:7px 12px;font-size:13px;border-radius:8px;" onclick="deleteSessionAPI('${s.id}', '${escapeHtml(s.title)}')">ลบ</button>
+          <div class="admin-session-actions-grid" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            ${!isActive ? `<button class="btn btn-primary admin-session-btn" style="width:auto;padding:7px 14px;font-size:13px;background:linear-gradient(135deg, #10b981 0%, #059669 100%);border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 6px rgba(16,185,129,0.3);" onclick="activateSessionAPI('${s.id}')">ตั้งเป็น Active</button>` : ''}
+            ${!isSelected ? `<button class="btn btn-ghost admin-session-btn" style="width:auto;padding:7px 14px;font-size:13px;border:1px solid #cbd5e1;border-radius:8px;" onclick="switchAdminSession('${s.id}')">ดูข้อมูล</button>` : ''}
+            <button class="btn btn-ghost admin-session-btn" style="width:auto;padding:7px 12px;font-size:13px;border:1px solid #e0e7ff;color:#6366f1;border-radius:8px;" onclick="openRateLimitSettings('${s.id}', '${escapeHtml(s.title)}', ${s.rate_limit_per_minute || 10}, ${s.cooldown_seconds || 60})">ตั้งค่า Rate Limit</button>
+            <button class="btn btn-ghost btn-danger-outline admin-session-btn" style="width:auto;padding:7px 12px;font-size:13px;border-radius:8px;" onclick="deleteSessionAPI('${s.id}', '${escapeHtml(s.title)}')">ลบ</button>
           </div>
         </div>
       `;
