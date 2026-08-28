@@ -1,7 +1,7 @@
 import json
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from scquizz.models import Message, Poll
+from scquizz.models import Message, Poll, QuizSession
 from core.views import get_mounted_app_url
 
 class AppSpecificAuthAndTests(TestCase):
@@ -13,6 +13,10 @@ class AppSpecificAuthAndTests(TestCase):
             username='admin',
             password='admin1234',
             email='admin@example.com'
+        )
+        self.test_session = QuizSession.objects.create(
+            title='Test Default Session',
+            is_active=True
         )
 
     def test_landing_page(self):
@@ -241,9 +245,11 @@ class AppSpecificAuthAndTests(TestCase):
         res_del = self.client.delete(del_url)
         self.assertEqual(res_del.status_code, 200)
 
-        # 8. Delete the remaining session (allow deleting even if it is the only one)
+        # 8. Delete all remaining sessions (allow deleting until 0 sessions exist)
         res_del2 = self.client.delete(f'{sessions_url}/{welcome_session_id}')
         self.assertEqual(res_del2.status_code, 200)
+        res_del3 = self.client.delete(f'{sessions_url}/{self.test_session.id}')
+        self.assertEqual(res_del3.status_code, 200)
 
         # 9. Verify client index view displays 'ไม่มี Session ในขณะนี้'
         res_index = self.client.get(self.app_url)
