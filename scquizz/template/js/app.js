@@ -109,6 +109,10 @@
   function renderSessionSwitcher() {
     const switcher = document.getElementById('admin-session-switcher');
     if (!switcher) return;
+    if (allSessions.length === 0) {
+      switcher.innerHTML = '<option value="">ไม่มี Session</option>';
+      return;
+    }
     switcher.innerHTML = allSessions.map(s => `
       <option value="${s.id}" ${s.id === currentAdminSessionId ? 'selected' : ''}>
         ${escapeHtml(s.title)}
@@ -121,7 +125,13 @@
     if (!listContainer) return;
 
     if (allSessions.length === 0) {
-      listContainer.innerHTML = `<div style="text-align:center;padding:40px;color:#888;">ยังไม่มี Session ในระบบ</div>`;
+      listContainer.innerHTML = `
+        <div style="text-align:center;padding:48px 20px;background:#fff;border-radius:14px;border:1px dashed #cbd5e1;">
+          <span style="font-size:40px;display:block;margin-bottom:12px;">🎪</span>
+          <h4 style="margin:0 0 6px 0;font-size:16px;font-weight:700;color:#334155;">ยังไม่มี Session ในระบบ</h4>
+          <p style="margin:0;font-size:13.5px;color:#94a3b8;">คลิกปุ่ม "+ สร้าง Session ใหม่" ด้านบนเพื่อเริ่มต้นใช้งาน</p>
+        </div>
+      `;
       return;
     }
 

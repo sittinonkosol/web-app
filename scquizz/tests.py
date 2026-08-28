@@ -241,5 +241,14 @@ class AppSpecificAuthAndTests(TestCase):
         res_del = self.client.delete(del_url)
         self.assertEqual(res_del.status_code, 200)
 
+        # 8. Delete the remaining session (allow deleting even if it is the only one)
+        res_del2 = self.client.delete(f'{sessions_url}/{welcome_session_id}')
+        self.assertEqual(res_del2.status_code, 200)
+
+        # 9. Verify client index view displays 'ไม่มี Session ในขณะนี้'
+        res_index = self.client.get(self.app_url)
+        self.assertEqual(res_index.status_code, 200)
+        self.assertIn('ไม่มี Session ในขณะนี้', res_index.content.decode('utf-8'))
+
 
 

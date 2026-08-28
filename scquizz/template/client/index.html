@@ -58,7 +58,6 @@
                         <span>{{ current_session.title }}</span>
                     </div>
                 </div>
-                {% endif %}
 
                 <!-- Sender Tabs -->
                 <div class="sender-tabs">
@@ -95,6 +94,13 @@
                         <!-- Loaded dynamically via JS -->
                     </div>
                 </div>
+                {% else %}
+                <div style="text-align: center; padding: 48px 16px; margin: 12px 0;">
+                    <span style="font-size: 56px; display: block; margin-bottom: 16px; animation: float 3s ease-in-out infinite;">🎪</span>
+                    <h2 style="font-size: 21px; font-weight: 700; color: #fff; margin-bottom: 10px;">ไม่มี Session ในขณะนี้</h2>
+                    <p style="color: var(--text-soft); font-size: 14.5px; line-height: 1.6; margin: 0 auto; max-width: 320px;">ขณะนี้ยังไม่มีกิจกรรมหรือเซสชันที่เปิดใช้งาน กรุณารอผู้ดูแลระบบสร้างหรือเปิดใช้งาน Session</p>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -166,7 +172,7 @@
 
     </div>
 
-    <script src="{{ app_base }}/js/app.js?v=2.3"></script>
+    <script src="{{ app_base }}/js/app.js?v=2.4"></script>
 </body>
 
 </html>

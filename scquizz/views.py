@@ -30,17 +30,15 @@ from django.contrib.auth import authenticate, login
 from core.permissions import require_app_access, has_app_permission, get_user_app_role
 
 # --- Session Helpers ---
-def get_or_create_active_session(session_id=None):
+def get_active_session(session_id=None):
     if session_id:
         sess = QuizSession.objects.filter(id=session_id).first()
         if sess:
             return sess
     sess = QuizSession.objects.filter(is_active=True).first()
-    if not sess:
-        sess = QuizSession.objects.first()
-    if not sess:
-        sess = QuizSession.objects.create(id='default_session', title='General Session', is_active=True)
-    return sess
+    if sess:
+        return sess
+    return QuizSession.objects.first()
 
 # --- HTML & Static Views ---
 def get_app_base(request):
@@ -54,7 +52,7 @@ def get_app_base(request):
 @require_app_access('scquizz', min_role='viewer')
 def index_view(request):
     session_id = request.GET.get('session')
-    session = get_or_create_active_session(session_id)
+    session = get_active_session(session_id)
     return render(request, 'client/index.html', {
         'app_base': get_app_base(request),
         'user': request.user,
@@ -95,10 +93,6 @@ def admin_view(request):
         }, status=403)
 
     sessions = QuizSession.objects.all().order_by("-created_at")
-    if not sessions.exists():
-        get_or_create_active_session()
-        sessions = QuizSession.objects.all().order_by("-created_at")
-
     return render(request, 'admin/admin.html', {
         'app_base': app_base,
         'user': request.user,
@@ -116,10 +110,6 @@ def sanitize_text(val, max_len=1000):
 def sessions_view(request):
     if request.method == "GET":
         sessions = QuizSession.objects.all().order_by("-created_at")
-        if not sessions.exists():
-            get_or_create_active_session()
-            sessions = QuizSession.objects.all().order_by("-created_at")
-
         data = [
             {
                 "id": s.id,
@@ -202,7 +192,9 @@ def delete_session(request, session_id):
 def messages_view(request):
     if request.method == "GET":
         session_id = request.GET.get("session_id")
-        session = get_or_create_active_session(session_id)
+        session = get_active_session(session_id)
+        if not session:
+            return JsonResponse([], safe=False)
         messages = Message.objects.filter(session=session).order_by("ts")
         data = [
             {
@@ -221,7 +213,9 @@ def messages_view(request):
         try:
             body = json.loads(request.body)
             session_id = body.get("session_id") or request.GET.get("session_id")
-            session = get_or_create_active_session(session_id)
+            session = get_active_session(session_id)
+            if not session:
+                return JsonResponse({"error": "ไม่มี Session ที่เปิดใช้งานอยู่ในขณะนี้"}, status=400)
 
             name = sanitize_text(body.get("name", ""), max_len=60)
             if not name:
@@ -290,9 +284,11 @@ def message_tts(request, msg_id):
 @csrf_exempt
 def polls_view(request):
     session_id = request.GET.get("session_id")
-    session = get_or_create_active_session(session_id)
+    session = get_active_session(session_id)
 
     if request.method == "GET":
+        if not session:
+            return JsonResponse([], safe=False)
         polls = Poll.objects.filter(session=session)
         data = [
             {
@@ -315,6 +311,9 @@ def polls_view(request):
             question = sanitize_text(body.get("question", ""), max_len=500)
             if not question:
                 return JsonResponse({"error": "กรุณาป้อนคำถาม"}, status=400)
+
+            if not session:
+                session = QuizSession.objects.create(title="General Session", is_active=True)
 
             poll_type = body.get("type", "standard")
             if poll_type not in ["standard", "location"]:
@@ -366,7 +365,9 @@ def polls_view(request):
 
 def active_poll_view(request):
     session_id = request.GET.get("session_id")
-    session = get_or_create_active_session(session_id)
+    session = get_active_session(session_id)
+    if not session:
+        return JsonResponse(None, safe=False)
     poll = Poll.objects.filter(session=session, active=1).first()
     if not poll:
         return JsonResponse(None, safe=False)
