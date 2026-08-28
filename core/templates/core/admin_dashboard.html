@@ -971,12 +971,12 @@
                         </label>
                         <label class="checkbox-group">
                             <input type="checkbox" id="user-is-superuser" onchange="toggleSuperuserAppPermissions()">
-                            <span style="color:#fbbf24; font-weight:700;">⚡ Superadmin (Admin ทุกแอป)</span>
+                            <span style="color:#fbbf24; font-weight:700;">Superadmin</span>
                         </label>
                     </div>
 
                     <div id="superuser-perm-notice" style="display:none; margin-top:8px; padding:10px 14px; background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.3); border-radius:8px; font-size:12.5px; color:#fbbf24;">
-                        ⚡ <strong>Superadmin</strong> จะได้รับสิทธิ์ <strong>Admin สูงสุดในทุกแอปพลิเคชันโดยอัตโนมัติ</strong> และไม่สามารถถูกปรับลดสิทธิ์ได้
+                        <strong>Superadmin</strong> จะได้รับสิทธิ์ <strong>Admin สูงสุดในทุกแอปพลิเคชันโดยอัตโนมัติ</strong> และไม่สามารถถูกปรับลดสิทธิ์ได้
                     </div>
 
                     <div class="form-group" style="margin-top:12px;">
@@ -1151,7 +1151,7 @@
 
                 let permsHtml = '';
                 if (u.is_superuser) {
-                    permsHtml = '<span class="role-pill role-admin" style="font-weight:700; background:rgba(245,158,11,0.2); border-color:#f59e0b; color:#fbbf24;">⚡ Superadmin (Admin ทุกแอป)</span>';
+                    permsHtml = '<span class="role-pill role-admin" style="font-weight:700; background:rgba(245,158,11,0.2); border-color:#f59e0b; color:#fbbf24;">Superadmin</span>';
                 } else {
                     allApps.forEach(a => {
                         const role = u.app_permissions[a.app_name] || 'default';
