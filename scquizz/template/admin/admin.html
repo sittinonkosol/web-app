@@ -9,7 +9,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ app_base }}/css/style.css?v=3.5">
+    <link rel="stylesheet" href="{{ app_base }}/css/style.css?v=3.6">
     <script src="{{ app_base }}/js/locations.js"></script>
 </head>
 
@@ -104,58 +104,58 @@
             </div>
             <div class="board-main">
                 <div class="board-header">
-                    <!-- Top Bar: Back Button (Left) & Controls (Right) -->
-                    <div class="board-header-row-top">
+                    <!-- Left: Back Button & Navigation Tabs (Inline on desktop) -->
+                    <div class="board-header-left">
                         <a href="{{ app_base }}/" class="btn btn-back-main">
                             <span>←</span>
                             <span>กลับสู่หน้า SC Quiz</span>
                         </a>
-                        <div class="board-header-right">
-                            <!-- 1. จำนวนข้อความ -->
-                            <span class="board-count" id="header-count">0 ข้อความ</span>
-
-                            <!-- 2. เปิดปิดเสียงอ่าน (TTS) -->
-                            <button type="button" id="tts-mute-btn" onclick="toggleTTSMute()" class="btn btn-tts-mute" title="คลิกเพื่อปิด/เปิดเสียงอ่านข้อความ (TTS)">
-                                <span class="mute-text">เสียงอ่าน: เปิด</span>
-                            </button>
-
-                            <!-- 3. Username พร้อม Account Dropdown Menu -->
-                            {% if user and user.is_authenticated %}
-                            <div class="user-menu-container">
-                                <button type="button" id="user-menu-btn" onclick="toggleUserDropdown(event)" class="btn-user-menu">
-                                    <span>{{ user.username }}</span>
-                                    <span class="user-menu-arrow" id="user-menu-arrow">▼</span>
-                                </button>
-                                <div id="user-dropdown-menu" class="user-dropdown-menu" style="display: none;">
-                                    <div class="user-dropdown-header">
-                                        <div class="user-dropdown-role">เข้าสู่ระบบในชื่อ</div>
-                                        <div class="user-dropdown-name">{{ user.first_name }} {{ user.last_name|default:user.username }}</div>
-                                        <div class="user-dropdown-uname">@{{ user.username }}</div>
-                                    </div>
-                                    <div class="user-dropdown-list">
-                                        <a href="{{ app_base }}/" class="user-dropdown-item">
-                                            <span>หน้าหลัก SC Quiz</span>
-                                        </a>
-                                        <a href="/admin/" class="user-dropdown-item">
-                                            <span>จัดการระบบส่วนกลาง</span>
-                                        </a>
-                                    </div>
-                                    <div class="user-dropdown-divider">
-                                        <a href="/logout/?next={{ app_base }}/" class="user-dropdown-item-danger">
-                                            <span>ออกจากระบบ (Logout)</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
+                        <div class="board-nav-tabs">
+                            <button class="admin-tab-btn active" id="admin-tab-qa" onclick="switchAdminTab('qa')">Q&A</button>
+                            <button class="admin-tab-btn" id="admin-tab-poll" onclick="switchAdminTab('poll')">Polls</button>
+                            <button class="admin-tab-btn" id="admin-tab-session" onclick="switchAdminTab('session')">Sessions</button>
                         </div>
                     </div>
 
-                    <!-- Navigation Tabs Row -->
-                    <div class="board-nav-tabs">
-                        <button class="admin-tab-btn active" id="admin-tab-qa" onclick="switchAdminTab('qa')">Q&A</button>
-                        <button class="admin-tab-btn" id="admin-tab-poll" onclick="switchAdminTab('poll')">Polls</button>
-                        <button class="admin-tab-btn" id="admin-tab-session" onclick="switchAdminTab('session')">Sessions</button>
+                    <!-- Right: Controls (Count, TTS Mute, User Menu) -->
+                    <div class="board-header-right">
+                        <!-- 1. จำนวนข้อความ -->
+                        <span class="board-count" id="header-count">0 ข้อความ</span>
+
+                        <!-- 2. เปิดปิดเสียงอ่าน (TTS) -->
+                        <button type="button" id="tts-mute-btn" onclick="toggleTTSMute()" class="btn btn-tts-mute" title="คลิกเพื่อปิด/เปิดเสียงอ่านข้อความ (TTS)">
+                            <span class="mute-text">เสียงอ่าน: เปิด</span>
+                        </button>
+
+                        <!-- 3. Username พร้อม Account Dropdown Menu -->
+                        {% if user and user.is_authenticated %}
+                        <div class="user-menu-container">
+                            <button type="button" id="user-menu-btn" onclick="toggleUserDropdown(event)" class="btn-user-menu">
+                                <span>{{ user.username }}</span>
+                                <span class="user-menu-arrow" id="user-menu-arrow">▼</span>
+                            </button>
+                            <div id="user-dropdown-menu" class="user-dropdown-menu" style="display: none;">
+                                <div class="user-dropdown-header">
+                                    <div class="user-dropdown-role">เข้าสู่ระบบในชื่อ</div>
+                                    <div class="user-dropdown-name">{{ user.first_name }} {{ user.last_name|default:user.username }}</div>
+                                    <div class="user-dropdown-uname">@{{ user.username }}</div>
+                                </div>
+                                <div class="user-dropdown-list">
+                                    <a href="{{ app_base }}/" class="user-dropdown-item">
+                                        <span>หน้าหลัก SC Quiz</span>
+                                    </a>
+                                    <a href="/admin/" class="user-dropdown-item">
+                                        <span>จัดการระบบส่วนกลาง</span>
+                                    </a>
+                                </div>
+                                <div class="user-dropdown-divider">
+                                    <a href="/logout/?next={{ app_base }}/" class="user-dropdown-item-danger">
+                                        <span>ออกจากระบบ (Logout)</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 

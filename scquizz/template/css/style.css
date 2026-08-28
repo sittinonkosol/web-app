@@ -648,8 +648,9 @@ body.admin-theme #sky {
 
 .board-header {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
   width: 100%;
   color: #4b4b4b;
   font-size: 14px;
@@ -657,12 +658,10 @@ body.admin-theme #sky {
   margin-bottom: 8px;
 }
 
-.board-header-row-top {
+.board-header-left {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  width: 100%;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
@@ -674,9 +673,9 @@ body.admin-theme #sky {
 }
 
 .board-nav-tabs {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: #edebe4;
   padding: 4px;
   border-radius: 10px;
@@ -999,26 +998,30 @@ body.admin-theme #answer-msg:hover {
   }
 
   .board-header {
-    gap: 10px;
-    margin-bottom: 12px;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
   }
 
-  .board-header-row-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
+  .board-header-left {
+    display: contents !important;
   }
 
   .btn-back-main {
+    order: 1;
     padding: 5px 9px !important;
     font-size: 12px !important;
     border-radius: 7px !important;
   }
 
   .board-header-right {
-    gap: 6px;
+    order: 2;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
   }
 
   .board-count {
@@ -1042,8 +1045,10 @@ body.admin-theme #answer-msg:hover {
   }
 
   .board-nav-tabs {
+    order: 3;
     width: 100% !important;
     display: flex !important;
+    margin-top: 2px !important;
   }
 
   .admin-tab-btn {
