@@ -137,6 +137,26 @@
     }
   }
 
+  function updateAdminJoinQR() {
+    const joinEl = document.getElementById('join-url');
+    const qrImg = document.getElementById('qr-img');
+    if (!joinEl && !qrImg) return;
+
+    const host = window.location.host;
+    let clientUrl = `${window.location.protocol}//${host}${API_BASE}/`;
+    if (currentAdminSessionId) {
+      clientUrl = `${window.location.protocol}//${host}${API_BASE}/?session_id=${encodeURIComponent(currentAdminSessionId)}`;
+    }
+
+    if (joinEl) joinEl.textContent = `${host}${API_BASE}/`;
+    if (qrImg) {
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(clientUrl)}`;
+      qrImg.onclick = () => {
+        if (typeof openExpandedQR === 'function') openExpandedQR(clientUrl);
+      };
+    }
+  }
+
   function renderSessionSwitcher() {
     const switcher = document.getElementById('admin-session-switcher');
     if (!switcher) return;

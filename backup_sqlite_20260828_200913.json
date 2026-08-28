@@ -1,0 +1,183 @@
+[
+    {
+        "model": "auth.group",
+        "fields": {
+            "name": "dream-to-sci-69",
+            "permissions": []
+        }
+    },
+    {
+        "model": "auth.user",
+        "fields": {
+            "password": "pbkdf2_sha256$1500000$IK1ak5yPwsapzO0SgPUSW2$vsLHFACeB+8AS373PjiW24J5zV4/p5cecS7hHbq+k0U=",
+            "last_login": "2026-08-28T19:51:17.150Z",
+            "is_superuser": true,
+            "username": "68114640778",
+            "first_name": "สิทธินนท์",
+            "last_name": "โกศล",
+            "email": "shitthinon.gh.68@ubu.ac.th",
+            "is_staff": true,
+            "is_active": true,
+            "date_joined": "2026-08-27T18:36:50.597Z",
+            "groups": [
+                [
+                    "dream-to-sci-69"
+                ]
+            ],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "sessions.session",
+        "pk": "pmwhi6prq6fj8q8z54tdxhowvbt7816j",
+        "fields": {
+            "session_data": ".eJxVjDsOwjAQBe_iGlmw_rCmpOcM1nq9wQFkS3FSIe5OIqWAdmbee6tIy1zi0mWKY1YXBerwyxLxU-om8oPqvWludZ7GpLdE77brW8vyuu7t30GhXtZ18uiBwIs94dEmJBFD2UFwEhiDDGFlxgxnRMnegwFmdsDoMqMFqz5f5VM38A:1wzfVl:6Hpn9uxXobbMjDRN7xSU1hJNsVcRNXjcidaWbGyGLC4",
+            "expire_date": "2026-09-10T19:11:41.333Z"
+        }
+    },
+    {
+        "model": "sessions.session",
+        "pk": "snc38jjb90za5x51ey1kb3lc1ua8lpiv",
+        "fields": {
+            "session_data": ".eJxVjEEOwiAQAP-yZ0NggYI9eu8bGpZdbNXQpLQn499Nkx70OjOZN4xp36Zxb7KOM0MPCJdfRik_pR6CH6neF5WXuq0zqSNRp21qWFhet7P9G0ypTdCDRW-NDuI1FqTEoSOy3sUYxQhfHUmIIWgXjRTUOjObWLoSPFrS3iF8vsWbNxE:1x02bd:COD66Qo7rU4TfuHJSSapxVPke3HAtR7g8rPJYUhu8rs",
+            "expire_date": "2026-09-11T19:51:17.246Z"
+        }
+    },
+    {
+        "model": "sessions.session",
+        "pk": "ulx97m3lrghgi1sxhsf8nb6kvn2xmz72",
+        "fields": {
+            "session_data": ".eJxVjDsOwjAQBe_iGlmw_rCmpOcM1nq9wQFkS3FSIe5OIqWAdmbee6tIy1zi0mWKY1YXBerwyxLxU-om8oPqvWludZ7GpLdE77brW8vyuu7t30GhXtZ18uiBwIs94dEmJBFD2UFwEhiDDGFlxgxnRMnegwFmdsDoMqMFqz5f5VM38A:1wzfB0:U3gulcj1-VMvla5r00dyW3pGB42ots-uEBi65UiY63g",
+            "expire_date": "2026-09-10T18:50:14.155Z"
+        }
+    },
+    {
+        "model": "core.appsetting",
+        "pk": "scquizz",
+        "fields": {
+            "display_name": "Scquizz",
+            "icon": "🚀",
+            "description": "",
+            "is_public": true,
+            "min_role_required": "viewer",
+            "created_at": "2026-08-28T18:36:11.714Z",
+            "updated_at": "2026-08-28T18:36:11.714Z"
+        }
+    },
+    {
+        "model": "core.groupapppermission",
+        "pk": 3,
+        "fields": {
+            "group": [
+                "dream-to-sci-69"
+            ],
+            "app_name": "scquizz",
+            "role": "moderator"
+        }
+    },
+    {
+        "model": "core.userloginlog",
+        "pk": 1,
+        "fields": {
+            "user": null,
+            "username_attempted": "68114640778",
+            "ip_address": "127.0.0.1",
+            "user_agent": "Python-urllib/3.14",
+            "status": "failed",
+            "failure_reason": "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
+            "timestamp": "2026-08-28T19:07:56.369Z"
+        }
+    },
+    {
+        "model": "core.userloginlog",
+        "pk": 2,
+        "fields": {
+            "user": [
+                "68114640778"
+            ],
+            "username_attempted": "68114640778",
+            "ip_address": "171.5.136.235",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+            "status": "success",
+            "failure_reason": "",
+            "timestamp": "2026-08-28T19:12:33.889Z"
+        }
+    },
+    {
+        "model": "core.userloginlog",
+        "pk": 3,
+        "fields": {
+            "user": [
+                "68114640778"
+            ],
+            "username_attempted": "68114640778",
+            "ip_address": "171.5.136.235",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+            "status": "success",
+            "failure_reason": "",
+            "timestamp": "2026-08-28T19:12:39.082Z"
+        }
+    },
+    {
+        "model": "core.userloginlog",
+        "pk": 4,
+        "fields": {
+            "user": [
+                "68114640778"
+            ],
+            "username_attempted": "68114640778",
+            "ip_address": "171.5.136.235",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+            "status": "success",
+            "failure_reason": "",
+            "timestamp": "2026-08-28T19:13:05.015Z"
+        }
+    },
+    {
+        "model": "core.userloginlog",
+        "pk": 5,
+        "fields": {
+            "user": [
+                "68114640778"
+            ],
+            "username_attempted": "68114640778",
+            "ip_address": "171.5.136.235",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+            "status": "success",
+            "failure_reason": "",
+            "timestamp": "2026-08-28T19:13:21.469Z"
+        }
+    },
+    {
+        "model": "core.userloginlog",
+        "pk": 6,
+        "fields": {
+            "user": [
+                "68114640778"
+            ],
+            "username_attempted": "68114640778",
+            "ip_address": "171.5.136.235",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+            "status": "success",
+            "failure_reason": "",
+            "timestamp": "2026-08-28T19:51:17.200Z"
+        }
+    },
+    {
+        "model": "scquizz.poll",
+        "pk": "37adfa4a-5da5-48dd-b4c7-366edfb95b7b",
+        "fields": {
+            "session": null,
+            "question": "มาจากไหนกัน",
+            "options": [],
+            "votes": {
+                "อุบลราชธานี": 2,
+                "กรุงเทพมหานคร": 1,
+                "กำแพงเพชร": 1
+            },
+            "active": 0,
+            "type": "location",
+            "scope": "{\"level\":\"country\",\"country\":\"ไทย\",\"region\":null,\"province\":null}"
+        }
+    }
+]
