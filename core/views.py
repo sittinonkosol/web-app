@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
 
-from .models import AppSetting, UserAppPermission, GroupAppPermission
+from .models import AppSetting, UserAppPermission, GroupAppPermission, UserLoginLog
 from .permissions import (
     get_app_setting,
     get_user_app_role,
@@ -447,3 +447,58 @@ def api_app_setting_detail(request, app_name):
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+# --- Login Logs API ---
+
+@csrf_exempt
+@staff_member_required
+@require_http_methods(["GET"])
+def api_login_logs_list(request):
+    user_id = request.GET.get('user_id')
+    status = request.GET.get('status')
+    search = request.GET.get('search', '').strip()
+    limit = int(request.GET.get('limit', 100))
+
+    qs = UserLoginLog.objects.all().select_related('user').order_by('-timestamp')
+
+    if user_id:
+        qs = qs.filter(user_id=user_id)
+    if status and status in ['success', 'failed']:
+        qs = qs.filter(status=status)
+    if search:
+        qs = qs.filter(username_attempted__icontains=search) | qs.filter(ip_address__icontains=search)
+
+    logs = []
+    for log in qs[:limit]:
+        logs.append({
+            'id': log.id,
+            'user_id': log.user_id,
+            'username': log.username_attempted or (log.user.username if log.user else 'Unknown'),
+            'ip_address': log.ip_address or '-',
+            'user_agent': log.user_agent or '-',
+            'status': log.status,
+            'failure_reason': log.failure_reason or '',
+            'timestamp': log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+        })
+
+    return JsonResponse({'logs': logs})
+
+@csrf_exempt
+@staff_member_required
+@require_http_methods(["GET"])
+def api_user_login_logs(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    logs = [
+        {
+            'id': log.id,
+            'username': log.username_attempted or user.username,
+            'ip_address': log.ip_address or '-',
+            'user_agent': log.user_agent or '-',
+            'status': log.status,
+            'failure_reason': log.failure_reason or '',
+            'timestamp': log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+        }
+        for log in UserLoginLog.objects.filter(user=user).order_by('-timestamp')[:50]
+    ]
+    return JsonResponse({'username': user.username, 'logs': logs})
+

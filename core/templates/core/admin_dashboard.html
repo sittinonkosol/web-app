@@ -772,6 +772,7 @@
             <button class="tab-btn active" onclick="switchTab('tab-users')">👥 จัดการผู้ใช้งาน (Users)</button>
             <button class="tab-btn" onclick="switchTab('tab-groups')">🏷️ กลุ่มผู้ใช้ (User Groups)</button>
             <button class="tab-btn" onclick="switchTab('tab-apps')">⚙️ สิทธิ์และการเข้าถึงแอป (App Access)</button>
+            <button class="tab-btn" onclick="switchTab('tab-logs')">📜 ประวัติการเข้าสู่ระบบ (Login Logs)</button>
         </div>
 
         <!-- TAB 1: USERS -->
@@ -851,6 +852,76 @@
             </div>
         </div>
 
+        <!-- TAB 4: LOGIN LOGS -->
+        <div id="tab-logs" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>ประวัติการเข้าสู่ระบบ (Login Logs)</span>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="log-search-input" placeholder="ค้นหาชื่อผู้ใช้, IP..." oninput="loadLoginLogs()">
+                        </div>
+                        <select class="custom-select" id="log-status-filter" onchange="loadLoginLogs()">
+                            <option value="">ทั้งหมด (All Status)</option>
+                            <option value="success">เข้าสู่ระบบสำเร็จ (Success)</option>
+                            <option value="failed">เข้าสู่ระบบไม่สำเร็จ (Failed)</option>
+                        </select>
+                        <button class="btn btn-ghost btn-sm" onclick="loadLoginLogs()">🔄 รีเฟรช</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>สถานะ</th>
+                                <th>ชื่อผู้ใช้ที่ระบุ</th>
+                                <th>IP Address</th>
+                                <th>วันเวลาที่ทำรายการ</th>
+                                <th>อุปกรณ์ / เบราว์เซอร์</th>
+                                <th>หมายเหตุ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table-body">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- USER LOGIN LOGS MODAL -->
+    <div class="modal-overlay" id="user-logs-modal">
+        <div class="modal-box" style="max-width: 720px;">
+            <div class="modal-header">
+                <h2 id="user-logs-modal-title">ประวัติการเข้าสู่ระบบ</h2>
+                <button class="modal-close" onclick="closeModal('user-logs-modal')">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>สถานะ</th>
+                                <th>IP Address</th>
+                                <th>วันเวลา</th>
+                                <th>อุปกรณ์ / เบราว์เซอร์</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-logs-table-body">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="closeModal('user-logs-modal')">ปิดหน้าต่าง</button>
+            </div>
+        </div>
     </div>
 
     <!-- USER MODAL (ADD / EDIT) -->
@@ -972,6 +1043,10 @@
             
             event.currentTarget.classList.add('active');
             document.getElementById(tabId).classList.add('active');
+
+            if (tabId === 'tab-logs') {
+                loadLoginLogs();
+            }
         }
 
         // Modal Controls
@@ -1104,6 +1179,7 @@
                         <td class="mono" style="font-size: 12px; color: var(--text-dim);">${escapeHtml(u.last_login)}</td>
                         <td style="text-align: right;">
                             <div style="display: inline-flex; gap: 6px;">
+                                <button class="btn btn-ghost btn-sm" onclick="viewUserLogs(${u.id}, '${escapeHtml(u.username)}')">📜 ประวัติ</button>
                                 <button class="btn btn-ghost btn-sm" onclick="editUser(${u.id})">✏️ แก้ไข</button>
                                 <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${escapeHtml(u.username)}')">🗑️ ลบ</button>
                             </div>
@@ -1111,6 +1187,81 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        // --- Login Logs Handlers ---
+        async function loadLoginLogs() {
+            const search = document.getElementById('log-search-input')?.value.trim() || '';
+            const status = document.getElementById('log-status-filter')?.value || '';
+            const tbody = document.getElementById('logs-table-body');
+            if (!tbody) return;
+
+            let url = `/api/admin/login-logs?limit=100`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (status) url += `&status=${encodeURIComponent(status)}`;
+
+            try {
+                const data = await safeFetchJson(url);
+                const logs = data.logs || [];
+                if (logs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><span>📜</span>ไม่พบประวัติการเข้าสู่ระบบ</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = logs.map(l => {
+                    const isSuccess = l.status === 'success';
+                    const badge = isSuccess
+                        ? '<span class="badge badge-success">✓ สำเร็จ</span>'
+                        : '<span class="badge badge-danger">✕ ไม่สำเร็จ</span>';
+                    return `
+                        <tr>
+                            <td>${badge}</td>
+                            <td><strong style="color:#fff;">${escapeHtml(l.username)}</strong></td>
+                            <td class="mono" style="font-size:12.5px; color:#cbd5e1;">${escapeHtml(l.ip_address)}</td>
+                            <td class="mono" style="font-size:12px; color:var(--text-dim);">${escapeHtml(l.timestamp)}</td>
+                            <td style="font-size:12px; color:var(--text-muted); max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(l.user_agent)}">${escapeHtml(l.user_agent)}</td>
+                            <td style="font-size:12px; color:#fca5a5;">${escapeHtml(l.failure_reason)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-state" style="color:var(--danger);">เกิดข้อผิดพลาดในการดึงข้อมูลประวัติ</td></tr>`;
+            }
+        }
+
+        async function viewUserLogs(userId, username) {
+            document.getElementById('user-logs-modal-title').textContent = `ประวัติการเข้าสู่ระบบของ: ${username}`;
+            const tbody = document.getElementById('user-logs-table-body');
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-dim);">กำลังโหลด...</td></tr>`;
+            openModal('user-logs-modal');
+
+            try {
+                const data = await safeFetchJson(`/api/admin/users/${userId}/login-logs`);
+                const logs = data.logs || [];
+                if (logs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="empty-state" style="padding:24px;"><span>📜</span>ยังไม่มีประวัติการเข้าสู่ระบบ</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = logs.map(l => {
+                    const isSuccess = l.status === 'success';
+                    const badge = isSuccess
+                        ? '<span class="badge badge-success">✓ สำเร็จ</span>'
+                        : '<span class="badge badge-danger">✕ ไม่สำเร็จ</span>';
+                    return `
+                        <tr>
+                            <td>${badge}</td>
+                            <td class="mono" style="font-size:12.5px;">${escapeHtml(l.ip_address)}</td>
+                            <td class="mono" style="font-size:12px; color:var(--text-dim);">${escapeHtml(l.timestamp)}</td>
+                            <td style="font-size:12px; color:var(--text-muted); max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(l.user_agent)}">${escapeHtml(l.user_agent)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color:var(--danger); padding:20px;">โหลดข้อมูลไม่สำเร็จ</td></tr>`;
+            }
         }
 
         function filterUsers() {

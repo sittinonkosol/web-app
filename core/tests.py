@@ -1,7 +1,7 @@
 import json
 from django.test import TestCase, Client
 from django.contrib.auth.models import User, Group
-from core.models import AppSetting, UserAppPermission, GroupAppPermission
+from core.models import AppSetting, UserAppPermission, GroupAppPermission, UserLoginLog
 from core.permissions import get_user_app_role, has_app_permission
 
 class CentralAdminAndPermissionTests(TestCase):
@@ -196,3 +196,46 @@ class CentralAdminAndPermissionTests(TestCase):
         )
         response = self.client.get('/ict/scquizz/')
         self.assertEqual(response.status_code, 403)
+
+    def test_login_logs_tracking_and_apis(self):
+        # 1. Trigger Successful Login via central login
+        self.client.post('/login/', {
+            'username': 'normaluser',
+            'password': 'normalpassword123'
+        })
+        
+        # Verify success log created
+        success_log = UserLoginLog.objects.filter(username_attempted='normaluser', status='success').first()
+        self.assertIsNotNone(success_log)
+        self.assertEqual(success_log.user, self.normal_user)
+
+        # 2. Trigger Failed Login via wrong password
+        self.client.post('/login/', {
+            'username': 'normaluser',
+            'password': 'wrongpassword'
+        })
+
+        # Verify failed log created
+        failed_log = UserLoginLog.objects.filter(username_attempted='normaluser', status='failed').first()
+        self.assertIsNotNone(failed_log)
+
+        # 3. Admin can query login logs API
+        self.client.login(username='admin', password='adminpassword123')
+        res = self.client.get('/api/admin/login-logs')
+        self.assertEqual(res.status_code, 200)
+        logs = res.json()['logs']
+        self.assertTrue(len(logs) >= 2)
+
+        # Filter by status
+        res = self.client.get('/api/admin/login-logs?status=failed')
+        self.assertEqual(res.status_code, 200)
+        failed_logs = res.json()['logs']
+        self.assertTrue(all(l['status'] == 'failed' for l in failed_logs))
+
+        # Query specific user logs API
+        res = self.client.get(f'/api/admin/users/{self.normal_user.id}/login-logs')
+        self.assertEqual(res.status_code, 200)
+        user_logs = res.json()['logs']
+        self.assertTrue(len(user_logs) >= 1)
+        self.assertEqual(res.json()['username'], 'normaluser')
+

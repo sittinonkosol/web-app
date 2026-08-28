@@ -68,3 +68,29 @@ class GroupAppPermission(models.Model):
 
     def __str__(self):
         return f"{self.group.name} -> {self.app_name}: {self.role}"
+
+class UserLoginLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='login_logs')
+    username_attempted = models.CharField(max_length=150)
+    ip_address = models.CharField(max_length=64, blank=True, default='')
+    user_agent = models.TextField(blank=True, default='')
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('success', 'เข้าสู่ระบบสำเร็จ'),
+            ('failed', 'เข้าสู่ระบบไม่สำเร็จ'),
+        ],
+        default='success'
+    )
+    failure_reason = models.CharField(max_length=255, blank=True, default='')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'core_user_login_logs'
+        ordering = ['-timestamp']
+        verbose_name = 'User Login Log'
+        verbose_name_plural = 'User Login Logs'
+
+    def __str__(self):
+        return f"{self.username_attempted} [{self.status}] at {self.timestamp}"
+
