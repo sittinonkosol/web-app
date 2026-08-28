@@ -48,34 +48,12 @@ def index_view(request):
 def login_view(request):
     app_base = get_app_base(request)
     next_url = request.GET.get('next') or request.POST.get('next') or f'{app_base}/admin'
-    
-    if request.user.is_authenticated:
-        return redirect(next_url)
-        
-    error_message = None
-    if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '')
-        
-        # Authenticate against central User database
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect(next_url)
-        else:
-            error_message = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
-            
-    return render(request, 'login/login.html', {
-        'app_base': app_base,
-        'next': next_url,
-        'error_message': error_message,
-        'user': request.user
-    })
+    return redirect(f'/login/?next={next_url}')
 
 def admin_view(request):
     app_base = get_app_base(request)
     if not request.user.is_authenticated:
-        return redirect(f'{app_base}/login?next={request.path}')
+        return redirect(f'/login/?next={request.path}')
     
     if not has_app_permission(request.user, 'scquizz', min_role='moderator'):
         return render(request, 'core/permission_denied.html', {

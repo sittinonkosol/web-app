@@ -299,8 +299,12 @@
     <div class="login-card">
         <div class="card-header">
             <div class="badge-icon">🔐</div>
-            <h1>เข้าสู่ระบบแอดมิน</h1>
-            <p class="subtitle">ระบบรักษาความปลอดภัยส่วนกลาง (Central Auth)</p>
+            <h1>เข้าสู่ระบบกลาง</h1>
+            {% if app_context_name %}
+            <p class="subtitle">เข้าสู่ระบบเพื่อใช้งาน <strong>{{ app_context_name }}</strong></p>
+            {% else %}
+            <p class="subtitle">ระบบยืนยันตัวตนส่วนกลาง (Central Authentication)</p>
+            {% endif %}
         </div>
 
         {% if error_message %}
@@ -317,7 +321,7 @@
             <div class="form-group">
                 <label for="username">ชื่อผู้ใช้ (Username)</label>
                 <div class="input-wrapper">
-                    <input type="text" id="username" name="username" placeholder="เช่น admin" required autofocus autocomplete="username">
+                    <input type="text" id="username" name="username" placeholder="เช่น admin, user" required autofocus autocomplete="username">
                 </div>
             </div>
 
@@ -335,9 +339,9 @@
         </form>
 
         <div class="card-footer">
-            <a href="/" class="back-link">
+            <a href="{{ next|default:'/' }}" class="back-link">
                 <span>←</span>
-                <span>กลับสู่หน้าหลัก (Workspace Apps)</span>
+                <span>ยกเลิก / กลับสู่หน้าเดิม</span>
             </a>
         </div>
     </div>

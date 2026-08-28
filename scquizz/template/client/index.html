@@ -20,15 +20,19 @@
         <!-- SENDER VIEW -->
         <div id="view-send" class="send-wrap hidden">
             <div class="send-card" id="send-card">
-                <!-- Simple Login Button -->
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                <!-- Simple Login / User / Logout Buttons -->
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 10px;">
                     {% if user and user.is_authenticated %}
                     <a href="{{ app_base }}/admin" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; text-decoration: none; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.25)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.15)'">
                         <span>⚙️</span>
                         <span>แอดมิน ({{ user.username }})</span>
                     </a>
+                    <a href="/logout/?next={{ app_base }}/" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); color: #fca5a5; text-decoration: none; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.12)'">
+                        <span>🚪</span>
+                        <span>Logout</span>
+                    </a>
                     {% else %}
-                    <a href="{{ app_base }}/login?next={{ app_base }}/admin" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-dim); text-decoration: none; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='var(--text-dim)';">
+                    <a href="/login/?next={{ app_base }}/admin" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-dim); text-decoration: none; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='var(--text-dim)';">
                         <span>🔐</span>
                         <span>Login</span>
                     </a>

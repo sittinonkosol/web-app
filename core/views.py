@@ -102,10 +102,17 @@ def login_view(request):
                 return redirect(next_url)
         else:
             error_message = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
+
+    app_context_name = None
+    if '/ict/scquizz' in next_url:
+        app_context_name = 'SC Quiz'
+    elif next_url.startswith('/admin'):
+        app_context_name = 'Central Admin Dashboard'
             
     return render(request, 'core/login.html', {
         'next': next_url,
-        'error_message': error_message
+        'error_message': error_message,
+        'app_context_name': app_context_name,
     })
 
 def logout_view(request):

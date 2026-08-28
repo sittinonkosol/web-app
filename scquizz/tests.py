@@ -20,28 +20,32 @@ class AppSpecificAuthAndTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(self.app_url, response.content.decode('utf-8'))
 
-    def test_app_login_page_renders(self):
+    def test_app_login_redirects_to_central_login(self):
         login_url = self.app_url.rstrip('/') + '/login'
         response = self.client.get(login_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login/', response.url)
+
+    def test_central_login_renders_with_app_context(self):
+        admin_url = self.app_url.rstrip('/') + '/admin'
+        response = self.client.get(f'/login/?next={admin_url}')
         self.assertEqual(response.status_code, 200)
-        self.assertIn('เข้าสู่ระบบแอดมิน', response.content.decode('utf-8'))
+        self.assertIn('เข้าสู่ระบบกลาง', response.content.decode('utf-8'))
         self.assertIn('SC Quiz', response.content.decode('utf-8'))
 
-    def test_admin_redirects_to_app_login(self):
+    def test_admin_redirects_to_central_login(self):
         admin_url = self.app_url.rstrip('/') + '/admin'
-        login_url = self.app_url.rstrip('/') + '/login'
         response = self.client.get(admin_url)
-        # Should redirect to app's own login page with next parameter
+        # Should redirect to central login page with next parameter
         self.assertEqual(response.status_code, 302)
-        self.assertIn(login_url, response.url)
+        self.assertIn('/login/', response.url)
         self.assertIn(admin_url, response.url)
 
     def test_app_login_success_with_central_db(self):
         admin_url = self.app_url.rstrip('/') + '/admin'
-        login_url = self.app_url.rstrip('/') + '/login'
         
-        # Post credentials to app's login endpoint
-        login_response = self.client.post(login_url, {
+        # Post credentials to central login endpoint
+        login_response = self.client.post('/login/', {
             'username': 'admin',
             'password': 'admin1234',
             'next': admin_url
