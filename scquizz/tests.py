@@ -8,8 +8,8 @@ class AppSpecificAuthAndTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.app_url = get_mounted_app_url('scquizz')
-        # Create test admin user in central User database
-        self.user = User.objects.create_user(
+        # Create test superuser in central User database
+        self.user = User.objects.create_superuser(
             username='admin',
             password='admin1234',
             email='admin@example.com'
@@ -49,7 +49,7 @@ class AppSpecificAuthAndTests(TestCase):
         self.assertEqual(login_response.status_code, 302)
         self.assertEqual(login_response.url, admin_url)
 
-        # Now access admin page as authenticated user
+        # Now access admin page as authenticated superuser
         admin_response = self.client.get(admin_url)
         self.assertEqual(admin_response.status_code, 200)
         self.assertIn('admin', admin_response.content.decode('utf-8'))
@@ -160,6 +160,7 @@ class AppSpecificAuthAndTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data["name"], "มังกรผู้เร้าใจ")
+        self.assertEqual(data["name"], "ไม่บอกชื่อ")
         self.assertEqual(len(data["text"]), 1000)
+
 

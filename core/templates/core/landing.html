@@ -110,6 +110,7 @@
             margin: 0 0 1rem 0;
             background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -1px;
         }
@@ -258,30 +259,49 @@
     </div>
 
     <div class="container">
-        <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: 2rem;">
             {% if user and user.is_authenticated %}
-            <div style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 99px; backdrop-filter: blur(10px);">
-                <span style="font-size: 14px; color: #94a3b8;">👤 เข้าสู่ระบบในชื่อ: <strong style="color: #fff;">{{ user.username }}</strong></span>
-                <a href="{% url 'logout' %}" style="color: #f87171; text-decoration: none; font-size: 13px; font-weight: 600; margin-left: 8px; padding-left: 10px; border-left: 1px solid rgba(255,255,255,0.15);">ออกจากระบบ</a>
-            </div>
+                {% if user.is_staff or user.is_superuser %}
+                <a href="/admin/" style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: #fff; text-decoration: none; padding: 8px 16px; border-radius: 99px; font-size: 13.5px; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35); transition: all 0.2s ease;">
+                    <span>⚡</span>
+                    <span>จัดการผู้ใช้และสิทธิ์ (Admin)</span>
+                </a>
+                {% endif %}
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 99px; backdrop-filter: blur(10px);">
+                    <span style="font-size: 14px; color: #94a3b8;">👤 <strong style="color: #fff;">{{ user.username }}</strong></span>
+                    <a href="{% url 'logout' %}" style="color: #f87171; text-decoration: none; font-size: 13px; font-weight: 600; margin-left: 8px; padding-left: 10px; border-left: 1px solid rgba(255,255,255,0.15);">ออกจากระบบ</a>
+                </div>
             {% else %}
             <a href="{% url 'login' %}" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #fff; text-decoration: none; padding: 9px 18px; border-radius: 99px; font-size: 14px; font-weight: 500; backdrop-filter: blur(10px); transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
                 <span>🔐</span>
-                <span>เข้าสู่ระบบแอดมิน</span>
+                <span>เข้าสู่ระบบ</span>
             </a>
             {% endif %}
         </div>
 
         <header>
             <h1>Workspace Apps</h1>
-            <p class="subtitle">Select an application to launch. New apps installed in the project will appear here automatically.</p>
+            <p class="subtitle">เลือกแอปพลิเคชันที่ต้องการใช้งาน หรือจัดการสิทธิ์เข้าถึงผ่านระบบส่วนกลาง</p>
         </header>
 
         <div class="app-grid">
             {% if apps %}
                 {% for app in apps %}
                 <a href="{{ app.url }}" class="app-card">
-                    <span class="app-icon">{{ app.icon }}</span>
+                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-start; margin-bottom: 1rem;">
+                        <span class="app-icon" style="margin-bottom: 0;">{{ app.icon }}</span>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                            {% if app.is_public %}
+                            <span style="font-size: 11.5px; padding: 3px 10px; border-radius: 20px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 600;">🌐 Public</span>
+                            {% else %}
+                            <span style="font-size: 11.5px; padding: 3px 10px; border-radius: 20px; background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); font-weight: 600;">🔒 ต้อง Login</span>
+                            {% endif %}
+                            
+                            {% if user and user.is_authenticated %}
+                            <span style="font-size: 11px; color: #94a3b8;">สิทธิ์ของคุณ: <strong style="color: #cbd5e1;">{{ app.user_role|upper }}</strong></span>
+                            {% endif %}
+                        </div>
+                    </div>
                     <h2 class="app-title">{{ app.name }}</h2>
                     <p class="app-desc">{{ app.description }}</p>
                     <div class="launch-btn">Launch App</div>

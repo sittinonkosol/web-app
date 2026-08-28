@@ -27,6 +27,8 @@ def notify_sse_subscribers(event_data="UPDATE"):
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 
+from core.permissions import require_app_access, has_app_permission, get_user_app_role
+
 # --- HTML & Static Views ---
 def get_app_base(request):
     path = request.path.rstrip('/')
@@ -36,6 +38,7 @@ def get_app_base(request):
             break
     return path.rstrip('/')
 
+@require_app_access('scquizz', min_role='viewer')
 def index_view(request):
     return render(request, 'client/index.html', {
         'app_base': get_app_base(request),
@@ -73,6 +76,16 @@ def admin_view(request):
     app_base = get_app_base(request)
     if not request.user.is_authenticated:
         return redirect(f'{app_base}/login?next={request.path}')
+    
+    if not has_app_permission(request.user, 'scquizz', min_role='moderator'):
+        return render(request, 'core/permission_denied.html', {
+            'app_name': 'scquizz',
+            'display_name': 'SC Quiz (Admin Panel)',
+            'required_role': 'moderator',
+            'user_role': get_user_app_role(request.user, 'scquizz'),
+            'user': request.user
+        }, status=403)
+
     return render(request, 'admin/admin.html', {
         'app_base': app_base,
         'user': request.user
@@ -106,7 +119,7 @@ def messages_view(request):
             body = json.loads(request.body)
             name = sanitize_text(body.get("name", ""), max_len=60)
             if not name:
-                name = 'มังกรผู้เร้าใจ'
+                name = 'ไม่บอกชื่อ'
             text = sanitize_text(body.get("text", ""), max_len=1000)
             if not text:
                 return JsonResponse({"error": "ข้อความต้องไม่ว่างเปล่า"}, status=400)
