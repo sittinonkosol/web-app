@@ -9,7 +9,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="{{ app_base }}/css/style.css?v=3.8">
+    <link rel="stylesheet" href="{{ app_base }}/css/style.css?v=3.9">
     <script src="{{ app_base }}/js/locations.js"></script>
 </head>
 
@@ -78,8 +78,8 @@
         <!-- ADMIN VIEW -->
         <div id="view-admin" class="admin-wrap board-layout hidden">
             <div class="board-sidebar">
-                <!-- ICT UBU Banner -->
-                <div class="brand-header" style="margin-bottom:40px;">
+                <!-- ICT UBU Banner (Clickable to collapse/expand on mobile) -->
+                <div class="brand-header brand-header-clickable" id="sidebar-brand-header" onclick="toggleMobileJoinInfo()" title="คลิกเพื่อพับ/ขยาย QR Code" style="margin-bottom:40px;">
                     <div class="ict-logo-ring">
                         <img src="{{ app_base }}/asset/logo_processed.png" alt="ICT UBU Logo">
                     </div>
@@ -88,13 +88,8 @@
                         <span class="brand-title-line">COMMUNICATION</span>
                         <span class="brand-title-line">TECHNOLOGY</span>
                     </div>
+                    <span class="brand-mobile-arrow" id="brand-mobile-arrow">▼</span>
                 </div>
-
-                <!-- Mobile Toggle Button (Visible only on mobile) -->
-                <button type="button" class="board-join-mobile-toggle" id="join-info-toggle" onclick="toggleMobileJoinInfo()">
-                    <span class="toggle-label">QR Code &amp; ข้อมูลเข้าร่วม</span>
-                    <span class="toggle-arrow" id="join-info-arrow">▼</span>
-                </button>
 
                 <div class="board-join-info" id="board-join-info">
                     <div class="board-join-text">เข้าใช้งานได้ที่</div>
@@ -270,7 +265,7 @@
 
     </div>
 
-    <script src="{{ app_base }}/js/app.js?v=3.8"></script>
+    <script src="{{ app_base }}/js/app.js?v=3.9"></script>
 </body>
 
 </html>

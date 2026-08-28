@@ -345,15 +345,16 @@
     }
   };
 
-  // --- Mobile Collapsible Join Info ---
+  // --- Mobile Collapsible Join Info (via Logo) ---
   window.toggleMobileJoinInfo = () => {
+    if (window.innerWidth > 768) return;
     const info = document.getElementById('board-join-info');
-    const toggleBtn = document.getElementById('join-info-toggle');
-    const arrow = document.getElementById('join-info-arrow');
+    const header = document.getElementById('sidebar-brand-header');
+    const arrow = document.getElementById('brand-mobile-arrow');
     if (!info) return;
 
     const isOpen = info.classList.toggle('is-open');
-    if (toggleBtn) toggleBtn.classList.toggle('is-open', isOpen);
+    if (header) header.classList.toggle('is-open', isOpen);
     if (arrow) arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
   };
 

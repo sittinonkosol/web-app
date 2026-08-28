@@ -638,7 +638,8 @@ body.admin-theme #sky {
   cursor: pointer;
 }
 
-.board-join-mobile-toggle {
+.board-join-mobile-toggle,
+.brand-mobile-arrow {
   display: none;
 }
 
@@ -960,42 +961,33 @@ body.admin-theme #answer-msg:hover {
   }
 
   .board-sidebar .brand-header {
-    margin-bottom: 14px !important;
-    justify-content: center;
-  }
-
-  .board-join-mobile-toggle {
+    cursor: pointer !important;
+    user-select: none;
+    margin-bottom: 0 !important;
+    padding: 6px 12px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
     display: flex !important;
     align-items: center !important;
-    justify-content: space-between !important;
+    justify-content: center !important;
     width: 100% !important;
-    padding: 9px 14px !important;
-    background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 10px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    color: #475569 !important;
-    cursor: pointer !important;
-    transition: all 0.2s !important;
-    margin-bottom: 2px !important;
-    font-family: inherit !important;
   }
 
-  .board-join-mobile-toggle:hover {
-    background: #f1f5f9 !important;
+  .board-sidebar .brand-header:hover,
+  .board-sidebar .brand-header:active {
+    background: rgba(0, 0, 0, 0.03);
   }
 
-  .board-join-mobile-toggle .toggle-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .board-join-mobile-toggle .toggle-arrow {
-    font-size: 10px;
+  .brand-mobile-arrow {
+    display: inline-block !important;
+    font-size: 11px;
     color: #94a3b8;
     transition: transform 0.25s ease;
+    margin-left: 10px;
+  }
+
+  .board-sidebar .brand-header.is-open .brand-mobile-arrow {
+    transform: rotate(180deg);
   }
 
   .board-sidebar .board-join-info {
@@ -1006,7 +998,7 @@ body.admin-theme #answer-msg:hover {
     align-items: center;
     padding-top: 12px;
     border-top: 1px dashed #e2e8f0;
-    margin-top: 8px;
+    margin-top: 10px;
     animation: fadeIn 0.2s ease;
   }
 
