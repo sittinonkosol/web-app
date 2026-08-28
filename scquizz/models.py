@@ -9,7 +9,7 @@ class QuizSession(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     # Rate limiting settings per session
     rate_limit_per_minute = models.PositiveIntegerField(default=10, help_text='จำนวนข้อความสูงสุดต่อ IP ต่อนาที (0 = ไม่จำกัด)')
-    cooldown_seconds = models.PositiveIntegerField(default=60, help_text='เวลารอระหว่างข้อความ (วินาที) ที่แสดงใน UI')
+    cooldown_seconds = models.PositiveIntegerField(default=0, help_text='เวลารอระหว่างข้อความ (วินาที) (0 = ไม่จำกัด)')
 
     class Meta:
         db_table = 'quiz_sessions'

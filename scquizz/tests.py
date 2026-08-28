@@ -19,7 +19,8 @@ class AppSpecificAuthAndTests(TestCase):
         )
         self.test_session = QuizSession.objects.create(
             title='Test Default Session',
-            is_active=True
+            is_active=True,
+            cooldown_seconds=0
         )
 
     def test_landing_page(self):
@@ -342,15 +343,17 @@ class AppSpecificAuthAndTests(TestCase):
         msg_url = f'{self.app_url}api/messages'
 
         self.test_session.rate_limit_per_minute = 3
+        self.test_session.cooldown_seconds = 0
         self.test_session.save()
 
         # Send 3 messages (should succeed)
         for i in range(3):
-            self.client.post(msg_url, data=json.dumps({
+            res = self.client.post(msg_url, data=json.dumps({
                 'name': f'Tester {i}',
                 'text': f'Clean message {i}',
                 'session_id': str(self.test_session.id)
             }), content_type='application/json')
+            self.assertEqual(res.status_code, 200)
 
         # 4th message should get 429 Too Many Requests
         res = self.client.post(msg_url, data=json.dumps({
@@ -360,6 +363,33 @@ class AppSpecificAuthAndTests(TestCase):
         }), content_type='application/json')
         self.assertEqual(res.status_code, 429)
         self.assertIn('ขีดจำกัด', res.json().get('error', ''))
+
+    def test_cooldown_seconds_middleware(self):
+        """Test rate limit middleware enforces per-message cooldown_seconds"""
+        self.client.login(username='superadmin', password='superpassword123')
+        msg_url = f'{self.app_url}api/messages'
+
+        self.test_session.rate_limit_per_minute = 10
+        self.test_session.cooldown_seconds = 30
+        self.test_session.save()
+
+        # Message 1 (succeeds)
+        res1 = self.client.post(msg_url, data=json.dumps({
+            'name': 'User 1',
+            'text': 'First message',
+            'session_id': str(self.test_session.id)
+        }), content_type='application/json')
+        self.assertEqual(res1.status_code, 200)
+
+        # Message 2 sent immediately (should be blocked by 30s cooldown with 429 status)
+        res2 = self.client.post(msg_url, data=json.dumps({
+            'name': 'User 1',
+            'text': 'Immediate second message',
+            'session_id': str(self.test_session.id)
+        }), content_type='application/json')
+        self.assertEqual(res2.status_code, 429)
+        self.assertTrue(res2.json().get('cooldown', False))
+        self.assertIn('รอ', res2.json().get('error', ''))
 
 
 

@@ -63,9 +63,9 @@ class RateLimitMiddleware:
         cooldown_key = f'ratelimit:cooldown:{ip}'
 
         # ตรวจสอบ Cooldown ก่อน
-        remaining_cooldown = cache.get(cooldown_key)
-        if remaining_cooldown is not None:
-            ttl = cache.ttl(cooldown_key) if hasattr(cache, 'ttl') else cooldown
+        expire_time = cache.get(cooldown_key)
+        if expire_time is not None and cooldown > 0:
+            ttl = max(1, int(expire_time - time.time()))
             resp = JsonResponse({
                 'error': f'กรุณารอ {ttl} วินาทีก่อนส่งข้อความถัดไป',
                 'retry_after': ttl,

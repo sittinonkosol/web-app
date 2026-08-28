@@ -12,6 +12,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.core.paginator import Paginator
+from django.core.cache import cache
+from scquizz.models import Message, Poll, QuizSession
+from scquizz.middleware import get_real_ip
 
 from .models import Message, Poll, QuizSession
 from .consumers import notify_update
@@ -307,6 +310,13 @@ def messages_view(request):
 
             logger.info(f"Message posted: session={session.id!r} name={name!r}")
             notify_update()
+
+            # Set backend Rate Limit Cooldown for this IP
+            if session.cooldown_seconds > 0:
+                ip = get_real_ip(request)
+                cooldown_key = f'ratelimit:cooldown:{ip}'
+                cache.set(cooldown_key, time.time() + session.cooldown_seconds, timeout=session.cooldown_seconds)
+
             resp = JsonResponse({
                 "id": msg.id,
                 "name": msg.name,

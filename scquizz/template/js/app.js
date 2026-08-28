@@ -1511,44 +1511,70 @@
   let _cooldownTimer = null;
   let _cooldownSeconds = 60; // ค่า default จะถูก override โดย API response
 
+  function checkStoredCooldown() {
+    const untilStr = localStorage.getItem('scquizz_cooldown_until');
+    if (!untilStr) return;
+    const until = parseInt(untilStr, 10);
+    const remaining = Math.ceil((until - Date.now()) / 1000);
+    if (remaining > 0) {
+      startCooldown(remaining);
+    } else {
+      localStorage.removeItem('scquizz_cooldown_until');
+    }
+  }
+
   function startCooldown(seconds) {
+    if (!seconds || seconds <= 0) return;
     if (_cooldownTimer) clearInterval(_cooldownTimer);
+
+    const until = Date.now() + seconds * 1000;
+    localStorage.setItem('scquizz_cooldown_until', String(until));
+
     let remaining = seconds;
-    submitBtn.disabled = true;
-    submitBtn.style.transition = 'opacity 0.5s, background 0.5s, box-shadow 0.5s';
-    submitBtn.style.opacity = '0.4';
-    submitBtn.style.boxShadow = 'none';
-    submitBtn.textContent = `ส่งอีกครั้งใน ${remaining}s`;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.style.transition = 'opacity 0.5s, background 0.5s, box-shadow 0.5s';
+      submitBtn.style.opacity = '0.5';
+      submitBtn.style.boxShadow = 'none';
+      submitBtn.textContent = `ส่งอีกครั้งใน ${remaining}s`;
+    }
+
     _cooldownTimer = setInterval(() => {
-      remaining--;
-      const progress = 1 - remaining / seconds;
-      submitBtn.style.opacity = String(0.4 + 0.6 * progress);
-      submitBtn.style.boxShadow = progress > 0.5
-        ? `0 0 ${Math.round(12 * progress)}px rgba(99,102,241,${(progress - 0.5) * 1.2})`
-        : 'none';
+      remaining = Math.ceil((until - Date.now()) / 1000);
+      if (submitBtn) {
+        submitBtn.style.opacity = String(0.5 + 0.5 * (1 - remaining / seconds));
+      }
       if (remaining > 0) {
-        submitBtn.textContent = `ส่งอีกครั้งใน ${remaining}s`;
+        if (submitBtn) submitBtn.textContent = `ส่งอีกครั้งใน ${remaining}s`;
       } else {
         clearInterval(_cooldownTimer);
         _cooldownTimer = null;
-        submitBtn.disabled = textInput.value.trim().length === 0;
-        submitBtn.textContent = 'ปล่อยข้อความ';
-        submitBtn.style.opacity = '1';
-        submitBtn.style.boxShadow = '';
+        localStorage.removeItem('scquizz_cooldown_until');
+        if (submitBtn) {
+          submitBtn.disabled = textInput ? textInput.value.trim().length === 0 : false;
+          submitBtn.textContent = 'ส่งข้อความ';
+          submitBtn.style.opacity = '1';
+          submitBtn.style.boxShadow = '';
+        }
       }
     }, 1000);
   }
+
+  // เรียกใช้ตรวจสอบ Cooldown จาก localStorage เมื่อเข้าหน้าเว็บ
+  checkStoredCooldown();
 
   if (sendForm) {
     sendForm.addEventListener('submit', async function (e) {
       e.preventDefault();
       if (_cooldownTimer) return; // ยังอยู่ใน cooldown
-      const name = nameInput.value.trim() || 'มังกรผู้เร้าใจ';
-      const text = textInput.value.trim();
+      const name = nameInput ? (nameInput.value.trim() || 'ผู้ส่งข้อความ') : 'ผู้ส่งข้อความ';
+      const text = textInput ? textInput.value.trim() : '';
       if (!text) return;
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'กำลังปล่อย…';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'กำลังส่ง…';
+      }
 
       try {
         const data = await sendMessageToAPI(name, text);
@@ -1556,31 +1582,34 @@
           refreshRealtimeData(true);
         }
         // อ่าน cooldown จาก API response
-        const cooldown = data.cooldown_seconds || _cooldownSeconds;
+        const cooldown = (data && data.cooldown_seconds !== undefined) ? data.cooldown_seconds : _cooldownSeconds;
         _cooldownSeconds = cooldown;
 
-        // Success screen
-        sendCard.innerHTML = `
-          <div style="text-align:center;padding:20px 0;">
-            <span style="font-size:64px;display:block;margin-bottom:20px;animation:float 3s ease-in-out infinite;">🏮</span>
-            <h1 style="font-size:24px;margin-bottom:12px;">ปล่อยข้อความเรียบร้อย</h1>
-            <p style="color:var(--text-soft);margin-bottom:24px;font-size:15px;">ข้อความของคุณได้ลอยไปต่อหน้าแอดมินแล้ว</p>
-            <button class="btn btn-primary" id="btn-reload" style="max-width:180px;margin:0 auto;">เขียนข้อความใหม่</button>
-          </div>
-        `;
-        document.getElementById('btn-reload').addEventListener('click', function () {
-          window.location.reload();
-        });
+        // ล้างข้อความในกล่องข้อความ
+        if (textInput) textInput.value = '';
+        updateFormState();
+
+        showToast('ส่งข้อความเรียบร้อยแล้ว');
+
+        // เริ่ม Cooldown Timer ทันที
+        if (cooldown > 0) {
+          startCooldown(cooldown);
+        } else if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'ส่งข้อความ';
+        }
       } catch (err) {
         console.error('send error', err);
         const errMsg = err.message || 'ส่งไม่สำเร็จ ลองใหม่อีกครั้ง';
         showToast(errMsg);
-        // ถ้าเป็น rate limit (429) ให้เริ่ม cooldown ด้วย
+        // ถ้าเป็น rate limit / cooldown (429) ให้เริ่ม cooldown ตามเวลาที่เซิร์ฟเวอร์แจ้ง
         if (errMsg.includes('รอ') || errMsg.includes('เกิน') || errMsg.includes('ขีดจำกัด')) {
-          startCooldown(_cooldownSeconds);
-        } else {
+          const match = errMsg.match(/(\d+)/);
+          const seconds = match ? parseInt(match[1], 10) : _cooldownSeconds;
+          startCooldown(seconds || _cooldownSeconds);
+        } else if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'ปล่อยข้อความ';
+          submitBtn.textContent = 'ส่งข้อความ';
         }
       }
     });
