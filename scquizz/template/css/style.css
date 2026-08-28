@@ -1479,6 +1479,7 @@ body.admin-theme .btn-ghost:hover {
   letter-spacing: 0.5px;
   background: linear-gradient(135deg, #ff1744, #ff5722);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }

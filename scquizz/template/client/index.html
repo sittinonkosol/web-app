@@ -20,9 +20,9 @@
         <!-- SENDER VIEW -->
         <div id="view-send" class="send-wrap hidden">
             <div class="send-card" id="send-card">
-                <!-- Simple Login / User / Logout Buttons -->
-                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 10px;">
-                    {% if user and user.is_authenticated %}
+                {% if user and user.is_authenticated %}
+                <!-- Admin & Logout Buttons (Top Centered) -->
+                <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 16px;">
                     <a href="{{ app_base }}/admin" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; text-decoration: none; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.25)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.15)'">
                         <span>⚙️</span>
                         <span>แอดมิน ({{ user.username }})</span>
@@ -31,16 +31,10 @@
                         <span>🚪</span>
                         <span>Logout</span>
                     </a>
-                    {% else %}
-                    <a href="/login/?next={{ app_base }}/admin" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-dim); text-decoration: none; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='var(--text-dim)';">
-                        <span>🔐</span>
-                        <span>Login</span>
-                    </a>
-                    {% endif %}
                 </div>
 
-                <!-- Brand Header -->
-                <div class="brand-header">
+                <!-- Brand Header (Centered) -->
+                <div class="brand-header" style="justify-content: center; margin-bottom: 20px;">
                     <div class="ict-logo-ring">
                         <img src="{{ app_base }}/asset/logo_processed.png" alt="ICT UBU Logo">
                     </div>
@@ -50,6 +44,25 @@
                         <span class="brand-title-line">TECHNOLOGY</span>
                     </div>
                 </div>
+                {% else %}
+                <!-- Brand Header & Login Inline (Side by Side) -->
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 24px; padding: 4px 0 0;">
+                    <div class="brand-header" style="margin-bottom: 0; padding: 0;">
+                        <div class="ict-logo-ring">
+                            <img src="{{ app_base }}/asset/logo_processed.png" alt="ICT UBU Logo">
+                        </div>
+                        <div class="brand-title">
+                            <span class="brand-title-line">INFORMATION AND</span>
+                            <span class="brand-title-line">COMMUNICATION</span>
+                            <span class="brand-title-line">TECHNOLOGY</span>
+                        </div>
+                    </div>
+                    <a href="/login/?next={{ app_base }}/admin" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-dim); text-decoration: none; padding: 5px 14px; border-radius: 99px; font-size: 12.5px; font-weight: 500; transition: all 0.2s; white-space: nowrap; flex-shrink: 0;" onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='var(--text-dim)';">
+                        <span>🔐</span>
+                        <span>Login</span>
+                    </a>
+                </div>
+                {% endif %}
 
                 {% if current_session %}
                 <div style="display: flex; justify-content: center; margin-bottom: 12px;">
@@ -172,7 +185,7 @@
 
     </div>
 
-    <script src="{{ app_base }}/js/app.js?v=2.4"></script>
+    <script src="{{ app_base }}/js/app.js?v=2.5"></script>
 </body>
 
 </html>
