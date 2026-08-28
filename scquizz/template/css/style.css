@@ -1002,8 +1002,9 @@ body.admin-theme #answer-msg:hover {
     flex-wrap: wrap !important;
     justify-content: space-between !important;
     align-items: center !important;
-    gap: 10px !important;
+    gap: 8px !important;
     margin-bottom: 12px !important;
+    width: 100% !important;
   }
 
   .board-header-left {
@@ -1011,44 +1012,53 @@ body.admin-theme #answer-msg:hover {
   }
 
   .btn-back-main {
-    order: 1;
-    padding: 5px 9px !important;
+    order: 1 !important;
+    padding: 5px 8px !important;
     font-size: 12px !important;
     border-radius: 7px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
   }
 
   .board-header-right {
-    order: 2;
+    order: 2 !important;
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 5px !important;
+    flex-wrap: nowrap !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
   }
 
   .board-count {
-    font-size: 12px !important;
+    font-size: 11.5px !important;
+    white-space: nowrap !important;
   }
 
   .btn-tts-mute {
-    padding: 5px 8px !important;
-    font-size: 12px !important;
+    padding: 4px 7px !important;
+    font-size: 11.5px !important;
+    white-space: nowrap !important;
   }
 
   .btn-user-menu {
-    padding: 5px 10px !important;
-    font-size: 12px !important;
+    padding: 4px 8px !important;
+    font-size: 11.5px !important;
+    white-space: nowrap !important;
   }
 
   .user-dropdown-menu {
     right: 0 !important;
     top: calc(100% + 6px) !important;
-    min-width: 200px !important;
+    min-width: 190px !important;
   }
 
   .board-nav-tabs {
-    order: 3;
+    order: 3 !important;
     width: 100% !important;
+    flex-basis: 100% !important;
     display: flex !important;
-    margin-top: 2px !important;
+    margin-top: 4px !important;
   }
 
   .admin-tab-btn {
