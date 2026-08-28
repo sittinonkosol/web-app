@@ -92,7 +92,7 @@
 
                 <div class="board-join-info">
                     <div class="board-join-text">เข้าใช้งานได้ที่</div>
-                    <div class="board-join-domain" id="join-url">localhost:8000</div>
+                    <div class="board-join-domain" id="join-url" style="word-break: break-word; overflow-wrap: anywhere; line-height: 1.3; font-size: 20px; margin-bottom: 12px;">localhost:8000</div>
                     <div class="board-qr-container">
                         <img id="qr-img" src="" alt="QR Code" />
                     </div>
@@ -114,12 +114,11 @@
                         <button class="admin-tab-btn" id="admin-tab-session" onclick="switchAdminTab('session')">🎪 Sessions</button>
                     </div>
                     <div class="board-header-right" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <div style="display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 5px 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                            <span style="font-size: 13px;">🎪</span>
+                        <div style="display: flex; align-items: center; background: #f8fafc; padding: 5px 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
                             <select id="admin-session-switcher" style="background: transparent; border: none; font-size: 13px; font-weight: 600; color: #1e293b; outline: none; cursor: pointer;">
                                 {% for s in sessions %}
                                 <option value="{{ s.id }}" {% if s.is_active %}selected{% endif %}>
-                                    {% if s.is_active %}🟢{% else %}⚪{% endif %} {{ s.title }}
+                                    {{ s.title }}
                                 </option>
                                 {% empty %}
                                 <option value="">General Session</option>
@@ -209,7 +208,7 @@
 
     </div>
 
-    <script src="{{ app_base }}/js/app.js?v=2.0"></script>
+    <script src="{{ app_base }}/js/app.js?v=2.2"></script>
 </body>
 
 </html>

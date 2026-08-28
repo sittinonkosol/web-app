@@ -111,7 +111,7 @@
     if (!switcher) return;
     switcher.innerHTML = allSessions.map(s => `
       <option value="${s.id}" ${s.id === currentAdminSessionId ? 'selected' : ''}>
-        ${s.is_active ? '🟢 ' : '⚪ '}${escapeHtml(s.title)}
+        ${escapeHtml(s.title)}
       </option>
     `).join('');
   }
@@ -146,7 +146,7 @@
           <div style="display:flex;align-items:center;gap:8px;">
             ${!isSelected ? `<button class="btn btn-ghost" style="width:auto;padding:7px 14px;font-size:13px;" onclick="switchAdminSession('${s.id}')">👁️ ดูข้อมูล</button>` : ''}
             ${!isActive ? `<button class="btn btn-primary" style="width:auto;padding:7px 14px;font-size:13px;background:#22c55e;border:none;" onclick="activateSessionAPI('${s.id}')">⚡ ตั้งเป็น Active</button>` : ''}
-            ${allSessions.length > 1 ? `<button class="btn btn-ghost btn-danger-outline" style="width:auto;padding:7px 12px;font-size:13px;" onclick="deleteSessionAPI('${s.id}', '${escapeHtml(s.title)}')">🗑️</button>` : ''}
+            <button class="btn btn-ghost btn-danger-outline" style="width:auto;padding:7px 12px;font-size:13px;" onclick="deleteSessionAPI('${s.id}', '${escapeHtml(s.title)}')">🗑️ ลบ</button>
           </div>
         </div>
       `;
@@ -181,14 +181,21 @@
     if (!confirm(`คุณต้องการลบ Session "${title}" และข้อความ/โพลทั้งหมดใน Session นี้ใช่หรือไม่?`)) return;
     try {
       const res = await fetch(`${API_BASE}/api/sessions/${sessionId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Delete failed');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Delete failed');
+      }
+      if (currentAdminSessionId === sessionId) {
+        currentAdminSessionId = '';
+        localStorage.removeItem('scquizz_admin_session_id');
+      }
       showToast('ลบ Session เรียบร้อย');
       await fetchSessions();
       fetchMessages();
       fetchPolls();
     } catch (err) {
       console.error(err);
-      showToast('ลบ Session ไม่สำเร็จ');
+      showToast(err.message || 'ลบ Session ไม่สำเร็จ');
     }
   };
 
