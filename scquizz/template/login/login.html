@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบแอดมิน — SC Quiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ app_base }}/css/style.css">
+    <style>
+        .login-wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .input-pw-wrap {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-pw-wrap input {
+            width: 100%;
+            padding-right: 44px;
+        }
+
+        .toggle-pw-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 1.15rem;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .toggle-pw-btn:hover {
+            color: var(--text);
+        }
+
+        .error-box {
+            background: rgba(201, 106, 90, 0.15);
+            border: 1px solid rgba(201, 106, 90, 0.35);
+            color: #ff9b8a;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: shake 0.35s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        .back-nav {
+            margin-top: 22px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+        }
+
+        .back-nav a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .back-nav a:hover {
+            color: var(--text);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sky"></div>
+    <div id="app">
+        <div class="login-wrap">
+            <div class="send-card">
+                <!-- Brand Header -->
+                <div class="brand-header" style="margin-bottom: 24px;">
+                    <div class="ict-logo-ring">
+                        <img src="{{ app_base }}/asset/logo_processed.png" alt="ICT UBU Logo">
+                    </div>
+                    <div class="brand-title">
+                        <span class="brand-title-line">INFORMATION AND</span>
+                        <span class="brand-title-line">COMMUNICATION</span>
+                        <span class="brand-title-line">TECHNOLOGY</span>
+                    </div>
+                </div>
+
+                <div class="eyebrow">สำหรับผู้ดูแลระบบ</div>
+                <h1 style="font-size: 24px; margin-bottom: 6px;">เข้าสู่ระบบแอดมิน</h1>
+                <p class="sub" style="margin-bottom: 22px;">ลงชื่อเข้าใช้งานด้วยบัญชีกลางเพื่อเข้าสู่แผงควบคุม SC Quiz</p>
+
+                {% if error_message %}
+                <div class="error-box">
+                    <span>⚠️</span>
+                    <span>{{ error_message }}</span>
+                </div>
+                {% endif %}
+
+                <form method="POST" action="{{ app_base }}/login">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ next }}">
+
+                    <div class="field">
+                        <label for="f-username">ชื่อผู้ใช้ (Username)</label>
+                        <input type="text" id="f-username" name="username" placeholder="กรอก Username ผู้ดูแล" required autofocus autocomplete="username">
+                    </div>
+
+                    <div class="field">
+                        <label for="f-password">รหัสผ่าน (Password)</label>
+                        <div class="input-pw-wrap">
+                            <input type="password" id="f-password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                            <button type="button" class="toggle-pw-btn" id="toggle-pw" aria-label="Toggle password visibility">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top: 10px; width: 100%;">เข้าสู่ระบบแอดมิน</button>
+                </form>
+
+                <div class="back-nav">
+                    <a href="{{ app_base }}/">
+                        <span>←</span>
+                        <span>กลับสู่หน้าส่งข้อความ (SC Quiz)</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Particles
+        const sky = document.getElementById('sky');
+        const sparkCount = window.innerWidth < 600 ? 8 : 14;
+        if (sky) {
+            for (let i = 0; i < sparkCount; i++) {
+                const s = document.createElement('div');
+                s.className = 'spark';
+                s.style.left = Math.random() * 100 + '%';
+                s.style.top = Math.random() * 100 + '%';
+                s.style.animationDelay = Math.random() * 8 + 's';
+                s.style.animationDuration = 5 + Math.random() * 8 + 's';
+                sky.appendChild(s);
+            }
+        }
+
+        // Password visibility toggle with standard SVG icons
+        const pwInput = document.getElementById('f-password');
+        const toggleBtn = document.getElementById('toggle-pw');
+        const eyeSvg = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+        const eyeOffSvg = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+
+        if (toggleBtn && pwInput) {
+            toggleBtn.addEventListener('click', () => {
+                if (pwInput.type === 'password') {
+                    pwInput.type = 'text';
+                    toggleBtn.innerHTML = eyeOffSvg;
+                } else {
+                    pwInput.type = 'password';
+                    toggleBtn.innerHTML = eyeSvg;
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

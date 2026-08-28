@@ -1,0 +1,4 @@
+Django>=5.0
+channels>=4.0.0
+daphne>=4.0.0
+gTTS>=2.5.0

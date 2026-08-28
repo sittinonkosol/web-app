@@ -1,0 +1,1 @@
+# scquizz app package

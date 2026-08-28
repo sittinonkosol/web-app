@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ปล่อยข้อความ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ app_base }}/css/style.css">
+    <script src="{{ app_base }}/js/locations.js"></script>
+</head>
+
+<body>
+    <div id="sky"></div>
+    <div id="app">
+
+        <!-- SENDER VIEW -->
+        <div id="view-send" class="send-wrap hidden">
+            <div class="send-card" id="send-card">
+                <!-- Simple Login Button -->
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                    {% if user and user.is_authenticated %}
+                    <a href="{{ app_base }}/admin" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; text-decoration: none; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.25)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.15)'">
+                        <span>⚙️</span>
+                        <span>แอดมิน ({{ user.username }})</span>
+                    </a>
+                    {% else %}
+                    <a href="{{ app_base }}/login?next={{ app_base }}/admin" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-dim); text-decoration: none; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='#fff';" onmouseout="this.style.background='rgba(255,255,255,0.06)'; this.style.color='var(--text-dim)';">
+                        <span>🔐</span>
+                        <span>Login</span>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Brand Header -->
+                <div class="brand-header">
+                    <div class="ict-logo-ring">
+                        <img src="{{ app_base }}/asset/logo_processed.png" alt="ICT UBU Logo">
+                    </div>
+                    <div class="brand-title">
+                        <span class="brand-title-line">INFORMATION AND</span>
+                        <span class="brand-title-line">COMMUNICATION</span>
+                        <span class="brand-title-line">TECHNOLOGY</span>
+                    </div>
+                </div>
+
+                <!-- Sender Tabs -->
+                <div class="sender-tabs">
+                    <button class="sender-tab-btn active" id="sender-tab-qa">💬 Q&A</button>
+                    <button class="sender-tab-btn" id="sender-tab-poll">📊 Poll</button>
+                </div>
+
+                <!-- QA Tab Content -->
+                <div id="sender-qa-content">
+                    <div class="eyebrow" style="margin-top: 15px;">ข้อความไม่ระบุตัวตน</div>
+                    <h1>ปล่อยข้อความของคุณลอยไป</h1>
+                    <p class="sub">พิมพ์ชื่อ เขียนสิ่งที่อยากบอก แล้วปล่อยให้ลอยไปถึงแอดมิน ไม่ต้องเปิดเผยตัวตนมากไปกว่านี้</p>
+
+                    <form id="send-form">
+                        <div class="field">
+                            <label for="f-name">ชื่อของคุณ</label>
+                            <input type="text" id="f-name" maxlength="60" placeholder="เช่น คนแปลกหน้า หรือชื่อจริงก็ได้"
+                                autocomplete="off">
+                        </div>
+                        <div class="field">
+                            <label for="f-text">ข้อความ</label>
+                            <textarea id="f-text" maxlength="1000" placeholder="อยากบอกอะไรกับเรา…"></textarea>
+                            <div class="counter mono" id="f-counter">0/1000</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="f-submit" disabled>ปล่อยข้อความ</button>
+                    </form>
+                    <div class="trust">เราไม่เก็บข้อมูลส่วนตัวใด ๆ นอกจากชื่อที่คุณตั้งเอง</div>
+                </div>
+
+                <!-- Poll Tab Content -->
+                <div id="sender-poll-content" class="hidden">
+                    <div class="eyebrow" style="margin-top: 15px;">โพลสำรวจความคิดเห็น</div>
+                    <div id="active-poll-area">
+                        <!-- Loaded dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN GATE -->
+        <div id="view-gate" class="send-wrap hidden">
+            <div class="send-card">
+                <div class="eyebrow">สำหรับแอดมินเท่านั้น</div>
+                <h1>เข้าสู่กล่องข้อความ</h1>
+                <p class="sub">ใส่รหัสผ่านแอดมินเพื่อดูข้อความทั้งหมดที่ลอยเข้ามา</p>
+                <form id="gate-form">
+                    <div class="field">
+                        <label for="gate-pass">รหัสผ่าน</label>
+                        <input type="password" id="gate-pass" autocomplete="off" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="gate-submit">เข้าสู่ระบบ</button>
+                </form>
+                <div class="trust" id="gate-error" style="color:var(--danger); display:none;">รหัสผ่านไม่ถูกต้อง</div>
+            </div>
+        </div>
+
+        <!-- ADMIN VIEW -->
+        <div id="view-admin" class="admin-wrap board-layout hidden">
+            <div class="board-sidebar">
+                <div class="board-join-info">
+                    <div class="board-join-text">เข้าใช้งานได้ที่</div>
+                    <div class="board-join-domain" id="join-url">localhost:8000</div>
+                    <div class="board-qr-container">
+                        <img id="qr-img" src="" alt="QR Code" />
+                    </div>
+                    <div class="board-active-users" id="active-users-count" style="margin-top: 16px; font-size: 13.5px; color: #666; font-weight: 500; font-family: 'Noto Sans Thai', sans-serif; display: flex; align-items: center; gap: 6px;">
+                        <span class="user-pulse-dot" style="display: inline-block; width: 8px; height: 8px; background-color: #208838; border-radius: 50%; animation: pulse 1.8s infinite;"></span>
+                        <span>ผู้ใช้งานออนไลน์: <strong id="user-count-num">1</strong> คน</span>
+                    </div>
+                </div>
+            </div>
+            <div class="board-main">
+                <div class="board-header">
+                    <div class="board-header-left">
+                        <button class="admin-tab-btn active" id="admin-tab-qa">💬 Q&A</button>
+                        <button class="admin-tab-btn" id="admin-tab-poll">📊 Polls</button>
+                    </div>
+                    <div class="board-header-right">
+                        <span class="board-count" id="header-count">0 💬</span>
+                    </div>
+                </div>
+
+                <!-- Admin QA Section -->
+                <div id="admin-qa-section">
+                    <div id="admin-empty" class="empty-state hidden">
+                        <span class="lantern">🏮</span>
+                        <h3>ท้องฟ้ายังโล่งอยู่</h3>
+                        <p>เมื่อมีคนปล่อยข้อความ มันจะลอยขึ้นมาที่นี่</p>
+                    </div>
+                    <div id="note-list" class="note-list"></div>
+                </div>
+
+                <!-- Admin Poll Section -->
+                <div id="admin-poll-section" class="hidden">
+                    <div class="poll-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; font-size: 20px; color: #1a1a1a;">โพลทั้งหมด</h2>
+                        <button class="btn btn-primary" id="create-poll-btn" style="width: auto; padding: 10px 18px; font-size: 14px;">+ สร้างโพล</button>
+                    </div>
+                    <div id="admin-poll-list" class="admin-poll-list" style="display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Loaded dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="{{ app_base }}/js/app.js?v=1.6"></script>
+</body>
+
+</html>
