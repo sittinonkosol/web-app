@@ -6,7 +6,8 @@ from django.apps import apps
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import get_resolver, URLResolver
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -299,6 +300,98 @@ def register_view(request):
     return render(request, 'core/register.html', {
         'errors': errors,
         'form_data': form_data,
+    })
+
+
+@login_required(login_url='/login/')
+def profile_view(request):
+    """
+    User self-profile management page.
+    Allows users to update their profile info (first name, last name, email)
+    and change their account password.
+    """
+    user = request.user
+    info_success = None
+    info_errors = {}
+    pwd_success = None
+    pwd_errors = {}
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'update_info':
+            first_name = request.POST.get('first_name', '').strip()
+            last_name = request.POST.get('last_name', '').strip()
+            email = request.POST.get('email', '').strip()
+
+            if email:
+                try:
+                    from django.core.validators import validate_email
+                    from django.core.exceptions import ValidationError as CoreValidationError
+                    validate_email(email)
+                except CoreValidationError:
+                    info_errors['email'] = 'รูปแบบอีเมลไม่ถูกต้อง'
+                else:
+                    if User.objects.filter(email=email).exclude(pk=user.pk).exists():
+                        info_errors['email'] = 'อีเมลนี้ถูกใช้งานโดยบัญชีอื่นแล้ว'
+
+            if not info_errors:
+                try:
+                    user.first_name = first_name
+                    user.last_name = last_name
+                    user.email = email
+                    user.save(update_fields=['first_name', 'last_name', 'email'])
+                    info_success = 'บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว'
+                except Exception as e:
+                    logger.error(f"profile_view update_info error: {e}", exc_info=True)
+                    info_errors['non_field_errors'] = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง'
+
+        elif action == 'change_password':
+            current_password = request.POST.get('current_password', '')
+            new_password = request.POST.get('new_password', '')
+            confirm_password = request.POST.get('confirm_password', '')
+
+            from django.contrib.auth.password_validation import validate_password
+            from django.core.exceptions import ValidationError as DjangoValidationError
+
+            if not current_password:
+                pwd_errors['current_password'] = 'กรุณาระบุรหัสผ่านปัจจุบัน'
+            elif not user.check_password(current_password):
+                pwd_errors['current_password'] = 'รหัสผ่านปัจจุบันไม่ถูกต้อง'
+
+            if not new_password:
+                pwd_errors['new_password'] = 'กรุณาระบุรหัสผ่านใหม่'
+            else:
+                try:
+                    validate_password(new_password, user=user)
+                except DjangoValidationError as ve:
+                    pwd_errors['new_password'] = ' '.join(ve.messages)
+
+            if not pwd_errors.get('new_password'):
+                if not confirm_password:
+                    pwd_errors['confirm_password'] = 'กรุณายืนยันรหัสผ่านใหม่'
+                elif new_password != confirm_password:
+                    pwd_errors['confirm_password'] = 'รหัสผ่านใหม่ไม่ตรงกัน'
+
+            if not pwd_errors:
+                try:
+                    user.set_password(new_password)
+                    user.save()
+                    update_session_auth_hash(request, user)
+                    pwd_success = 'เปลี่ยนรหัสผ่านใหม่สำเร็จเรียบร้อยแล้ว'
+                except Exception as e:
+                    logger.error(f"profile_view change_password error: {e}", exc_info=True)
+                    pwd_errors['non_field_errors'] = 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน กรุณาลองใหม่อีกครั้ง'
+
+    user_groups = user.groups.all()
+
+    return render(request, 'core/profile.html', {
+        'profile_user': user,
+        'user_groups': user_groups,
+        'info_success': info_success,
+        'info_errors': info_errors,
+        'pwd_success': pwd_success,
+        'pwd_errors': pwd_errors,
     })
 
 
