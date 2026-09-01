@@ -1337,16 +1337,27 @@
         // COMMAND ENGINE (TAB Completion & '?' Help)
         // ============================================================
         const MC_COMMAND_TREE = {
-            "help": {
-                desc: "Display help for server commands",
-                params: ["<command>"]
-            },
-            "list": {
-                desc: "List players on the server",
-                subcommands: {
-                    "uuids": { desc: "List players including their UUIDs" }
-                }
-            },
+            // === General & Info ===
+            "help": { desc: "Display help for server commands", params: ["<command>"] },
+            "list": { desc: "List players on the server", subcommands: { "uuids": { desc: "List players including their UUIDs" } } },
+            "version": { desc: "Show Minecraft server version", subcommands: { "paper": { desc: "Show PaperMC version details" } } },
+            "ver": { desc: "Alias for version" },
+            "plugins": { desc: "List all loaded server plugins" },
+            "pl": { desc: "Alias for plugins" },
+            "seed": { desc: "Display world seed value" },
+            "tps": { desc: "Show server tick rate (TPS) and MSPT" },
+            "stop": { desc: "Gracefully save and shut down the server" },
+            "reload": { desc: "Reload server configuration and plugins", subcommands: { "confirm": { desc: "Confirm reload execution" } } },
+
+            // === Player & Administration ===
+            "op": { desc: "Grant operator status to player", params: ["<player>"] },
+            "deop": { desc: "Revoke operator status from player", params: ["<player>"] },
+            "kick": { desc: "Disconnect player from server", params: ["<player>", "<reason>"] },
+            "ban": { desc: "Ban player from server", params: ["<player>", "<reason>"] },
+            "ban-ip": { desc: "Ban an IP address or player's IP", params: ["<ip|player>", "<reason>"] },
+            "banlist": { desc: "View the list of banned players or IPs", subcommands: { "players": { desc: "List banned players" }, "ips": { desc: "List banned IP addresses" } } },
+            "pardon": { desc: "Remove player from banlist", params: ["<player>"] },
+            "pardon-ip": { desc: "Remove IP address from banlist", params: ["<ip>"] },
             "whitelist": {
                 desc: "Manage server whitelist",
                 subcommands: {
@@ -1367,6 +1378,40 @@
                     "spectator": { desc: "Set mode to Spectator", params: ["<player>"] }
                 }
             },
+            "defaultgamemode": {
+                desc: "Set default game mode for new players",
+                subcommands: {
+                    "survival": { desc: "Default to Survival" },
+                    "creative": { desc: "Default to Creative" },
+                    "adventure": { desc: "Default to Adventure" },
+                    "spectator": { desc: "Default to Spectator" }
+                }
+            },
+            "tp": { desc: "Teleport entities/players", params: ["<player>", "<target>"] },
+            "teleport": { desc: "Teleport entities/players", params: ["<player>", "<target>"] },
+            "spectate": { desc: "Make spectator spectate target entity", params: ["<target>", "<player>"] },
+            "spreadplayers": { desc: "Randomly spread players across an area", params: ["<x>", "<z>", "<spreadDistance>", "<maxRange>", "<respectTeams>", "<targets>"] },
+
+            // === Communication & Message ===
+            "say": { desc: "Broadcast message to all players in chat", params: ["<message>"] },
+            "tell": { desc: "Send private message to player", params: ["<player>", "<message>"] },
+            "msg": { desc: "Alias for tell", params: ["<player>", "<message>"] },
+            "w": { desc: "Alias for tell (whisper)", params: ["<player>", "<message>"] },
+            "tellraw": { desc: "Send raw JSON text message to players", params: ["<player>", "<raw_json>"] },
+            "title": {
+                desc: "Control screen titles for players",
+                params: ["<player>"],
+                subcommands: {
+                    "title": { desc: "Set main title text", params: ["<raw_json>"] },
+                    "subtitle": { desc: "Set subtitle text", params: ["<raw_json>"] },
+                    "actionbar": { desc: "Set actionbar text", params: ["<raw_json>"] },
+                    "clear": { desc: "Clear titles immediately" },
+                    "reset": { desc: "Reset title settings" },
+                    "times": { desc: "Set title fade/display times", params: ["<fadeIn>", "<stay>", "<fadeOut>"] }
+                }
+            },
+
+            // === Environment & World Control ===
             "time": {
                 desc: "Change or query world time",
                 subcommands: {
@@ -1408,65 +1453,52 @@
                     "hard": { desc: "Hard difficulty" }
                 }
             },
-            "op": {
-                desc: "Grant operator status to player",
-                params: ["<player>"]
-            },
-            "deop": {
-                desc: "Revoke operator status from player",
-                params: ["<player>"]
-            },
-            "kick": {
-                desc: "Disconnect player from server",
-                params: ["<player>", "<reason>"]
-            },
-            "ban": {
-                desc: "Ban player from server",
-                params: ["<player>", "<reason>"]
-            },
-            "ban-ip": {
-                desc: "Ban an IP address or player IP",
-                params: ["<ip|player>", "<reason>"]
-            },
-            "pardon": {
-                desc: "Remove player from banlist",
-                params: ["<player>"]
-            },
-            "pardon-ip": {
-                desc: "Remove IP address from banlist",
-                params: ["<ip>"]
-            },
-            "tp": {
-                desc: "Teleport entities/players",
-                params: ["<player>", "<target>"]
-            },
-            "teleport": {
-                desc: "Teleport entities/players",
-                params: ["<player>", "<target>"]
-            },
-            "say": {
-                desc: "Broadcast message to all players",
-                params: ["<message>"]
-            },
-            "give": {
-                desc: "Give item to player",
-                params: ["<player>", "<item>", "<count>"]
-            },
-            "clear": {
-                desc: "Clear inventory of player",
-                params: ["<player>", "<item>"]
-            },
-            "kill": {
-                desc: "Kill entity or player (@e, @a, <player>)",
-                params: ["<target>"]
-            },
+            "spawnpoint": { desc: "Set spawn position for player", params: ["<player>", "<x>", "<y>", "<z>"] },
+            "setworldspawn": { desc: "Set default global world spawn point", params: ["<x>", "<y>", "<z>"] },
+            "setidletimeout": { desc: "Set idle kick timeout in minutes", params: ["<minutes>"] },
+
+            // === Items, Inventory & Effects ===
+            "give": { desc: "Give item to player", params: ["<player>", "<item>", "<count>"] },
+            "clear": { desc: "Clear inventory of player", params: ["<player>", "<item>", "<maxCount>"] },
+            "kill": { desc: "Kill entity or player (@e, @a, <player>)", params: ["<target>"] },
+            "damage": { desc: "Apply damage to entity", params: ["<target>", "<amount>", "<damageType>"] },
             "effect": {
                 desc: "Modify status effects",
                 subcommands: {
-                    "give": { desc: "Give effect to player", params: ["<player>", "<effect>", "<seconds>", "<amplifier>"] },
+                    "give": { desc: "Give effect to player", params: ["<player>", "<effect>", "<seconds>", "<amplifier>", "<hideParticles>"] },
                     "clear": { desc: "Clear effect from player", params: ["<player>", "<effect>"] }
                 }
             },
+            "enchant": { desc: "Add enchantment to player's held item", params: ["<player>", "<enchantment>", "<level>"] },
+            "experience": {
+                desc: "Manage player XP points and levels",
+                subcommands: {
+                    "add": { desc: "Add XP points/levels", params: ["<player>", "<amount>", "<points|levels>"] },
+                    "set": { desc: "Set XP points/levels", params: ["<player>", "<amount>", "<points|levels>"] },
+                    "query": { desc: "Query current XP", params: ["<player>", "<points|levels>"] }
+                }
+            },
+            "xp": { desc: "Alias for experience", subcommands: { "add": { desc: "Add XP", params: ["<player>", "<amount>"] }, "set": { desc: "Set XP", params: ["<player>", "<amount>"] } } },
+
+            // === World Building & Blocks ===
+            "setblock": { desc: "Place block at coordinates", params: ["<x>", "<y>", "<z>", "<block>", "<destroy|keep|replace>"] },
+            "fill": { desc: "Fill region with specified block", params: ["<from_x>", "<from_y>", "<from_z>", "<to_x>", "<to_y>", "<to_z>", "<block>"] },
+            "fillbiome": { desc: "Change biome for a volume", params: ["<from_x>", "<from_y>", "<from_z>", "<to_x>", "<to_y>", "<to_z>", "<biome>"] },
+            "clone": { desc: "Clone blocks from one region to another", params: ["<x1>", "<y1>", "<z1>", "<x2>", "<y2>", "<z2>", "<destX>", "<destY>", "<destZ>"] },
+            "summon": { desc: "Summon entity at coordinates", params: ["<entity>", "<x>", "<y>", "<z>", "<nbt>"] },
+            "particle": { desc: "Spawn particles in the world", params: ["<name>", "<x>", "<y>", "<z>", "<dx>", "<dy>", "<dz>", "<speed>", "<count>"] },
+            "playsound": { desc: "Play sound effect to players", params: ["<sound>", "<source>", "<player>", "<x>", "<y>", "<z>", "<volume>", "<pitch>"] },
+            "stopsound": { desc: "Stop playing sound effects", params: ["<player>", "<source>", "<sound>"] },
+            "locate": {
+                desc: "Locate nearest structure, biome, or POI",
+                subcommands: {
+                    "structure": { desc: "Locate structure", params: ["<structure>"] },
+                    "biome": { desc: "Locate biome", params: ["<biome>"] },
+                    "poi": { desc: "Locate point of interest", params: ["<poi>"] }
+                }
+            },
+
+            // === Game Rules ===
             "gamerule": {
                 desc: "Set or query game rules",
                 subcommands: {
@@ -1477,15 +1509,40 @@
                     "doFireTick": { desc: "Fire spreading", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
                     "doWeatherCycle": { desc: "Weather changes", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
                     "showDeathMessages": { desc: "Death announcements", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
-                    "randomTickSpeed": { desc: "Block tick speed rate", params: ["<value>"] }
+                    "doEntityDrops": { desc: "Entity item drops", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "doMobLoot": { desc: "Mob loot drops", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "doTileDrops": { desc: "Block destruction drops", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "doTraderSpawning": { desc: "Wandering trader spawning", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "doWardenspawn": { desc: "Warden spawning", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "doInsomnia": { desc: "Phantom spawning from insomnia", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "doImmediateRespawn": { desc: "Respawn without death screen", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "drowningDamage": { desc: "Drowning damage", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "fallDamage": { desc: "Fall damage", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "fireDamage": { desc: "Fire damage", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "freezeDamage": { desc: "Powder snow freeze damage", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "naturalRegeneration": { desc: "Natural health regeneration", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "playersSleepingPercentage": { desc: "Percentage of players needed to skip night", params: ["<percentage>"] },
+                    "randomTickSpeed": { desc: "Block tick speed rate (default: 3)", params: ["<rate>"] },
+                    "spawnRadius": { desc: "Spawn area protection radius", params: ["<radius>"] },
+                    "maxEntityCramming": { desc: "Max entities in one block before suffocation", params: ["<count>"] },
+                    "maxCommandChainLength": { desc: "Max command blocks in a chain", params: ["<count>"] }
                 }
             },
+
+            // === World Border & Maintenance ===
             "worldborder": {
                 desc: "Manage world border boundary",
                 subcommands: {
-                    "set": { desc: "Set world border diameter", params: ["<distance>", "<time>"] },
-                    "add": { desc: "Add to world border diameter", params: ["<distance>", "<time>"] },
-                    "center": { desc: "Set world border center", params: ["<x>", "<z>"] },
+                    "set": { desc: "Set world border diameter", params: ["<distance>", "<timeInSeconds>"] },
+                    "add": { desc: "Add to world border diameter", params: ["<distance>", "<timeInSeconds>"] },
+                    "center": { desc: "Set world border center coordinates", params: ["<x>", "<z>"] },
+                    "damage": {
+                        desc: "Configure border damage",
+                        subcommands: {
+                            "amount": { desc: "Damage per block per second", params: ["<damagePerBlock>"] },
+                            "buffer": { desc: "Safe distance buffer outside border", params: ["<distance>"] }
+                        }
+                    },
                     "get": { desc: "Get current world border diameter" },
                     "warning": {
                         desc: "Configure world border warnings",
@@ -1496,52 +1553,202 @@
                     }
                 }
             },
-            "tps": {
-                desc: "Show server tick rate and performance"
-            },
-            "save-all": {
-                desc: "Save world data to disk",
+            "forceload": {
+                desc: "Force chunks to remain constantly loaded",
                 subcommands: {
-                    "flush": { desc: "Force complete flush immediately" }
+                    "add": { desc: "Force load chunk coordinates", params: ["<from_x>", "<from_z>", "<to_x>", "<to_z>"] },
+                    "remove": { desc: "Remove force load on chunks", params: ["<from_x>", "<from_z>"] },
+                    "remove all": { desc: "Clear all force-loaded chunks" },
+                    "query": { desc: "Check if chunk is force loaded", params: ["<x>", "<z>"] }
                 }
             },
-            "save-on": {
-                desc: "Enable automatic world saving"
-            },
-            "save-off": {
-                desc: "Disable automatic world saving"
-            },
-            "seed": {
-                desc: "Display world seed value"
-            },
-            "reload": {
-                desc: "Reload server configuration and plugins",
+            "save-all": { desc: "Save all world chunks and player data to disk", subcommands: { "flush": { desc: "Force synchronous disk flush" } } },
+            "save-on": { desc: "Enable automatic periodic world saving" },
+            "save-off": { desc: "Disable automatic periodic world saving" },
+
+            // === Scoreboard & Teams ===
+            "scoreboard": {
+                desc: "Manage scoreboards and objectives",
                 subcommands: {
-                    "confirm": { desc: "Confirm reload execution" }
+                    "objectives": {
+                        desc: "Manage scoreboard objectives",
+                        subcommands: {
+                            "list": { desc: "List all objectives" },
+                            "add": { desc: "Create new objective", params: ["<name>", "<criteria>", "<displayName>"] },
+                            "remove": { desc: "Delete objective", params: ["<name>"] },
+                            "setdisplay": { desc: "Display objective on screen", params: ["<slot>", "<objective>"] }
+                        }
+                    },
+                    "players": {
+                        desc: "Manage player scoreboard scores",
+                        subcommands: {
+                            "list": { desc: "List tracked players", params: ["<player>"] },
+                            "set": { desc: "Set player score", params: ["<player>", "<objective>", "<score>"] },
+                            "add": { desc: "Add to player score", params: ["<player>", "<objective>", "<score>"] },
+                            "remove": { desc: "Subtract from score", params: ["<player>", "<objective>", "<score>"] },
+                            "reset": { desc: "Reset player scores", params: ["<player>", "<objective>"] }
+                        }
+                    },
+                    "teams": { desc: "Manage scoreboard teams", subcommands: { "list": { desc: "List all teams" } } }
                 }
             },
-            "plugins": {
-                desc: "List loaded server plugins"
+            "team": {
+                desc: "Manage teams",
+                subcommands: {
+                    "add": { desc: "Create team", params: ["<team>", "<displayName>"] },
+                    "remove": { desc: "Delete team", params: ["<team>"] },
+                    "join": { desc: "Add player to team", params: ["<team>", "<members>"] },
+                    "leave": { desc: "Remove player from team", params: ["<members>"] },
+                    "empty": { desc: "Remove all members from team", params: ["<team>"] },
+                    "list": { desc: "List all teams or members", params: ["<team>"] }
+                }
+            },
+            "bossbar": {
+                desc: "Create and modify custom bossbars",
+                subcommands: {
+                    "add": { desc: "Create bossbar", params: ["<id>", "<name>"] },
+                    "list": { desc: "List all active bossbars" },
+                    "remove": { desc: "Remove bossbar", params: ["<id>"] },
+                    "set": { desc: "Configure bossbar properties", params: ["<id>", "<name|color|style|value|max|visible|players>"] }
+                }
+            },
+            "tag": {
+                desc: "Manage custom NBT tags on entities",
+                params: ["<target>"],
+                subcommands: {
+                    "add": { desc: "Add tag to entity", params: ["<name>"] },
+                    "remove": { desc: "Remove tag from entity", params: ["<name>"] },
+                    "list": { desc: "List tags on entity" }
+                }
+            },
+            "datapack": {
+                desc: "Control installed data packs",
+                subcommands: {
+                    "list": { desc: "List available and active data packs" },
+                    "enable": { desc: "Enable data pack", params: ["<name>"] },
+                    "disable": { desc: "Disable data pack", params: ["<name>"] }
+                }
+            },
+            "function": { desc: "Execute function file from datapack", params: ["<function_name>"] },
+            "schedule": { desc: "Schedule function execution after delay", params: ["function", "<function_name>", "<time>"] },
+            "advancement": {
+                desc: "Grant or revoke advancements",
+                subcommands: {
+                    "grant": { desc: "Grant advancement", params: ["<player>", "<only|everything|from|through|until>", "<advancement>"] },
+                    "revoke": { desc: "Revoke advancement", params: ["<player>", "<only|everything|from|through|until>", "<advancement>"] }
+                }
+            },
+            "recipe": {
+                desc: "Grant or take crafting recipes",
+                subcommands: {
+                    "give": { desc: "Give recipe to player", params: ["<player>", "<recipe|*>"] },
+                    "take": { desc: "Take recipe from player", params: ["<player>", "<recipe|*>"] }
+                }
+            },
+            "tick": {
+                desc: "Control server tick rate and flow",
+                subcommands: {
+                    "query": { desc: "Show current tick rate status" },
+                    "rate": { desc: "Change target tick rate (default: 20.0)", params: ["<rate>"] },
+                    "freeze": { desc: "Freeze all entity and game ticking" },
+                    "unfreeze": { desc: "Resume normal game ticking" },
+                    "step": { desc: "Step forward a fixed number of ticks", params: ["<ticks>"] },
+                    "sprint": { desc: "Sprint game ticks as fast as possible", params: ["<ticks>"] }
+                }
+            },
+
+            // === PaperMC Server Engine ===
+            "paper": {
+                desc: "PaperMC server management commands",
+                subcommands: {
+                    "version": { desc: "Show detailed Paper server version" },
+                    "reload": { desc: "Reload Paper configuration files" },
+                    "tps": { desc: "Show detailed TPS, MSPT, and tick metrics" },
+                    "dumpitem": { desc: "Dump held item NBT data" },
+                    "heap": { desc: "Dump JVM memory heap snapshot" },
+                    "fixlight": { desc: "Recalculate light for current chunk" },
+                    "syncloadinfo": { desc: "Show synchronous chunk load diagnostics" }
+                }
             },
             "timings": {
                 desc: "Manage server performance timings",
                 subcommands: {
                     "on": { desc: "Enable timings recording" },
                     "off": { desc: "Disable timings recording" },
-                    "paste": { desc: "Generate timings report link" },
-                    "reset": { desc: "Reset timings statistics" }
+                    "paste": { desc: "Upload timings report and get shareable link" },
+                    "report": { desc: "Alias for timings paste" },
+                    "reset": { desc: "Reset collected timings data" },
+                    "verbatim": { desc: "Toggle verbatim detailed timings logging" }
                 }
             },
-            "paper": {
-                desc: "Paper server management commands",
+
+            // === Spark Profiler Plugin ===
+            "spark": {
+                desc: "Spark server performance profiler",
                 subcommands: {
-                    "version": { desc: "Show Paper server version" },
-                    "reload": { desc: "Reload Paper configuration" },
-                    "tps": { desc: "Show server tick statistics" }
+                    "health": { desc: "Show TPS, CPU, Memory, and Disk health overview" },
+                    "tps": { desc: "Show precise tick rate history" },
+                    "ping": { desc: "Show player network latency table" },
+                    "gc": { desc: "Show Garbage Collection memory stats and run GC", subcommands: { "run": { desc: "Trigger manual Garbage Collection" } } },
+                    "tickmonitor": { desc: "Monitor lag spikes in real-time" },
+                    "sampler": {
+                        desc: "Sample CPU performance",
+                        subcommands: {
+                            "start": { desc: "Start CPU performance sampling" },
+                            "stop": { desc: "Stop sampling and generate web report" },
+                            "status": { desc: "Check active sampler status" },
+                            "upload": { desc: "Upload and view report link" }
+                        }
+                    },
+                    "heapsummary": { desc: "Inspect JVM memory heap breakdown" },
+                    "activity": { desc: "Monitor server background thread activity" }
                 }
             },
-            "stop": {
-                desc: "Gracefully shut down the server"
+
+            // === PlaceholderAPI Plugin ===
+            "papi": {
+                desc: "PlaceholderAPI management",
+                subcommands: {
+                    "parse": { desc: "Parse placeholder for player or server", params: ["<player|--null>", "<placeholder>"] },
+                    "list": { desc: "List all active registered placeholder expansions" },
+                    "reload": { desc: "Reload PlaceholderAPI configuration" },
+                    "ecloud": {
+                        desc: "eCloud expansion repository manager",
+                        subcommands: {
+                            "download": { desc: "Download expansion from eCloud", params: ["<expansion_name>"] },
+                            "list": { desc: "List available eCloud expansions", subcommands: { "all": { desc: "List all available" }, "installed": { desc: "List installed only" } } },
+                            "info": { desc: "Show details for an expansion", params: ["<expansion_name>"] }
+                        }
+                    },
+                    "dump": { desc: "Dump system and placeholder debug info" }
+                }
+            },
+            "placeholderapi": { desc: "Alias for papi", subcommands: { "reload": { desc: "Reload PlaceholderAPI" }, "list": { desc: "List expansions" } } },
+
+            // === SkinsRestorer Plugin ===
+            "skinsrestorer": {
+                desc: "Manage player skins",
+                subcommands: {
+                    "status": { desc: "Check SkinsRestorer API status" },
+                    "reload": { desc: "Reload SkinsRestorer configuration" },
+                    "drop": { desc: "Drop custom skin for player", params: ["<player>"] },
+                    "create": { desc: "Create a custom skin", params: ["<skinName>", "<url|skin_file>"] }
+                }
+            },
+            "sr": {
+                desc: "Alias for SkinsRestorer",
+                subcommands: {
+                    "status": { desc: "Check SkinsRestorer API status" },
+                    "reload": { desc: "Reload SkinsRestorer configuration" }
+                }
+            },
+            "skin": {
+                desc: "Set or clear player skin",
+                subcommands: {
+                    "set": { desc: "Set player skin to custom name or URL", params: ["<skinName|url>"] },
+                    "clear": { desc: "Reset player skin to default" },
+                    "update": { desc: "Update skin from Mojang servers" }
+                }
             }
         };
 
@@ -1570,6 +1777,7 @@
         }
 
         function getContextSuggestions(rawInput) {
+            const hasSlash = rawInput.trimStart().startsWith('/');
             let clean = rawInput.trimStart();
             if (clean.startsWith('/')) clean = clean.substring(1);
 
@@ -1582,7 +1790,7 @@
                     token: k,
                     desc: MC_COMMAND_TREE[k].desc || ''
                 }));
-                return { type: 'commands', title: '% Exec commands:', list, prefix: '', beforeText: '' };
+                return { type: 'commands', title: '% Exec commands:', list, prefix: '', beforeText: '', hasSlash };
             }
 
             // Case 1: Single token being typed (e.g. "whi")
@@ -1600,7 +1808,8 @@
                     title: matches.length > 0 ? '% Matching commands:' : `% Unrecognized command: '${rawTokens[0]}'`,
                     list: matches,
                     prefix: rawTokens[0],
-                    beforeText: ''
+                    beforeText: '',
+                    hasSlash
                 };
             }
 
@@ -1614,7 +1823,8 @@
                     title: `% Unrecognized command: '${rawTokens[0]}'`,
                     list: [],
                     prefix: '',
-                    beforeText: ''
+                    beforeText: '',
+                    hasSlash
                 };
             }
 
@@ -1651,7 +1861,8 @@
                         title: `% Subcommands for '${currentPath.join(' ')}':`,
                         list: subKeys,
                         prefix: currentPrefix,
-                        beforeText: beforeText
+                        beforeText: beforeText,
+                        hasSlash
                     };
                 }
             }
@@ -1672,7 +1883,8 @@
                     title: `% Parameter: <player> (Online / Known players):`,
                     list: matchingPlayers,
                     prefix: currentPrefix,
-                    beforeText: beforeText
+                    beforeText: beforeText,
+                    hasSlash
                 };
             }
 
@@ -1682,7 +1894,8 @@
                     title: `% Parameter expected: ${currentNode.params.join(' ')}`,
                     list: matchingPlayers,
                     prefix: currentPrefix,
-                    beforeText: beforeText
+                    beforeText: beforeText,
+                    hasSlash
                 };
             }
 
@@ -1691,7 +1904,8 @@
                 title: '% <cr> (Press Enter to execute command)',
                 list: [],
                 prefix: currentPrefix,
-                beforeText: beforeText
+                beforeText: beforeText,
+                hasSlash
             };
         }
 
@@ -1725,16 +1939,18 @@
                 return;
             }
 
+            const prefixSlash = context.hasSlash ? '/' : '';
+
             if (context.list.length === 1) {
                 // Exactly 1 match -> Complete word with trailing space
                 const completed = context.list[0].token;
-                rconInputEl.value = (context.beforeText || '') + completed + ' ';
+                rconInputEl.value = prefixSlash + (context.beforeText || '') + completed + ' ';
             } else {
                 // Multiple matches -> Longest Common Prefix (LCP)
                 const tokens = context.list.map(item => item.token);
                 const lcp = findLongestCommonPrefix(tokens);
                 if (lcp.length > context.prefix.length) {
-                    rconInputEl.value = (context.beforeText || '') + lcp;
+                    rconInputEl.value = prefixSlash + (context.beforeText || '') + lcp;
                 } else {
                     // Output options to console
                     let lines = [];

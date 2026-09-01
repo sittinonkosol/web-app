@@ -247,16 +247,25 @@ def query_minecraft_slp(host='127.0.0.1', port=25565):
         return {}
 
 def get_player_ping(player_name, host='127.0.0.1', port=25575, password=''):
-    """Query player in-game latency via RCON ping command."""
-    if not password:
+    """Query real player in-game latency via PlaceholderAPI or RCON ping."""
+    if not password or not player_name:
         return None
     try:
+        # 1. Try PlaceholderAPI %player_ping%
+        resp = send_rcon_command(f"papi parse {player_name} %player_ping%", host=host, port=port, password=password)
+        if resp and not resp.startswith("Error:") and not resp.startswith("RCON Error"):
+            clean_resp = re.sub(r'§[0-9a-fk-or]', '', resp).strip()
+            if clean_resp.isdigit():
+                return int(clean_resp)
+
+        # 2. Try generic ping command (EssentialsX etc.)
         resp = send_rcon_command(f"ping {player_name}", host=host, port=port, password=password)
         if resp and not resp.startswith("Error:") and not resp.startswith("RCON Error"):
-            m = re.search(r'(\d+)\s*ms', resp, re.IGNORECASE)
+            clean_resp = re.sub(r'§[0-9a-fk-or]', '', resp).strip()
+            m = re.search(r'(\d+)\s*ms', clean_resp, re.IGNORECASE)
             if m:
                 return int(m.group(1))
-            m = re.search(r'is\s+(\d+)', resp, re.IGNORECASE)
+            m = re.search(r'is\s+(\d+)', clean_resp, re.IGNORECASE)
             if m:
                 return int(m.group(1))
     except Exception:
@@ -389,7 +398,10 @@ def get_players_data(server_path, host='127.0.0.1', port=25575, game_port=25565,
     players = []
     for name in all_names:
         is_online = name in online_names
-        p_ping = default_online_ping if is_online else None
+        p_ping = None
+        if is_online:
+            real_ping = get_player_ping(name, host=host, port=port, password=password)
+            p_ping = real_ping if real_ping is not None else default_online_ping
         
         session_duration = 0
         last_seen_ts = last_seen_times.get(name, 0)

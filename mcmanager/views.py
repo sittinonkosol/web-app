@@ -290,29 +290,9 @@ def api_files(request):
             return JsonResponse({"error": str(e)}, status=400)
             
     elif request.method == "POST":
-        action = request.POST.get('action') or (json.loads(request.body).get('action') if request.body else None)
-        
         try:
-            if action == 'save':
-                data = json.loads(request.body)
-                path = data.get('path')
-                content = data.get('content')
-                write_server_file(settings.server_path, path, content)
-                return JsonResponse({"success": True})
-                
-            elif action == 'delete':
-                data = json.loads(request.body)
-                path = data.get('path')
-                delete_server_item(settings.server_path, path)
-                return JsonResponse({"success": True})
-                
-            elif action == 'mkdir':
-                data = json.loads(request.body)
-                path = data.get('path')
-                create_server_folder(settings.server_path, path)
-                return JsonResponse({"success": True})
-                
-            elif 'file' in request.FILES:
+            # 1. File Upload (multipart/form-data)
+            if 'file' in request.FILES:
                 uploaded_file = request.FILES['file']
                 rel_dir = request.POST.get('path', '')
                 target_dir = _safe_path(settings.server_path, rel_dir)
@@ -322,6 +302,32 @@ def api_files(request):
                     for chunk in uploaded_file.chunks():
                         dest.write(chunk)
                 return JsonResponse({"success": True, "filename": uploaded_file.name})
+
+            # 2. JSON actions (save, delete, mkdir)
+            data = {}
+            if request.content_type == 'application/json' and request.body:
+                try:
+                    data = json.loads(request.body)
+                except Exception:
+                    data = {}
+            else:
+                data = request.POST
+
+            action = data.get('action')
+            path = data.get('path')
+
+            if action == 'save':
+                content = data.get('content', '')
+                write_server_file(settings.server_path, path, content)
+                return JsonResponse({"success": True})
+                
+            elif action == 'delete':
+                delete_server_item(settings.server_path, path)
+                return JsonResponse({"success": True})
+                
+            elif action == 'mkdir':
+                create_server_folder(settings.server_path, path)
+                return JsonResponse({"success": True})
                 
             return JsonResponse({"error": "Unknown file action"}, status=400)
         except Exception as e:
