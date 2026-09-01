@@ -850,15 +850,27 @@
                 flex-direction: column;
                 align-items: flex-start;
                 padding: 16px;
+                gap: 12px;
             }
             .panel-header > div {
                 width: 100%;
-                justify-content: flex-start;
-                flex-wrap: wrap;
+                display: flex;
+                align-items: center;
+                gap: 8px;
             }
             .search-box {
-                flex: 1;
-                min-width: 100%;
+                flex: 1 1 auto;
+                min-width: 0;
+            }
+            .search-box input {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            .panel-header .btn {
+                flex: 0 0 auto;
+                white-space: nowrap;
+                padding: 8px 12px;
+                font-size: 13px;
             }
             .modal-box {
                 width: 92%;
