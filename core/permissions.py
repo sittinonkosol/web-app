@@ -33,20 +33,26 @@ def get_user_app_role(user, app_name):
     Compute effective role for a user on a given app.
     Takes into account Superuser status, direct UserAppPermission, and GroupAppPermissions.
     """
+    is_pub = is_app_public(app_name)
+
     if not user or not user.is_authenticated:
-        return 'viewer' if is_app_public(app_name) else 'none'
+        return 'viewer' if is_pub else 'none'
 
     if user.is_superuser:
         return 'admin'
 
+    # Default role: 'viewer' if public, 'none' if private
+    default_role = 'viewer' if is_pub else 'none'
+    max_level = ROLE_LEVELS.get(default_role, 0)
+    effective_role = default_role
+
     # 1. Direct user permission
     user_perm = UserAppPermission.objects.filter(user=user, app_name=app_name).first()
-    max_level = 0
-    effective_role = 'viewer'  # Default for logged-in users
-
     if user_perm:
-        effective_role = user_perm.role
-        max_level = ROLE_LEVELS.get(user_perm.role, 0)
+        perm_level = ROLE_LEVELS.get(user_perm.role, 0)
+        if perm_level > max_level:
+            max_level = perm_level
+            effective_role = user_perm.role
 
     # 2. Group permissions
     user_groups = user.groups.all()

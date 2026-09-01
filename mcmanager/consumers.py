@@ -20,35 +20,53 @@ class LogConsumer(AsyncWebsocketConsumer):
         if hasattr(self, 'tail_task'):
             self.tail_task.cancel()
 
+    async def receive(self, text_data=None, bytes_data=None):
+        if text_data == 'ping':
+            await self.send(text_data='pong')
+
     async def tail_log(self):
-        # We need synchronous DB call wrapped in sync_to_async to get the path
-        # But we can hardcode it to '/wdc/papermc/logs/latest.log' as per the plan to avoid DB hit.
         log_path = '/wdc/PaperMC/logs/latest.log'
         
-        if not os.path.exists(log_path):
-            await self.send(text_data="Log file not found. Waiting for server to start...\n")
-            # Wait for file to be created
-            while not os.path.exists(log_path):
-                await asyncio.sleep(5)
-                
+        while not os.path.exists(log_path):
+            await self.send(text_data="Waiting for Minecraft server log...\n")
+            await asyncio.sleep(2)
+
         try:
-            # We use tail -n 50 -f
-            process = await asyncio.create_subprocess_exec(
-                'tail', '-n', '50', '-f', log_path,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            
-            while True:
-                line = await process.stdout.readline()
-                if line:
-                    await self.send(text_data=line.decode('utf-8', errors='ignore'))
-                else:
-                    await asyncio.sleep(0.1)
+            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+                # Read recent 30KB as initial buffer so user sees recent activity
+                file_size = os.path.getsize(log_path)
+                init_seek = max(0, file_size - 30000)
+                f.seek(init_seek, os.SEEK_SET)
+                if init_seek > 0:
+                    f.readline() # Discard partial first line
+                
+                initial_data = f.read()
+                if initial_data:
+                    filtered_initial = '\n'.join(line for line in initial_data.split('\n') if 'Thread RCON Client' not in line)
+                    if filtered_initial.strip():
+                        await self.send(text_data=filtered_initial + '\n')
+                last_pos = f.tell()
+                
+                # Stream ONLY newly appended lines
+                while True:
+                    if os.path.exists(log_path):
+                        current_size = os.path.getsize(log_path)
+                        if current_size < last_pos:
+                            # Log was truncated/cleared (e.g. server restarted)
+                            f.seek(0, os.SEEK_SET)
+                        
+                        new_data = f.read()
+                        if new_data:
+                            last_pos = f.tell()
+                            filtered_new = '\n'.join(line for line in new_data.split('\n') if 'Thread RCON Client' not in line)
+                            if filtered_new.strip():
+                                await self.send(text_data=filtered_new + '\n')
+                    
+                    await asyncio.sleep(0.5)
         except asyncio.CancelledError:
-            if 'process' in locals():
-                try:
-                    process.terminate()
-                except ProcessLookupError:
-                    pass
-            raise
+            pass
+        except Exception as e:
+            try:
+                await self.send(text_data=f"\n[Log Stream Notice: {e}]\n")
+            except Exception:
+                pass

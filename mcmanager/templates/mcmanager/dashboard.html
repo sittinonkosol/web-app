@@ -4,202 +4,1111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minecraft Server Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --success: #10b981;
+            --bg: #0e1015;
+            --surface: #161922;
+            --surface-hover: #1c202c;
+            --card-bg: #1a1d27;
+            --inset: #11131a;
+            --line: #262a38;
+            --line-strong: #363c4e;
+            
+            --grass-600: #2f8520;
+            --grass-500: #38a127;
+            --grass-400: #4ade80;
+            --gold-400: #fbbf24;
+            --gold-300: #fde047;
+            --redstone-500: #ef4444;
+            --redstone-400: #f87171;
+            
+            --text-main: #f3f4f6;
+            --text-soft: #d1d5db;
+            --text-dim: #9ca3af;
+            --text-faint: #6b7280;
+            
+            --ok: #22c55e;
+            --warn: #eab308;
             --danger: #ef4444;
-            --warning: #f59e0b;
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --link: #60a5fa;
         }
+
+        * { box-sizing: border-box; }
         body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            color: var(--text-main);
             margin: 0;
-            padding: 2rem;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
+            overflow-x: hidden;
         }
-        .container {
-            max-width: 1200px;
+
+        /* Layout */
+        .app-container {
+            max-width: 1380px;
             margin: 0 auto;
+            padding: 24px 20px 80px;
         }
-        .glass-card {
+
+        /* Header / Chrome */
+        .server-chrome {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--line);
+            border-top: 4px solid var(--grass-500);
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         }
-        h1, h2, h3 { margin-top: 0; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-        .status-online { background: rgba(16, 185, 129, 0.2); color: var(--success); }
-        .status-offline { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-        
-        .btn {
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: white;
-        }
-        .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
-        .btn-start { background: var(--success); }
-        .btn-stop { background: var(--danger); }
-        .btn-restart { background: var(--warning); }
-        .btn-primary { background: var(--accent); }
-        
-        .terminal {
-            background: #000;
-            color: #4ade80;
-            font-family: monospace;
-            padding: 1rem;
-            border-radius: 8px;
-            height: 300px;
-            overflow-y: auto;
-            margin-bottom: 1rem;
-            white-space: pre-wrap;
-        }
-        .input-group { display: flex; gap: 0.5rem; }
-        input[type="text"], input[type="range"] {
-            flex: 1;
-            padding: 0.75rem;
-            border-radius: 8px;
-            border: 1px solid var(--glass-border);
-            background: rgba(0,0,0,0.2);
-            color: white;
-        }
-        .stats-box {
+
+        .chrome-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem;
-            background: rgba(0,0,0,0.2);
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 16px;
         }
-        .stats-val { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+
+        .server-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .server-avatar {
+            width: 54px;
+            height: 54px;
+            background: var(--grass-600);
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            font-size: 26px;
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.3);
+        }
+
+        .server-title {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .server-meta {
+            margin-top: 4px;
+            font-size: 13px;
+            color: var(--text-dim);
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .server-meta span { display: inline-flex; align-items: center; gap: 4px; }
+
+        /* Badges & Dots */
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-dot.online { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+        .status-dot.offline { background: var(--danger); }
+        .status-dot.warn { background: var(--warn); }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-ok { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-warn { background: rgba(234, 179, 8, 0.15); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .badge-info { background: rgba(96, 165, 250, 0.15); color: #93c5fd; border: 1px solid rgba(96, 165, 250, 0.3); }
+
+        /* Buttons */
+        .btn {
+            appearance: none;
+            border: 1px solid var(--line-strong);
+            background: var(--surface);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            font-family: inherit;
+        }
+        .btn:hover { background: var(--surface-hover); border-color: var(--text-dim); }
+        .btn:active { transform: translateY(1px); }
+        .btn-primary { background: var(--grass-600); border-color: var(--grass-500); color: #fff; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.25); }
+        .btn-primary:hover { background: var(--grass-500); }
+        .btn-danger { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5; }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.25); }
+        .btn-warn { background: rgba(234, 179, 8, 0.15); border-color: rgba(234, 179, 8, 0.4); color: #fde047; }
+        .btn-warn:hover { background: rgba(234, 179, 8, 0.25); }
+        .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+        /* Nav Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--line);
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 10px 18px;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .nav-tab:hover { color: var(--text-main); }
+        .nav-tab.active { color: var(--text-main); border-bottom-color: var(--grass-400); background: rgba(74, 222, 128, 0.05); }
+
+        /* Cards & Grids */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .grid-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-box {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 16px 18px;
+        }
+        .stat-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+        .stat-val { font-size: 26px; font-weight: 700; color: var(--text-main); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+
+        /* Tables */
+        .table-wrap { overflow-x: auto; }
+        table.msm-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+            text-align: left;
+        }
+        table.msm-table th {
+            padding: 10px 14px;
+            color: var(--text-dim);
+            font-weight: 600;
+            border-bottom: 1px solid var(--line);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        table.msm-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+            color: var(--text-soft);
+        }
+        table.msm-table tr:hover td { background: var(--surface-hover); }
+
+        /* Console */
+        .console-container {
+            background: #090a0f;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            height: 480px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .console-toolbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+            padding: 8px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            font-size: 12.5px;
+        }
+        .console-output {
+            flex: 1;
+            padding: 14px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #d1d5db;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .console-input-bar {
+            display: flex;
+            background: var(--surface);
+            border-top: 1px solid var(--line);
+            padding: 8px 12px;
+            gap: 8px;
+        }
+
+        /* Inputs */
+        input[type=text], input[type=number], input[type=password], select, textarea {
+            background: var(--inset);
+            border: 1px solid var(--line-strong);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13.5px;
+            font-family: inherit;
+            outline: none;
+            width: 100%;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--grass-500); box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2); }
+
+        /* Toast Notifications */
+        #toasts-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 420px;
+            width: calc(100vw - 48px);
+            pointer-events: none;
+        }
+        .toast {
+            pointer-events: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--line-strong);
+            border-left: 4px solid var(--grass-500);
+            border-radius: 10px;
+            padding: 14px 18px;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.55);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13.5px;
+            color: var(--text-main);
+            animation: toastSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: all 0.2s ease;
+        }
+        .toast.toast-error { border-left-color: var(--danger); }
+        .toast.toast-warn { border-left-color: var(--warn); }
+        .toast.toast-info { border-left-color: var(--link); }
+        .toast.toast-hiding { opacity: 0; transform: translateX(30px); }
+
+        @keyframes toastSlideIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            place-items: center;
+            z-index: 999;
+            padding: 20px;
+        }
+        .modal-overlay.open { display: grid; }
+        .modal-card {
+            background: var(--card-bg);
+            border: 1px solid var(--line-strong);
+            border-radius: 14px;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            overflow: hidden;
+        }
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 14px 20px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 10px; background: var(--surface); }
+
+        /* Breadcrumb */
+        .crumbs { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-dim); }
+        .crumbs a { color: var(--link); text-decoration: none; }
+        .crumbs a:hover { text-decoration: underline; }
+
+        /* Helper / Misc */
+        .text-right { text-align: right; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .chip-filter { cursor: pointer; user-select: none; display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600; background: var(--inset); border: 1px solid var(--line); }
+        .chip-filter.active { background: rgba(74, 222, 128, 0.15); border-color: var(--grass-500); color: var(--grass-400); }
+
+        /* Player Action Dropdown */
+        .player-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .player-dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 4px);
+            background: #151821;
+            border: 1px solid var(--line-strong);
+            border-radius: 8px;
+            min-width: 170px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.65);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 6px;
+            gap: 2px;
+        }
+        .player-dropdown.open .player-dropdown-menu {
+            display: flex;
+        }
+        .player-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--text-main);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            transition: background 0.15s, color 0.15s;
+            font-family: inherit;
+        }
+        .player-dropdown-item:hover {
+            background: rgba(255,255,255,0.06);
+        }
+        .player-dropdown-item.item-danger {
+            color: var(--danger);
+        }
+        .player-dropdown-item.item-danger:hover {
+            background: rgba(239, 68, 68, 0.15);
+        }
+        .player-dropdown-item.item-warn {
+            color: var(--warn);
+        }
+        .player-dropdown-item.item-warn:hover {
+            background: rgba(234, 179, 8, 0.15);
+        }
+        .player-dropdown-item.item-primary {
+            color: var(--grass-400);
+        }
+        .player-dropdown-item.item-primary:hover {
+            background: rgba(74, 222, 128, 0.15);
+        }
+        .player-dropdown-divider {
+            height: 1px;
+            background: var(--line);
+            margin: 4px 0;
+        }
+
+        /* Property Card & Desktop Hover Tooltip */
+        .prop-card {
+            position: relative;
+            background: var(--surface);
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .prop-card:hover {
+            border-color: var(--line-strong);
+            background: var(--surface-hover);
+        }
+        .prop-label-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .prop-info-badge {
+            cursor: help;
+            font-size: 11px;
+            color: var(--text-dim);
+            background: rgba(255,255,255,0.05);
+            padding: 1px 5px;
+            border-radius: 4px;
+            border: 1px solid var(--line);
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .prop-card:hover .prop-info-badge {
+            color: var(--grass-400);
+            border-color: rgba(74, 222, 128, 0.35);
+        }
+        .prop-tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #11141c;
+            border: 1px solid var(--line-strong);
+            color: #e5e7eb;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.4;
+            white-space: normal;
+            min-width: 200px;
+            max-width: 280px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 999;
+        }
+        .prop-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--line-strong) transparent transparent transparent;
+        }
+        @media (hover: hover) and (min-width: 768px) {
+            .prop-card:hover .prop-tooltip {
+                opacity: 1;
+                visibility: visible;
+                transform: translateX(-50%) translateY(-2px);
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <h1>🎮 Minecraft Server Manager</h1>
-            <a href="/" style="color: var(--text-muted); text-decoration: none;">&larr; Back to Dashboard</a>
-        </header>
 
-        <div class="grid">
-            <!-- Controls & Status -->
-            <div class="glass-card">
-                <h2>Server Status</h2>
-                <div style="margin-bottom: 1.5rem;">
-                    <h3 style="margin-top: 1.5rem;">PaperMC: <span id="mc-status" class="status-badge status-offline">Offline</span></h3>
-                <div style="margin-top: 1rem;">
-                    <button class="btn btn-start" onclick="controlService('papermc', 'start')">Start</button>
-                    <button class="btn btn-stop" onclick="controlService('papermc', 'stop')">Stop</button>
-                    <button class="btn btn-restart" onclick="controlService('papermc', 'restart')">Restart</button>
-                    <button class="btn btn-stop" style="margin-left: 1rem;" onclick="resetWorld()">Reset World</button>
+    <div class="app-container">
+        
+        <!-- Header / Server Chrome -->
+        <div class="server-chrome">
+            <div class="chrome-top">
+                <div class="server-brand">
+                    <div class="server-avatar">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--grass-400);">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="server-title">
+                            PaperMC Server
+                            <span id="header-status-badge" class="badge badge-danger">
+                                <span class="status-dot offline" id="header-status-dot"></span> <span id="header-status-text">Offline</span>
+                            </span>
+                        </div>
+                        <div class="server-meta">
+                            <span><b>PaperMC</b> 26.2 (1.21.x)</span>
+                            <span>Java 21</span>
+                            <span>Port 25565</span>
+                            <span>Uptime: <b id="header-uptime">Offline</b></span>
+                            <span>Tunnel: <b id="header-playit-text">Offline</b></span>
+                        </div>
+                    </div>
                 </div>
+
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="controlAction('papermc', 'start')">Start</button>
+                    <button class="btn btn-danger" onclick="controlAction('papermc', 'stop')">Stop</button>
+                    <button class="btn btn-warn" onclick="controlAction('papermc', 'restart')">Restart</button>
+                    <a href="/" class="btn" style="color: var(--text-dim);">Main Menu</a>
                 </div>
-                <hr style="border-color: var(--glass-border); margin: 1.5rem 0;">
-                <div>
-                    <h3>Playit.gg Tunnel: <span id="playit-status" class="status-badge status-offline">Checking...</span></h3>
-                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                        <button class="btn btn-start" onclick="controlService('playit', 'start')">Start Tunnel</button>
-                        <button class="btn btn-stop" onclick="controlService('playit', 'stop')">Stop Tunnel</button>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="nav-tabs">
+                <div class="nav-tab active" onclick="switchTab('overview')">Overview</div>
+                <div class="nav-tab" onclick="switchTab('console')">Console</div>
+                <div class="nav-tab" onclick="switchTab('players')">Players (<span id="tab-player-count">0</span>)</div>
+                <div class="nav-tab" onclick="switchTab('files')">File Manager</div>
+                <div class="nav-tab" onclick="switchTab('backups')">Backups</div>
+                <div class="nav-tab" onclick="switchTab('settings')">Settings</div>
+            </nav>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 1: OVERVIEW -->
+        <!-- ============================================================ -->
+        <div id="tab-overview" class="tab-content active">
+            <!-- Resource Statistics Grid -->
+            <div class="grid-stats">
+                <div class="stat-box">
+                    <div class="stat-label">CPU Usage</div>
+                    <div class="stat-val" id="stat-cpu">0%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">RAM Usage</div>
+                    <div class="stat-val"><span id="stat-ram">0.0</span> <span style="font-size: 14px; color: var(--text-dim);">GB</span></div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Online Players</div>
+                    <div class="stat-val" id="stat-players">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Playit Tunnel</div>
+                    <div class="stat-val" style="display: flex; align-items: center; gap: 8px;">
+                        <span class="status-dot offline" id="playit-dot"></span>
+                        <span id="playit-text" style="font-size: 16px;">Offline</span>
+                        <button class="btn btn-sm" id="playit-toggle-btn" onclick="togglePlayit()" style="margin-left: auto;">Start</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Resource Monitor & RAM -->
-            <div class="glass-card">
-                <h2>Resource Monitor</h2>
-                <div class="stats-box">
-                    <div>CPU Usage</div>
-                    <div class="stats-val" id="cpu-usage">0%</div>
+            <!-- Playit.gg Dedicated Monitor Card -->
+            <div class="card" style="border-left: 4px solid var(--grass-500);">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title" style="margin: 0;">Playit.gg Game Tunnel</h3>
+                        <p style="color: var(--text-dim); font-size: 12.5px; margin: 2px 0 0;">Dedicated game proxy routing external traffic into local port 25565</p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-sm btn-primary" onclick="controlAction('playit', 'start')">Start Tunnel</button>
+                        <button class="btn btn-sm btn-danger" onclick="controlAction('playit', 'stop')">Stop Tunnel</button>
+                        <button class="btn btn-sm btn-warn" onclick="controlAction('playit', 'restart')">Restart Tunnel</button>
+                    </div>
                 </div>
-                <div class="stats-box">
-                    <div>RAM Usage</div>
-                    <div class="stats-val"><span id="ram-usage">0</span> MB</div>
+
+                <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 10px;">
+                    <div>
+                        <div style="font-size: 11.5px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Minecraft Server Address</div>
+                        <div style="font-size: 20px; font-weight: 700; color: var(--grass-400); font-family: 'JetBrains Mono', monospace; margin-top: 4px;" id="game-domain-display">jakarta-baghdad.tun.ply.gg</div>
+                        <div style="font-size: 12px; color: var(--text-faint); margin-top: 2px;">Route: <code style="color: var(--text-soft);">127.0.0.1:25565 (TCP) ➔ jakarta-baghdad.tun.ply.gg</code></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="copyText('jakarta-baghdad.tun.ply.gg', 'Minecraft Game Address')">Copy Address</button>
                 </div>
-                
-                <h3 style="margin-top: 1.5rem;">RAM Allocation</h3>
-                <p style="color: var(--text-muted); font-size: 0.875rem;">Max safe limit: {{ max_ram }} MB</p>
-                <div class="input-group" style="align-items: center;">
-                    <input type="range" id="ram-slider" min="1024" max="{{ max_ram }}" step="512" value="{{ current_ram }}" oninput="document.getElementById('ram-val').innerText = this.value">
-                    <span style="font-weight: 600; min-width: 60px;"><span id="ram-val">{{ current_ram }}</span> MB</span>
-                    <button class="btn btn-primary" onclick="saveRam()">Save</button>
+
+                <!-- Live Tunnel Telemetry Bar -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 14px;">
+                    <div style="background: var(--inset); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px;">
+                        <div style="font-size: 11.5px; color: var(--text-dim); text-transform: uppercase; font-weight: 600;">Tunnel Latency</div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--grass-400); margin-top: 4px;" id="playit-ping-val">-- ms</div>
+                    </div>
+                    <div style="background: var(--inset); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px;">
+                        <div style="font-size: 11.5px; color: var(--text-dim); text-transform: uppercase; font-weight: 600;">Upload Speed</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #60a5fa; margin-top: 4px;" id="playit-net-up">0.0 KB/s</div>
+                    </div>
+                    <div style="background: var(--inset); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px;">
+                        <div style="font-size: 11.5px; color: var(--text-dim); text-transform: uppercase; font-weight: 600;">Download Speed</div>
+                        <div style="font-size: 18px; font-weight: 700; color: var(--grass-400); margin-top: 4px;" id="playit-net-down">0.0 KB/s</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server Details Grid -->
+            <div class="card">
+                <h3 class="card-title" style="margin-bottom: 16px;">Server Specifications</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; font-size: 13.5px;">
+                    <div><span style="color: var(--text-dim);">Root Path:</span> <code style="color: var(--grass-400);">/wdc/PaperMC</code></div>
+                    <div><span style="color: var(--text-dim);">Systemd Service:</span> <code>papermc.service</code></div>
+                    <div><span style="color: var(--text-dim);">Game Port:</span> <code>25565</code></div>
+                    <div><span style="color: var(--text-dim);">RCON Port:</span> <code>{{ rcon_port }}</code></div>
+                    <div><span style="color: var(--text-dim);">Max RAM Limit:</span> <b>{{ max_ram_gb }} GB</b></div>
+                    <div><span style="color: var(--text-dim);">Current Allocation:</span> <b>{{ current_ram_gb }} GB</b></div>
                 </div>
             </div>
         </div>
 
-        <!-- Web Terminal -->
-        <div class="glass-card" style="margin-top: 1.5rem;">
-            <h2>Web Terminal</h2>
-            <div class="terminal" id="terminal-output">Connecting to log stream...</div>
-            <form id="rcon-form" class="input-group" onsubmit="sendRcon(event)">
-                <input type="text" id="rcon-cmd" placeholder="Enter command (e.g., say Hello, time set day)" autocomplete="off">
-                <button type="submit" class="btn btn-primary">Send</button>
-            </form>
-        </div>
-        
-        <!-- Config Editor -->
-        <div class="glass-card">
-            <h2>server.properties Editor</h2>
-            <p style="color: var(--text-muted); font-size: 0.875rem;">Edit key-value pairs below. (Note: RCON settings are managed automatically).</p>
-            <div id="config-editor" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; max-height: 400px; overflow-y: auto; padding-right: 1rem;">
-                <!-- Loaded dynamically -->
+        <!-- ============================================================ -->
+        <!-- TAB 2: CONSOLE -->
+        <!-- ============================================================ -->
+        <div id="tab-console" class="tab-content">
+            <div class="console-container">
+                <div class="console-toolbar">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span style="color: var(--text-dim); font-size: 12px; font-weight: 600; text-transform: uppercase;">Filters:</span>
+                        <span class="chip-filter active" onclick="toggleLogFilter(this, 'ALL')">ALL</span>
+                        <span class="chip-filter" onclick="toggleLogFilter(this, 'INFO')">INFO</span>
+                        <span class="chip-filter" onclick="toggleLogFilter(this, 'WARN')">WARN</span>
+                        <span class="chip-filter" onclick="toggleLogFilter(this, 'ERROR')">ERROR</span>
+                    </div>
+                    <div>
+                        <a href="/mc/api/logs/download" class="btn btn-sm">Download Log</a>
+                        <button class="btn btn-sm" onclick="clearConsole()">Clear</button>
+                    </div>
+                </div>
+                
+                <div class="console-output" id="console-output">Connecting to Minecraft log stream...</div>
+
+                <form class="console-input-bar" onsubmit="sendRconCommand(event)">
+                    <span style="display: grid; place-items: center; padding: 0 8px; color: var(--grass-400); font-weight: 700;">/</span>
+                    <input type="text" id="rcon-input" list="mc-commands" placeholder="Type a server command (e.g. say Hello, time set day, gamemode creative)..." autocomplete="off">
+                    <datalist id="mc-commands">
+                        <option value="help">
+                        <option value="list">
+                        <option value="say ">
+                        <option value="time set day">
+                        <option value="time set night">
+                        <option value="weather clear">
+                        <option value="weather rain">
+                        <option value="gamemode creative ">
+                        <option value="gamemode survival ">
+                        <option value="gamemode spectator ">
+                        <option value="tp ">
+                        <option value="op ">
+                        <option value="deop ">
+                        <option value="kick ">
+                        <option value="ban ">
+                        <option value="pardon ">
+                        <option value="whitelist add ">
+                        <option value="whitelist remove ">
+                        <option value="whitelist on">
+                        <option value="whitelist off">
+                        <option value="stop">
+                        <option value="kill @e">
+                        <option value="give ">
+                        <option value="clear ">
+                        <option value="difficulty easy">
+                        <option value="difficulty normal">
+                        <option value="difficulty hard">
+                        <option value="difficulty peaceful">
+                        <option value="save-all">
+                        <option value="seed">
+                    </datalist>
+                    <button type="submit" class="btn btn-primary" style="padding: 6px 18px;">Send</button>
+                </form>
             </div>
-            <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 3: PLAYERS -->
+        <!-- ============================================================ -->
+        <div id="tab-players" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="player-search" placeholder="Search player name..." oninput="renderPlayersTable()" style="max-width: 240px;">
+                        <select id="player-filter" onchange="renderPlayersTable()" style="max-width: 180px;">
+                            <option value="all">All Players</option>
+                            <option value="online">Online Only</option>
+                            <option value="ops">Operators (OP)</option>
+                            <option value="whitelisted">Whitelisted</option>
+                            <option value="banned">Banned</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-primary btn-sm" onclick="openAddPlayerModal()">+ Add Player</button>
+                        <button class="btn btn-sm" onclick="loadPlayers()">Refresh</button>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="msm-table" id="players-table">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Status</th>
+                                <th>Roles</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="players-tbody">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-dim);">Loading players...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 4: FILE MANAGER -->
+        <!-- ============================================================ -->
+        <div id="tab-files" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="crumbs" id="file-crumbs">
+                        <a href="javascript:navigateDir('')">/wdc/PaperMC</a>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="file" id="file-upload-input" style="display:none;" onchange="handleFileUpload(this)">
+                        <button class="btn btn-sm" onclick="document.getElementById('file-upload-input').click()">Upload File</button>
+                        <button class="btn btn-sm" onclick="openNewFolderModal()">New Folder</button>
+                        <button class="btn btn-sm" onclick="loadFiles(currentDir)">Refresh</button>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="msm-table" id="files-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th style="width: 120px;">Size</th>
+                                <th style="width: 180px;">Modified</th>
+                                <th class="text-right" style="width: 160px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="files-tbody">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-dim);">Loading files...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 5: BACKUPS -->
+        <!-- ============================================================ -->
+        <div id="tab-backups" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">World Backups</h3>
+                        <p style="color: var(--text-dim); font-size: 13px; margin: 4px 0 0;">Create and restore snapshots of your Overworld, Nether, and End dimensions.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-primary btn-sm" id="btn-create-backup" onclick="createBackup()">Create Backup</button>
+                        <button class="btn btn-sm" onclick="loadBackups()">Refresh</button>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="msm-table">
+                        <thead>
+                            <tr>
+                                <th>Archive Name</th>
+                                <th style="width: 120px;">Size</th>
+                                <th style="width: 180px;">Created Date</th>
+                                <th class="text-right" style="width: 240px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="backups-tbody">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-dim);">Loading backups...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 6: SETTINGS -->
+        <!-- ============================================================ -->
+        <div id="tab-settings" class="tab-content">
+            <!-- RAM Settings -->
+            <div class="card">
+                <h3 class="card-title" style="margin-bottom: 8px;">RAM Allocation</h3>
+                <p style="color: var(--text-dim); font-size: 13px; margin: 0 0 16px;">Maximum safe limit: <b>{{ max_ram_gb }} GB</b> (leaves at least 6 GB for the OS and services).</p>
+                <div style="display: flex; gap: 12px; max-width: 400px; align-items: center;">
+                    <div style="position: relative; flex: 1;">
+                        <input type="number" id="setting-ram" min="1" max="{{ max_ram_gb }}" step="0.5" value="{{ current_ram_gb }}" style="padding-right: 48px; font-family: 'JetBrains Mono', monospace; font-size: 16px;">
+                        <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-family: 'JetBrains Mono', monospace; pointer-events: none;">GB</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveRamSetting()">Save RAM</button>
+                </div>
+            </div>
+
+            <!-- Server Properties Visual Editor -->
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h3 class="card-title">server.properties Editor</h3>
+                        <p style="color: var(--text-dim); font-size: 13px; margin: 4px 0 0;">Edit game settings directly. (RCON settings are managed automatically).</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="saveProperties()">Save Properties</button>
+                </div>
+                <div id="properties-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; max-height: 420px; overflow-y: auto; padding-right: 8px;">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.03);">
+                <h3 class="card-title" style="color: var(--danger); margin-bottom: 8px;">Danger Zone</h3>
+                <p style="color: var(--text-dim); font-size: 13px; margin: 0 0 16px;">Permanently delete the current world (Overworld, Nether, End) and generate a fresh one.</p>
+                <button class="btn btn-danger" onclick="triggerResetWorld()">Reset World (Delete All World Data)</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MODALS -->
+    <!-- ============================================================ -->
+
+    <!-- Add Player Modal -->
+    <div class="modal-overlay" id="modal-add-player">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="margin:0; font-size:16px;">Add / Whitelist Player</h3>
+                <button class="btn btn-sm" onclick="closeModal('modal-add-player')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 14px;">
+                    <label style="display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px;">Player Username</label>
+                    <input type="text" id="add-player-name" placeholder="e.g. Steve" autocomplete="off">
+                </div>
+                <div>
+                    <label style="display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px;">Initial Action</label>
+                    <select id="add-player-action">
+                        <option value="whitelist_add">Add to Whitelist</option>
+                        <option value="op">Make Server Operator (OP)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal('modal-add-player')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitAddPlayer()">Confirm</button>
+            </div>
         </div>
     </div>
 
+    <!-- File Editor Modal -->
+    <div class="modal-overlay" id="modal-file-editor">
+        <div class="modal-card" style="max-width: 850px;">
+            <div class="modal-header">
+                <h3 style="margin:0; font-size:16px;" id="editor-filename">Edit File</h3>
+                <button class="btn btn-sm" onclick="closeModal('modal-file-editor')">✕</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <textarea id="editor-content" style="width: 100%; height: 420px; border: none; border-radius: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 14px; line-height: 1.5; resize: vertical;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <span id="editor-status-msg" style="margin-right: auto; font-size: 13px; color: var(--text-dim);"></span>
+                <button class="btn" onclick="closeModal('modal-file-editor')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveFileContent()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Folder Modal -->
+    <div class="modal-overlay" id="modal-new-folder">
+        <div class="modal-card" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3 style="margin:0; font-size:16px;">Create New Folder</h3>
+                <button class="btn btn-sm" onclick="closeModal('modal-new-folder')">✕</button>
+            </div>
+            <div class="modal-body">
+                <label style="display:block; font-size:13px; color:var(--text-dim); margin-bottom:6px;">Folder Name</label>
+                <input type="text" id="new-folder-name" placeholder="e.g. custom_plugins">
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal('modal-new-folder')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitNewFolder()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Action Modal -->
+    <div class="modal-overlay" id="modal-confirm">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3 style="margin:0; font-size:16px;" id="confirm-title">Confirm Action</h3>
+                <button class="btn btn-sm" onclick="closeConfirmModal(false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message" style="margin:0; font-size:14px; line-height:1.6; color:var(--text-soft); white-space: pre-line;"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeConfirmModal(false)">Cancel</button>
+                <button class="btn btn-primary" id="confirm-ok-btn" onclick="closeConfirmModal(true)">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toasts-container"></div>
+
+    <!-- ============================================================ -->
+    <!-- JAVASCRIPT LOGIC -->
+    <!-- ============================================================ -->
     <script>
-        // Update Status & Resources
+        let currentTab = 'overview';
+        let isPapermcRunning = false;
+        let isPlayitRunning = false;
+
+        // --- Toast & Confirm System ---
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toasts-container');
+            const toast = document.createElement('div');
+            const iconMap = {
+                success: '✓',
+                error: '✕',
+                warn: '⚠️',
+                info: 'ℹ️'
+            };
+            const icon = iconMap[type] || '✓';
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <span style="font-weight:700; font-size:16px;">${icon}</span>
+                <div style="flex:1; line-height:1.4;">${msg}</div>
+                <span style="cursor:pointer; color:var(--text-faint); font-size:14px;" onclick="this.parentElement.remove()">✕</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('toast-hiding');
+                setTimeout(() => toast.remove(), 250);
+            }, 3500);
+        }
+
+        let confirmResolver = null;
+        function showConfirm(title, message, isDanger = false) {
+            return new Promise((resolve) => {
+                confirmResolver = resolve;
+                document.getElementById('confirm-title').innerText = title || 'Confirmation';
+                document.getElementById('confirm-message').innerText = message;
+                const okBtn = document.getElementById('confirm-ok-btn');
+                okBtn.className = isDanger ? 'btn btn-danger' : 'btn btn-primary';
+                okBtn.innerText = isDanger ? 'Yes, Proceed' : 'Confirm';
+                openModal('modal-confirm');
+            });
+        }
+
+        function closeConfirmModal(result) {
+            closeModal('modal-confirm');
+            if (confirmResolver) {
+                confirmResolver(result);
+                confirmResolver = null;
+            }
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            const selectedTabBtn = Array.from(document.querySelectorAll('.nav-tab')).find(t => t.innerText.toLowerCase().includes(tabId));
+            if (selectedTabBtn) selectedTabBtn.classList.add('active');
+            
+            const content = document.getElementById(`tab-${tabId}`);
+            if (content) content.classList.add('active');
+
+            if (tabId === 'players') loadPlayers();
+            if (tabId === 'files') loadFiles(currentDir);
+            if (tabId === 'backups') loadBackups();
+            if (tabId === 'settings') loadProperties();
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        function openModal(id) { document.getElementById(id).classList.add('open'); }
+
+        function copyText(text, label = 'Address') {
+            navigator.clipboard.writeText(text);
+            showToast(`${label} copied to clipboard!`, 'info');
+        }
+
+        // --- Status Polling ---
         async function fetchStatus() {
             try {
                 const res = await fetch('/mc/api/status');
                 const data = await res.json();
                 
-                const mcBadge = document.getElementById('mc-status');
-                mcBadge.className = data.papermc_running ? 'status-badge status-online' : 'status-badge status-offline';
-                mcBadge.innerText = data.papermc_running ? 'Online' : 'Offline';
+                isPapermcRunning = data.papermc_running;
+                isPlayitRunning = data.playit_running;
+
+                // Header Badge
+                const dot = document.getElementById('header-status-dot');
+                const text = document.getElementById('header-status-text');
+                const badge = document.getElementById('header-status-badge');
                 
-                const playitBadge = document.getElementById('playit-status');
-                playitBadge.className = data.playit_running ? 'status-badge status-online' : 'status-badge status-offline';
-                playitBadge.innerText = data.playit_running ? 'Online' : 'Offline';
+                dot.className = isPapermcRunning ? 'status-dot online' : 'status-dot offline';
+                text.innerText = isPapermcRunning ? 'Online' : 'Offline';
+                badge.className = isPapermcRunning ? 'badge badge-ok' : 'badge badge-danger';
                 
-                document.getElementById('cpu-usage').innerText = data.cpu_percent + '%';
-                document.getElementById('ram-usage').innerText = Math.round(data.ram_mb);
-            } catch (e) {
-                console.error(e);
-            }
+                document.getElementById('header-uptime').innerText = data.uptime;
+                document.getElementById('stat-cpu').innerText = data.cpu_percent + '%';
+                document.getElementById('stat-ram').innerText = (data.ram_mb / 1024).toFixed(2);
+                if (document.getElementById('stat-players') && data.players_online !== undefined) {
+                    document.getElementById('stat-players').innerText = `${data.players_online} / ${data.players_max || 20}`;
+                }
+
+                // Ping & Network Stats
+                const pingVal = data.ping_ms !== null && data.ping_ms !== undefined ? data.ping_ms.toFixed(1) : '--';
+                const statPing = document.getElementById('stat-ping');
+                if (statPing) {
+                    statPing.innerText = pingVal;
+                    if (data.ping_ms !== null && data.ping_ms !== undefined) {
+                        statPing.parentElement.style.color = data.ping_ms < 60 ? 'var(--grass-400)' : (data.ping_ms < 120 ? 'var(--gold-400)' : 'var(--danger)');
+                    }
+                }
+                const pPing = document.getElementById('playit-ping-val');
+                if (pPing) pPing.innerText = pingVal !== '--' ? `${pingVal} ms` : 'Offline / Checking';
+
+                const upVal = data.upload_kbps !== undefined ? data.upload_kbps.toFixed(1) : '0.0';
+                const downVal = data.download_kbps !== undefined ? data.download_kbps.toFixed(1) : '0.0';
+                if (document.getElementById('stat-up')) document.getElementById('stat-up').innerText = upVal;
+                if (document.getElementById('stat-down')) document.getElementById('stat-down').innerText = downVal;
+                if (document.getElementById('playit-net-up')) document.getElementById('playit-net-up').innerText = `${upVal} KB/s`;
+                if (document.getElementById('playit-net-down')) document.getElementById('playit-net-down').innerText = `${downVal} KB/s`;
+                
+                const totalSent = data.total_sent_mb || 0;
+                const totalRecv = data.total_recv_mb || 0;
+                const pTotal = document.getElementById('playit-net-total');
+                if (pTotal) {
+                    pTotal.innerText = `▲ ${(totalSent/1024).toFixed(1)} GB / ▼ ${(totalRecv/1024).toFixed(1)} GB`;
+                }
+
+                const hPlayit = document.getElementById('header-playit-text');
+                if (hPlayit) {
+                    hPlayit.innerText = isPlayitRunning ? (pingVal !== '--' ? `Online (${pingVal} ms)` : 'Online') : 'Offline';
+                    hPlayit.style.color = isPlayitRunning ? 'var(--ok)' : 'var(--danger)';
+                }
+
+                // Playit Status
+                const pDot = document.getElementById('playit-dot');
+                const pText = document.getElementById('playit-text');
+                const pBtn = document.getElementById('playit-toggle-btn');
+                pDot.className = isPlayitRunning ? 'status-dot online' : 'status-dot offline';
+                pText.innerText = isPlayitRunning ? 'Online' : 'Offline';
+                pBtn.innerText = isPlayitRunning ? 'Stop' : 'Start';
+                pBtn.className = isPlayitRunning ? 'btn btn-sm btn-danger' : 'btn btn-sm btn-primary';
+
+            } catch(e) { console.error('Status fetch error:', e); }
         }
         setInterval(fetchStatus, 3000);
         fetchStatus();
+        loadPlayers();
 
-        // Control Services
-        async function controlService(service, action) {
+        // --- Actions ---
+        async function controlAction(service, action) {
             try {
                 const res = await fetch('/mc/api/action', {
                     method: 'POST',
@@ -208,19 +1117,27 @@
                 });
                 const data = await res.json();
                 if(data.success) {
-                    alert(`${service} ${action} command sent successfully.`);
+                    showToast(`${service} ${action} command sent successfully.`, 'success');
                     fetchStatus();
                 } else {
-                    alert(`Error: ${data.error}`);
+                    showToast(`Error: ${data.error}`, 'error');
                 }
-            } catch(e) {
-                alert(`Error: ${e}`);
-            }
+            } catch(e) { showToast(`Action Error: ${e}`, 'error'); }
         }
-        
-        // Reset World
-        async function resetWorld() {
-            if(!confirm("ARE YOU SURE? This will PERMANENTLY delete the current world! The server will be stopped automatically.")) return;
+
+        async function togglePlayit() {
+            const action = isPlayitRunning ? 'stop' : 'start';
+            controlAction('playit', action);
+        }
+
+        async function triggerResetWorld() {
+            const confirmed = await showConfirm(
+                '⚠️ Reset World Confirmation',
+                'This will PERMANENTLY DELETE all world data (Overworld, Nether, The End) and reset your map!\nAre you absolutely sure you want to proceed?',
+                true
+            );
+            if(!confirmed) return;
+
             try {
                 const res = await fetch('/mc/api/action', {
                     method: 'POST',
@@ -229,107 +1146,90 @@
                 });
                 const data = await res.json();
                 if(data.success) {
-                    alert("World deleted successfully! Start the server to generate a new one.");
+                    showToast('World deleted successfully! Start the server to generate a brand new world.', 'success');
                     fetchStatus();
                 } else {
-                    alert(`Error: ${data.error}`);
+                    showToast('Error: ' + data.error, 'error');
                 }
-            } catch(e) {
-                alert(`Error: ${e}`);
-            }
+            } catch(e) { showToast('Reset Error: ' + e, 'error'); }
         }
 
-        // Save RAM
-        async function saveRam() {
-            const ram = document.getElementById('ram-slider').value;
-            try {
-                const res = await fetch('/mc/api/config', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ram_mb: ram})
-                });
-                const data = await res.json();
-                if(data.success) alert('RAM updated. Restart the server to apply.');
-            } catch(e) { alert('Error saving RAM'); }
-        }
-
-        // Load & Save Config
-        let currentConfig = {};
-        async function loadConfig() {
-            try {
-                const res = await fetch('/mc/api/config');
-                const data = await res.json();
-                
-                const editor = document.getElementById('config-editor');
-                if(!res.ok || data.error) {
-                    editor.innerHTML = `<div style="grid-column: 1 / -1; color: var(--error);">${data.error || 'Failed to load configuration. Admin privileges required.'}</div>`;
-                    return;
-                }
-                
-                currentConfig = data.properties;
-                editor.innerHTML = '';
-                for(let key in currentConfig) {
-                    if(key.startsWith('rcon')) continue; // hide rcon configs
-                    
-                    const wrapper = document.createElement('div');
-                    wrapper.innerHTML = `
-                        <label style="display:block; font-size: 0.8rem; color: var(--text-muted);">${key}</label>
-                        <input type="text" id="cfg-${key}" value="${currentConfig[key]}" style="width: 100%; padding: 0.5rem;">
-                    `;
-                    editor.appendChild(wrapper);
-                }
-            } catch(e) {
-                console.error("Config load error:", e);
-                document.getElementById('config-editor').innerHTML = `<div style="grid-column: 1 / -1; color: var(--error);">Failed to load configuration.</div>`;
-            }
-        }
-        
-        async function saveConfig() {
-            for(let key in currentConfig) {
-                if(key.startsWith('rcon')) continue;
-                const input = document.getElementById(`cfg-${key}`);
-                if(input) currentConfig[key] = input.value;
-            }
-            try {
-                const res = await fetch('/mc/api/config', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({properties: currentConfig})
-                });
-                const data = await res.json();
-                if(data.success) alert('Configuration saved! Restart server to apply.');
-            } catch(e) { alert('Error saving config'); }
-        }
-        loadConfig();
-
-        // Web Terminal
-        const term = document.getElementById('terminal-output');
+        // ============================================================
+        // CONSOLE (WebSocket)
+        // ============================================================
+        const consoleEl = document.getElementById('console-output');
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${wsProtocol}//${window.location.host}/ws/mc/logs/`;
         let ws;
-        
+        let pingInterval;
+        let activeLogFilter = 'ALL';
+
+                function appendCustomLog(text) {
+            consoleEl.textContent += text;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+            let hist = sessionStorage.getItem('webConsoleHist') || '';
+            hist += text;
+            if(hist.length > 20000) hist = hist.slice(-20000);
+            sessionStorage.setItem('webConsoleHist', hist);
+        }
+
+        async function clearConsole() {
+            consoleEl.textContent = '';
+            try {
+                await fetch('/mc/api/logs/clear', {method: 'POST'});
+                showToast('Console log cleared', 'info');
+            } catch(e) {}
+        }
+
+        function toggleLogFilter(el, filter) {
+            document.querySelectorAll('.chip-filter').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            activeLogFilter = filter;
+        }
+
         function connectWs() {
+            if (ws) { try { ws.close(); } catch(e) {} }
+            clearInterval(pingInterval);
+
             ws = new WebSocket(wsUrl);
-            ws.onmessage = (e) => {
-                term.textContent += e.data;
-                term.scrollTop = term.scrollHeight;
+            ws.onopen = () => {
+                consoleEl.textContent = '';
+                pingInterval = setInterval(() => {
+                    if (ws.readyState === WebSocket.OPEN) ws.send('ping');
+                }, 25000);
             };
+
+            ws.onmessage = (e) => {
+                if (e.data === 'pong') return;
+                const isInitial = (e.data.length > 1000 && consoleEl.textContent === '');
+                consoleEl.textContent += e.data;
+                if (isInitial) {
+                    const hist = sessionStorage.getItem('webConsoleHist');
+                    if (hist) consoleEl.textContent += '\n--- Restored Web Command History ---\n' + hist;
+                }
+                if (consoleEl.textContent.length > 80000) {
+                    consoleEl.textContent = consoleEl.textContent.slice(-60000);
+                }
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            };
+
             ws.onclose = () => {
+                clearInterval(pingInterval);
                 setTimeout(connectWs, 3000);
             };
+            ws.onerror = () => { try { ws.close(); } catch(e) {} };
         }
         connectWs();
 
-        async function sendRcon(e) {
+        async function sendRconCommand(e) {
             e.preventDefault();
-            const cmdInput = document.getElementById('rcon-cmd');
-            const cmd = cmdInput.value;
+            const input = document.getElementById('rcon-input');
+            const cmd = input.value.trim();
             if(!cmd) return;
-            
-            term.textContent += `> ${cmd}\n`;
-            term.scrollTop = term.scrollHeight;
-            cmdInput.value = '';
-            
+
+            appendCustomLog(`> ${cmd}\n`);
+            input.value = '';
+
             try {
                 const res = await fetch('/mc/api/rcon', {
                     method: 'POST',
@@ -338,12 +1238,632 @@
                 });
                 const data = await res.json();
                 if(data.response) {
-                    term.textContent += `< ${data.response}\n`;
-                    term.scrollTop = term.scrollHeight;
+                    appendCustomLog(`< ${data.response}\n`);
                 }
-            } catch(err) {
-                console.error(err);
+            } catch(err) { console.error(err); }
+        }
+
+        // ============================================================
+        // PLAYERS
+        // ============================================================
+        let allPlayers = [];
+
+        async function loadPlayers() {
+            try {
+                const res = await fetch('/mc/api/players');
+                const data = await res.json();
+                allPlayers = data.players || [];
+                const total = data.total_known !== undefined ? data.total_known : allPlayers.length;
+                const online = data.online_count || 0;
+                
+                const tabCountEl = document.getElementById('tab-player-count');
+                if (tabCountEl) tabCountEl.innerText = online > 0 ? `${online}/${total}` : total;
+                
+                const statPlayersEl = document.getElementById('stat-players');
+                if (statPlayersEl) statPlayersEl.innerText = `${online} / ${total}`;
+                
+                renderPlayersTable();
+            } catch(e) { console.error('Failed to load players:', e); }
+        }
+
+        function renderPlayersTable() {
+            const tbody = document.getElementById('players-tbody');
+            const search = document.getElementById('player-search').value.toLowerCase();
+            const filter = document.getElementById('player-filter').value;
+
+            const filtered = allPlayers.filter(p => {
+                if (search && !p.name.toLowerCase().includes(search)) return false;
+                if (filter === 'online' && !p.online) return false;
+                if (filter === 'ops' && !p.is_op) return false;
+                if (filter === 'whitelisted' && !p.is_whitelisted) return false;
+                if (filter === 'banned' && !p.is_banned) return false;
+                return true;
+            });
+
+            filtered.sort((a, b) => {
+                // 1. Online players first
+                if (a.online !== b.online) return a.online ? -1 : 1;
+                // 2. If both online, longest session first
+                if (a.online && b.online) {
+                    const durA = a.session_duration || 0;
+                    const durB = b.session_duration || 0;
+                    if (durA !== durB) return durB - durA;
+                }
+                // 3. If both offline, most recently seen first
+                if (!a.online && !b.online) {
+                    const lsA = a.last_seen || 0;
+                    const lsB = b.last_seen || 0;
+                    if (lsA !== lsB) return lsB - lsA;
+                }
+                // 4. Alphabetical tie-break
+                return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+            });
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-dim);">No players matching current filter.</td></tr>`;
+                return;
             }
+
+            tbody.innerHTML = filtered.map(p => `
+                <tr>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <img src="https://mc-heads.net/avatar/${p.name}/28" width="28" height="28" style="border-radius:4px; background:#000;" onerror="this.src='https://mc-heads.net/avatar/Steve/28'">
+                            <span style="font-weight:600; color:var(--text-main); font-family:'JetBrains Mono', monospace;">${p.name}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge ${p.online ? 'badge-ok' : 'badge-danger'}">
+                            <span class="status-dot ${p.online ? 'online' : 'offline'}"></span> ${p.online 
+                                ? `Online${p.ping !== null && p.ping !== undefined ? ` ${p.ping}ms` : ''}${p.time_text ? ` (${p.time_text})` : ''}` 
+                                : `Offline${p.time_text ? ` (${p.time_text})` : ''}`}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                            ${p.is_op ? '<span class="badge badge-warn">OP</span>' : ''}
+                            ${p.is_whitelisted ? '<span class="badge badge-info">Whitelisted</span>' : ''}
+                            ${p.is_banned ? '<span class="badge badge-danger">Banned</span>' : ''}
+                            ${!p.is_op && !p.is_whitelisted && !p.is_banned ? '<span style="color:var(--text-faint); font-size:12px;">Standard</span>' : ''}
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <div class="player-dropdown" id="dropdown-${p.name}">
+                            <button class="btn btn-sm" onclick="togglePlayerDropdown(event, '${p.name}')" style="padding: 4px 12px; font-size: 12px; font-weight: 600;">
+                                Actions ▾
+                            </button>
+                            <div class="player-dropdown-menu">
+                                ${p.is_op 
+                                    ? `<button class="player-dropdown-item item-warn" onclick="playerAction('deop', '${p.name}')">Remove OP (Deop)</button>` 
+                                    : `<button class="player-dropdown-item" onclick="playerAction('op', '${p.name}')">Make OP</button>`}
+                                
+                                ${p.is_whitelisted 
+                                    ? `<button class="player-dropdown-item item-danger" onclick="playerAction('whitelist_remove', '${p.name}')">Remove Whitelist</button>` 
+                                    : `<button class="player-dropdown-item item-primary" onclick="playerAction('whitelist_add', '${p.name}')">Add Whitelist</button>`}
+                                    
+                                ${p.online ? `<div class="player-dropdown-divider"></div><button class="player-dropdown-item item-danger" onclick="playerAction('kick', '${p.name}')">Kick Player</button>` : ''}
+                                
+                                <div class="player-dropdown-divider"></div>
+                                ${p.is_banned 
+                                    ? `<button class="player-dropdown-item item-primary" onclick="playerAction('pardon', '${p.name}')">Unban Player</button>` 
+                                    : `<button class="player-dropdown-item item-danger" onclick="playerAction('ban', '${p.name}')">Ban Player</button>`}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function togglePlayerDropdown(event, playerName) {
+            event.stopPropagation();
+            const dropdown = document.getElementById(`dropdown-${playerName}`);
+            const wasOpen = dropdown ? dropdown.classList.contains('open') : false;
+            document.querySelectorAll('.player-dropdown.open').forEach(d => d.classList.remove('open'));
+            if (!wasOpen && dropdown) {
+                dropdown.classList.add('open');
+            }
+        }
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.player-dropdown.open').forEach(d => d.classList.remove('open'));
+        });
+
+        async function playerAction(action, playerName) {
+            document.querySelectorAll('.player-dropdown.open').forEach(d => d.classList.remove('open'));
+            try {
+                const res = await fetch('/mc/api/players', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action, player_name: playerName})
+                });
+                const data = await res.json();
+                if(data.success) {
+                    showToast(data.message || 'Player updated successfully', 'success');
+                    loadPlayers();
+                } else {
+                    showToast(`Error: ${data.error || data.message}`, 'error');
+                }
+            } catch(e) { showToast('Action error: ' + e, 'error'); }
+        }
+
+        function openAddPlayerModal() {
+            document.getElementById('add-player-name').value = '';
+            openModal('modal-add-player');
+        }
+
+        async function submitAddPlayer() {
+            const name = document.getElementById('add-player-name').value.trim();
+            const action = document.getElementById('add-player-action').value;
+            if(!name) return;
+            await playerAction(action, name);
+            closeModal('modal-add-player');
+        }
+
+        // ============================================================
+        // FILE MANAGER
+        // ============================================================
+        let currentDir = '';
+        let activeEditingPath = '';
+
+        async function loadFiles(dirPath = '') {
+            currentDir = dirPath;
+            renderCrumbs(dirPath);
+            const tbody = document.getElementById('files-tbody');
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-dim);">Loading files...</td></tr>`;
+
+            try {
+                const res = await fetch(`/mc/api/files?path=${encodeURIComponent(dirPath)}`);
+                const data = await res.json();
+                
+                if(!data.files || data.files.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-dim);">Folder is empty.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.files.map(f => `
+                    <tr>
+                        <td>
+                            ${f.is_dir 
+                                ? `<a href="javascript:navigateDir('${f.relative_path}')" style="display:inline-flex; align-items:center; gap:8px; color:var(--grass-400); font-weight:600; text-decoration:none;">📁 ${f.name}</a>`
+                                : `<span style="display:inline-flex; align-items:center; gap:8px; color:var(--text-main); font-family:'JetBrains Mono', monospace;">📄 ${f.name}</span>`
+                            }
+                        </td>
+                        <td style="color:var(--text-dim); font-size:12.5px; font-family:'JetBrains Mono', monospace;">${f.is_dir ? '-' : formatBytes(f.size)}</td>
+                        <td style="color:var(--text-dim); font-size:12.5px;">${f.modified}</td>
+                        <td class="text-right">
+                            <div style="display:inline-flex; gap:6px;">
+                                ${!f.is_dir ? `<button class="btn btn-sm" onclick="openFileEditor('${f.relative_path}')">✏️ Edit</button>` : ''}
+                                <button class="btn btn-sm btn-danger" onclick="deleteFile('${f.relative_path}', '${f.name}')">🗑</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--danger);">Error loading directory.</td></tr>`;
+            }
+        }
+
+        function renderCrumbs(dirPath) {
+            const crumbsEl = document.getElementById('file-crumbs');
+            if(!dirPath) {
+                crumbsEl.innerHTML = `<span>root (/wdc/PaperMC)</span>`;
+                return;
+            }
+            const parts = dirPath.split('/');
+            let html = `<a href="javascript:navigateDir('')">root</a>`;
+            let accumulated = '';
+            parts.forEach((p, idx) => {
+                accumulated += (idx > 0 ? '/' : '') + p;
+                if(idx === parts.length - 1) {
+                    html += ` <span>/</span> <span style="color:var(--text-main);">${p}</span>`;
+                } else {
+                    html += ` <span>/</span> <a href="javascript:navigateDir('${accumulated}')">${p}</a>`;
+                }
+            });
+            crumbsEl.innerHTML = html;
+        }
+
+        function navigateDir(path) { loadFiles(path); }
+
+        async function openFileEditor(relPath) {
+            activeEditingPath = relPath;
+            document.getElementById('editor-filename').innerText = `Editing: ${relPath}`;
+            document.getElementById('editor-status-msg').innerText = 'Loading file content...';
+            document.getElementById('editor-content').value = '';
+            openModal('modal-file-editor');
+
+            try {
+                const res = await fetch(`/mc/api/files?mode=read&path=${encodeURIComponent(relPath)}`);
+                const data = await res.json();
+                if(data.content !== undefined) {
+                    document.getElementById('editor-content').value = data.content;
+                    document.getElementById('editor-status-msg').innerText = '';
+                } else {
+                    document.getElementById('editor-status-msg').innerText = 'Error: ' + (data.error || 'Failed to read');
+                }
+            } catch(e) { document.getElementById('editor-status-msg').innerText = 'Error: ' + e; }
+        }
+
+        async function saveFileContent() {
+            const content = document.getElementById('editor-content').value;
+            const statusMsg = document.getElementById('editor-status-msg');
+            statusMsg.innerText = 'Saving...';
+
+            try {
+                const res = await fetch('/mc/api/files', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'save', path: activeEditingPath, content})
+                });
+                const data = await res.json();
+                if(data.success) {
+                    statusMsg.innerText = '✓ Saved successfully!';
+                    showToast('File saved successfully!', 'success');
+                    setTimeout(() => closeModal('modal-file-editor'), 600);
+                    loadFiles(currentDir);
+                } else {
+                    statusMsg.innerText = 'Save error: ' + data.error;
+                    showToast('Save error: ' + data.error, 'error');
+                }
+            } catch(e) { 
+                statusMsg.innerText = 'Save error: ' + e;
+                showToast('Save error: ' + e, 'error');
+            }
+        }
+
+        async function deleteFile(relPath, name) {
+            const confirmed = await showConfirm('Delete File', `Are you sure you want to permanently delete "${name}"?`, true);
+            if(!confirmed) return;
+
+            try {
+                const res = await fetch('/mc/api/files', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'delete', path: relPath})
+                });
+                const data = await res.json();
+                if(data.success) {
+                    showToast(`Deleted "${name}"`, 'info');
+                    loadFiles(currentDir);
+                } else {
+                    showToast('Delete failed: ' + data.error, 'error');
+                }
+            } catch(e) { showToast('Delete error: ' + e, 'error'); }
+        }
+
+        function openNewFolderModal() {
+            document.getElementById('new-folder-name').value = '';
+            openModal('modal-new-folder');
+        }
+
+        async function submitNewFolder() {
+            const name = document.getElementById('new-folder-name').value.trim();
+            if(!name) return;
+            const fullPath = currentDir ? `${currentDir}/${name}` : name;
+            try {
+                const res = await fetch('/mc/api/files', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'mkdir', path: fullPath})
+                });
+                const data = await res.json();
+                if(data.success) {
+                    showToast(`Folder "${name}" created`, 'success');
+                    closeModal('modal-new-folder');
+                    loadFiles(currentDir);
+                } else {
+                    showToast('Error: ' + data.error, 'error');
+                }
+            } catch(e) { showToast('Mkdir error: ' + e, 'error'); }
+        }
+
+        async function handleFileUpload(input) {
+            if(!input.files || input.files.length === 0) return;
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('path', currentDir);
+
+            try {
+                const res = await fetch('/mc/api/files', { method: 'POST', body: formData });
+                const data = await res.json();
+                if(data.success) {
+                    showToast(`File "${data.filename}" uploaded successfully!`, 'success');
+                    loadFiles(currentDir);
+                } else {
+                    showToast('Upload error: ' + data.error, 'error');
+                }
+            } catch(e) { showToast('Upload error: ' + e, 'error'); }
+            input.value = '';
+        }
+
+        // ============================================================
+        // BACKUPS
+        // ============================================================
+        async function loadBackups() {
+            const tbody = document.getElementById('backups-tbody');
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:var(--text-dim);">Loading backups...</td></tr>`;
+
+            try {
+                const res = await fetch('/mc/api/backups');
+                const data = await res.json();
+                
+                if(!data.backups || data.backups.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-dim);">No backups found. Click "Back up now" to create the first snapshot.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = data.backups.map(b => `
+                    <tr>
+                        <td style="font-family:'JetBrains Mono', monospace; font-weight:600; color:var(--text-main);">💾 ${b.filename}</td>
+                        <td style="color:var(--text-dim); font-size:12.5px; font-family:'JetBrains Mono', monospace;">${formatBytes(b.size)}</td>
+                        <td style="color:var(--text-dim); font-size:12.5px;">${b.created}</td>
+                        <td class="text-right">
+                            <div style="display:inline-flex; gap:6px;">
+                                <button class="btn btn-sm btn-warn" onclick="restoreBackup('${b.filename}')">↺ Restore</button>
+                                <a href="/mc/api/backups/download/${encodeURIComponent(b.filename)}" class="btn btn-sm">📥 Download</a>
+                                <button class="btn btn-sm btn-danger" onclick="deleteBackup('${b.filename}')">🗑</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch(e) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--danger);">Error loading backups.</td></tr>`; }
+        }
+
+        async function createBackup() {
+            const btn = document.getElementById('btn-create-backup');
+            btn.innerText = 'Creating archive...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/mc/api/backups', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'create'})
+                });
+                const data = await res.json();
+                if(data.success) {
+                    showToast(`Backup created successfully: ${data.filename}`, 'success');
+                    loadBackups();
+                } else {
+                    showToast('Backup failed: ' + data.error, 'error');
+                }
+            } catch(e) { showToast('Backup error: ' + e, 'error'); }
+            finally {
+                btn.innerText = '+ Back up now';
+                btn.disabled = false;
+            }
+        }
+
+        async function restoreBackup(filename) {
+            const confirmed = await showConfirm(
+                '⚠️ Restore Backup',
+                `Restoring will STOP the server and overwrite current world data with "${filename}".\nAre you sure you want to proceed?`,
+                true
+            );
+            if(!confirmed) return;
+
+            try {
+                const res = await fetch('/mc/api/backups', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'restore', filename})
+                });
+                const data = await res.json();
+                if(data.success) {
+                    showToast('Backup restored successfully! You can now start the server.', 'success');
+                    fetchStatus();
+                } else {
+                    showToast('Restore failed: ' + data.error, 'error');
+                }
+            } catch(e) { showToast('Restore error: ' + e, 'error'); }
+        }
+
+        async function deleteBackup(filename) {
+            const confirmed = await showConfirm('Delete Backup', `Are you sure you want to delete backup file "${filename}"?`, true);
+            if(!confirmed) return;
+
+            try {
+                const res = await fetch('/mc/api/backups', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({action: 'delete', filename})
+                });
+                const data = await res.json();
+                if(data.success) {
+                    showToast('Backup deleted', 'info');
+                    loadBackups();
+                } else {
+                    showToast('Delete failed: ' + data.error, 'error');
+                }
+            } catch(e) { showToast('Delete error: ' + e, 'error'); }
+        }
+
+        // ============================================================
+        // SETTINGS & PROPERTIES
+        // ============================================================
+        let currentProperties = {};
+
+        async function saveRamSetting() {
+            const input = document.getElementById('setting-ram');
+            const ramGb = parseFloat(input.value);
+            const maxRamGb = parseFloat(input.max) || 1;
+
+            if(isNaN(ramGb) || ramGb < 1) { showToast('Please enter at least 1 GB', 'warn'); return; }
+            if(ramGb > maxRamGb) { showToast(`RAM exceeds safe limit (Max ${maxRamGb} GB)`, 'warn'); return; }
+
+            const ramMb = Math.round(ramGb * 1024);
+            try {
+                const res = await fetch('/mc/api/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ram_mb: ramMb})
+                });
+                const data = await res.json();
+                if(data.success) showToast(`RAM updated to ${ramGb} GB. Restart server to apply.`, 'success');
+                else showToast('Error: ' + data.error, 'error');
+            } catch(e) { showToast('Save RAM error: ' + e, 'error'); }
+        }
+
+        const PROPERTY_DROPDOWNS = {
+            'difficulty': ['peaceful', 'easy', 'normal', 'hard'],
+            'gamemode': ['survival', 'creative', 'adventure', 'spectator'],
+            'level-type': ['minecraft:normal', 'minecraft:flat', 'minecraft:large_biomes', 'minecraft:amplified', 'minecraft:single_biome_surface'],
+            'region-file-compression': ['deflate', 'lz4', 'zstd', 'none'],
+            'op-permission-level': ['1', '2', '3', '4'],
+            'function-permission-level': ['1', '2', '3', '4'],
+            'sync-chunk-writes': ['true', 'false'],
+            'allow-flight': ['true', 'false'],
+            'allow-nether': ['true', 'false'],
+            'broadcast-console-to-ops': ['true', 'false'],
+            'broadcast-rcon-to-ops': ['true', 'false'],
+            'enable-command-block': ['true', 'false'],
+            'enable-status': ['true', 'false'],
+            'enforce-secure-profile': ['true', 'false'],
+            'enforce-whitelist': ['true', 'false'],
+            'force-gamemode': ['true', 'false'],
+            'generate-structures': ['true', 'false'],
+            'hardcore': ['true', 'false'],
+            'hide-online-players': ['true', 'false'],
+            'log-ips': ['true', 'false'],
+            'online-mode': ['true', 'false'],
+            'pvp': ['true', 'false'],
+            'require-resource-pack': ['true', 'false'],
+            'spawn-animals': ['true', 'false'],
+            'spawn-monsters': ['true', 'false'],
+            'spawn-npcs': ['true', 'false'],
+            'use-native-transport': ['true', 'false'],
+            'white-list': ['true', 'false']
+        };
+
+        const PROPERTY_DESCRIPTIONS_TH = {
+            'accepts-transfers': 'อนุญาตให้ส่งต่อผู้เล่นไปยังเซิร์ฟเวอร์อื่นได้',
+            'allow-flight': 'อนุญาตให้ผู้เล่นบินได้ (หากปิดไว้ ผู้เล่นที่ใช้ม็อดบินจะถูกเตะออก)',
+            'allow-nether': 'อนุญาตให้ไปมิติ Nether (นรก) ได้',
+            'broadcast-console-to-ops': 'ส่งข้อความคำสั่งจาก Console ไปยัง Operator ในเกม',
+            'broadcast-rcon-to-ops': 'ส่งข้อความคำสั่งจาก RCON ไปยัง Operator ในเกม',
+            'bug-report-link': 'ลิงก์สำหรับแจ้งบั๊กหรือปัญหาของเซิร์ฟเวอร์',
+            'chat-spam-threshold-seconds': 'ระยะเวลากำหนดการส่งข้อความรัวๆ ในแชท (ป้องกันสแปม)',
+            'command-spam-threshold-seconds': 'ระยะเวลากำหนดการพิมพ์คำสั่งรัวๆ (ป้องกันสแปมคำสั่ง)',
+            'debug': 'เปิดโหมด Debug แสดงข้อมูลการทำงานแบบละเอียดใน Log',
+            'difficulty': 'ระดับความยากของเกม (peaceful, easy, normal, hard)',
+            'enable-code-of-conduct': 'เปิดใช้งานข้อกำหนดและกฎระเบียบของชุมชน',
+            'enable-command-block': 'เปิดใช้งาน Command Block (บล็อกคำสั่ง)',
+            'enable-jmx-monitoring': 'เปิดใช้งานระบบตรวจสอบประสิทธิภาพ JMX ของ Java',
+            'enable-status': 'เปิดให้แสดงสถานะเซิร์ฟเวอร์ (Online/Ping) ในหน้ารายชื่อเซิร์ฟเวอร์ของเกม',
+            'enforce-secure-profile': 'บังคับให้ผู้เล่นต้องใช้โปรไฟล์ที่มีลายเซ็นความปลอดภัยจาก Mojang',
+            'enforce-whitelist': 'บังคับใช้ระบบ Whitelist ทันที (ผู้เล่นที่ไม่ได้อยู่ในรายชื่อจะถูกเตะออก)',
+            'entity-broadcast-range-percentage': 'เปอร์เซ็นต์ระยะการมองเห็นม็อบ/สิ่งมีชีวิต (ค่าเริ่มต้น 100)',
+            'force-gamemode': 'บังคับให้ผู้เล่นเปลี่ยนเป็น Gamemode เริ่มต้นทุกครั้งที่ล็อกอินเข้าเกม',
+            'function-permission-level': 'ระดับสิทธิ์ความปลอดภัยสำหรับไฟล์ฟังก์ชันคำสั่ง (Datapack)',
+            'gamemode': 'โหมดการเล่นเริ่มต้นเมื่อเข้าเซิร์ฟเวอร์ (survival, creative, adventure, spectator)',
+            'generate-structures': 'สร้างสิ่งก่อสร้างตามธรรมชาติในโลก (หมู่บ้าน, ดันเจี้ยน, ป้อมปราการ)',
+            'generator-settings': 'การตั้งค่าพิเศษสำหรับตัวสร้างโลก (เช่น Superflat World)',
+            'hardcore': 'โหมด Hardcore ตายแล้วเกิดใหม่ไม่ได้ กลายเป็นโหมดผู้ชมทันที',
+            'hide-online-players': 'ซ่อนรายชื่อและจำนวนผู้เล่นออนไลน์จากหน้ารายการเซิร์ฟเวอร์',
+            'initial-disabled-packs': 'รายการ Data Pack ที่ต้องการปิดใช้งานเริ่มต้น',
+            'initial-enabled-packs': 'รายการ Data Pack ที่ต้องการเปิดใช้งานเริ่มต้น',
+            'level-name': 'ชื่อโฟลเดอร์ของโลก (World Save Name)',
+            'level-seed': 'Seed สำหรับสุ่มสร้างภูมิประเทศของโลก',
+            'level-type': 'รูปแบบการสร้างภูมิประเทศของโลก (normal, flat, large_biomes, amplified)',
+            'log-ips': 'บันทึกหมายเลข IP ของผู้เล่นลงใน Log ไฟล์',
+            'max-chained-neighbor-updates': 'จำนวนการอัปเดตบล็อกข้างเคียงต่อเนื่องสูงสุด (ป้องกันเครื่องค้างจาก Redstone)',
+            'max-players': 'จำนวนผู้เล่นสูงสุดที่สามารถเข้าเซิร์ฟเวอร์พร้อมกันได้',
+            'max-tick-time': 'เวลาสูงสุด (มิลลิวินาที) ที่ Tick หนึ่งค้างก่อนที่เซิร์ฟเวอร์จะตัดการทำงาน (Watchdog)',
+            'max-world-size': 'ขนาดขอบเขตสูงสุดของโลก (บล็อก)',
+            'motd': 'ข้อความคำอธิบายที่จะแสดงใต้ชื่อเซิร์ฟเวอร์ในหน้ารายการเกม',
+            'online-mode': 'ตรวจสอบไอดีแท้จาก Mojang (ถ้าปิด = อนุญาตให้ไอดีเถื่อน/Cracked เข้าเล่นได้)',
+            'op-permission-level': 'ระดับสิทธิ์สูงสุดของ Operator (4 = ทำได้ทุกคำสั่งรวมถึง stop/op)',
+            'pause-when-empty-seconds': 'หยุดการคำนวณเวลาและม็อบในเกมชั่วคราวเมื่อไม่มีใครออนไลน์ (วินาที)',
+            'player-idle-timeout': 'เตะผู้เล่นที่ยืน AFK หรือไม่ขยับตัวออกหลังจากผ่านไปกี่นาที (0 = ปิด)',
+            'pvp': 'เปิดให้ผู้เล่นโจมตีและต่อสู้กันเองได้ (Player vs Player)',
+            'rate-limit': 'จำกัดจำนวนแพ็กเก็ตที่ผู้เล่นส่งมายังเซิร์ฟเวอร์ต่อวินาที (0 = ไม่จำกัด)',
+            'region-file-compression': 'รูปแบบการบีบอัดไฟล์ Region ข้อมูลแผนที่ (deflate, lz4, zstd)',
+            'require-resource-pack': 'บังคับให้ผู้เล่นต้องดาวน์โหลด Resource Pack ของเซิร์ฟเวอร์ก่อนเข้าเล่น',
+            'resource-pack': 'ลิงก์ดาวน์โหลด Resource Pack ประจำเซิร์ฟเวอร์',
+            'resource-pack-id': 'UUID ของ Resource Pack',
+            'resource-pack-prompt': 'ข้อความที่จะแสดงถามผู้เล่นเมื่อดาวน์โหลด Resource Pack',
+            'resource-pack-sha1': 'รหัสตรวจสอบความถูกต้อง SHA-1 ของ Resource Pack',
+            'simulation-distance': 'ระยะการทำงานของ AI สิ่งมีชีวิต และการเติบโตของพืช (ชังก์)',
+            'spawn-animals': 'อนุญาตให้สัตว์ที่เป็นมิตรเกิดตามธรรมชาติ (วัว, แกะ, หมู, ไก่)',
+            'spawn-monsters': 'อนุญาตให้มอนสเตอร์เกิดตามธรรมชาติ (ซอมบี้, สเกเลตัน, ครีปเปอร์)',
+            'spawn-npcs': 'อนุญาตให้มีชาวบ้าน (Villager) และ NPC เกิดในโลก',
+            'spawn-protection': 'รัศมีพื้นที่คุ้มครองจุดเกิด (Spawn) ห้ามผู้เล่นทั่วไปทุบหรือสร้างบล็อก (บล็อก)',
+            'status-heartbeat-interval': 'ความถี่ในการส่งสัญญาณ Heartbeat ของสถานะเซิร์ฟเวอร์',
+            'sync-chunk-writes': 'บันทึกข้อมูลชังก์ลงดิสก์แบบ Synchronous (ป้องกันแผนที่เสียหายเมื่อไฟดับ)',
+            'text-filtering-config': 'การตั้งค่าระบบกรองคำหยาบหรือข้อความไม่เหมาะสม',
+            'text-filtering-version': 'เวอร์ชันของระบบกรองข้อความ',
+            'use-native-transport': 'ใช้ฟีเจอร์เพิ่มประสิทธิภาพเครือข่ายของ Linux (Native Transport)',
+            'view-distance': 'ระยะการมองเห็นและโหลดภาพของผู้เล่น (ชังก์)',
+            'white-list': 'เปิดใช้งานระบบ Whitelist (ต้องมีชื่อในรายชื่อเท่านั้นจึงจะเข้าได้)'
+        };
+
+        async function loadProperties() {
+            const grid = document.getElementById('properties-grid');
+            try {
+                const res = await fetch('/mc/api/config');
+                const data = await res.json();
+                currentProperties = data.properties || {};
+
+                grid.innerHTML = '';
+                const sortedKeys = Object.keys(currentProperties).sort();
+                
+                for(let key of sortedKeys) {
+                    const val = currentProperties[key];
+                    const descTh = PROPERTY_DESCRIPTIONS_TH[key] || `การตั้งค่า ${key} ของเซิร์ฟเวอร์`;
+                    const div = document.createElement('div');
+                    div.className = 'prop-card';
+
+                    let inputHtml = '';
+                    const lowerVal = String(val).toLowerCase();
+                    const options = PROPERTY_DROPDOWNS[key] || (lowerVal === 'true' || lowerVal === 'false' ? ['true', 'false'] : null);
+
+                    if (options) {
+                        inputHtml = `
+                            <select id="prop-${key}" style="font-family:'JetBrains Mono', monospace; font-size:13px; padding:6px 10px;">
+                                ${options.map(opt => `<option value="${opt}" ${String(val) === String(opt) ? 'selected' : ''}>${opt}</option>`).join('')}
+                            </select>
+                        `;
+                    } else {
+                        inputHtml = `<input type="text" id="prop-${key}" value="${val}" style="font-family:'JetBrains Mono', monospace; font-size:13px; padding:6px 10px;">`;
+                    }
+
+                    div.innerHTML = `
+                        <div class="prop-tooltip">${descTh}</div>
+                        <div class="prop-label-wrap">
+                            <label style="font-size:12px; font-weight:600; color:var(--text-dim); font-family:'JetBrains Mono', monospace;">${key}</label>
+                            <span class="prop-info-badge" title="${descTh}">TH</span>
+                        </div>
+                        ${inputHtml}
+                    `;
+                    grid.appendChild(div);
+                }
+            } catch(e) { console.error('Properties load error:', e); }
+        }
+
+        async function saveProperties() {
+            for(let key in currentProperties) {
+                const input = document.getElementById(`prop-${key}`);
+                if(input) currentProperties[key] = input.value;
+            }
+            try {
+                const res = await fetch('/mc/api/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({properties: currentProperties})
+                });
+                const data = await res.json();
+                if(data.success) showToast('server.properties saved successfully! Restart server to apply.', 'success');
+                else showToast('Save error: ' + data.error, 'error');
+            } catch(e) { showToast('Save error: ' + e, 'error'); }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
         }
     </script>
 </body>

@@ -133,11 +133,17 @@ def landing_page(request):
     visible_apps = []
     for app_info in raw_apps:
         app_name = app_info['app_name']
-        role = get_user_app_role(request.user, app_name)
+        is_public = app_info['is_public']
         min_role = app_info['min_role_required']
+        role = get_user_app_role(request.user, app_name)
         
-        # Determine accessibility badge
+        # Determine accessibility
         can_access = ROLE_LEVELS.get(role, 0) >= ROLE_LEVELS.get(min_role, 1)
+        
+        # If app is private (not public), hide it completely from users who do not have permission!
+        if not is_public and not can_access:
+            continue
+
         app_info['user_role'] = role
         app_info['can_access'] = can_access
         visible_apps.append(app_info)
