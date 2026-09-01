@@ -771,39 +771,55 @@ def get_player_entity_data(player_name, host='127.0.0.1', port=25575, password='
     raw_snbt = ""
     source = "none"
 
-    def _query_rcon_prop(prop):
-        if not password:
-            return None
-        r = send_rcon_command(f"data get entity {player_name} {prop}", host=host, port=port, password=password)
-        idx = r.find("has the following entity data: ")
-        if idx != -1:
-            raw = r[idx + len("has the following entity data: "):].strip()
-            try:
-                return _nbt_to_dict(nbtlib.parse_nbt(raw))
-            except Exception:
-                return raw
-        return None
-
     # 1. Try Live RCON 'data get entity <player_name>'
     if password:
-        resp = send_rcon_command(f"data get entity {player_name}", host=host, port=port, password=password)
-        if resp and "has the following entity data:" in resp:
-            is_online = True
-            source = "rcon_live"
-            
-            # Fetch targeted live properties to prevent Minecraft truncation issues
-            live_props = [
-                'Pos', 'Rotation', 'Motion', 'Health', 'foodLevel', 'foodSaturationLevel', 
-                'XpLevel', 'XpP', 'XpTotal', 'Air', 'Dimension', 'playerGameType', 
-                'abilities', 'Inventory', 'EnderItems', 'ActiveEffects', 'attributes', 'UUID', 'Score'
-            ]
-            for prop in live_props:
-                val = _query_rcon_prop(prop)
-                if val is not None:
-                    raw_nbt[prop] = val
+        try:
+            with ThreadSafeMCRcon(host, password, port=port, timeout=3) as client:
+                resp = client.command(f"data get entity {player_name}")
+                if resp and "has the following entity data:" in resp:
+                    is_online = True
+                    source = "rcon_live"
+                    
+                    # Fetch targeted live properties to prevent Minecraft truncation issues
+                    live_props = [
+                        'Pos', 'Rotation', 'Motion', 'Health', 'foodLevel', 'foodSaturationLevel', 
+                        'XpLevel', 'XpP', 'XpTotal', 'Air', 'Dimension', 'playerGameType', 
+                        'abilities', 'ActiveEffects', 'attributes', 'UUID', 'Score'
+                    ]
+                    for prop in live_props:
+                        r = client.command(f"data get entity {player_name} {prop}")
+                        idx = r.find("has the following entity data: ")
+                        if idx != -1:
+                            raw = r[idx + len("has the following entity data: "):].strip()
+                            try:
+                                raw_nbt[prop] = _nbt_to_dict(nbtlib.parse_nbt(raw))
+                            except Exception:
+                                raw_nbt[prop] = raw
 
-            import json as _j
-            raw_snbt = _j.dumps(raw_nbt, indent=2)
+                    # Fetch live items slot by slot to bypass Minecraft chat truncation (... on components)
+                    def _fetch_live_items(tag):
+                        items = []
+                        for idx in range(45):
+                            r = client.command(f"data get entity {player_name} {tag}[{idx}]")
+                            if not r or "has the following entity data: " not in r:
+                                break
+                            id_match = re.search(r'id:\s*\"([^\"]+)\"', r)
+                            slot_match = re.search(r'Slot:\s*(-?\d+)', r)
+                            count_match = re.search(r'count:\s*(\d+)', r)
+                            if id_match:
+                                item_id = id_match.group(1)
+                                slot = int(slot_match.group(1)) if slot_match else 0
+                                count = int(count_match.group(1)) if count_match else 1
+                                items.append({"id": item_id, "Slot": slot, "count": count})
+                        return items
+
+                    raw_nbt['Inventory'] = _fetch_live_items('Inventory')
+                    raw_nbt['EnderItems'] = _fetch_live_items('EnderItems')
+
+                    import json as _j
+                    raw_snbt = _j.dumps(raw_nbt, indent=2)
+        except Exception:
+            pass
 
     # 2. If not online or RCON didn't return data, try offline .dat or .dat_old files
     if not raw_nbt:

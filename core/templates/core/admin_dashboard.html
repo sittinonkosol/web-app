@@ -810,14 +810,14 @@
                     <div class="stat-label">ผู้ใช้งานทั้งหมด</div>
                     <div class="stat-value" id="stat-total-users">0</div>
                 </div>
-                <div class="stat-icon">👥</div>
+                <div class="stat-icon"></div>
             </div>
             <div class="stat-card">
                 <div class="stat-info">
                     <div class="stat-label">กลุ่มผู้ใช้ (Groups)</div>
                     <div class="stat-value" id="stat-total-groups">0</div>
                 </div>
-                <div class="stat-icon">🏷️</div>
+                <div class="stat-icon"></div>
             </div>
             <div class="stat-card">
                 <div class="stat-info">
@@ -831,16 +831,17 @@
                     <div class="stat-label">แอปที่เป็น Public</div>
                     <div class="stat-value" id="stat-public-apps">0</div>
                 </div>
-                <div class="stat-icon">🌐</div>
+                <div class="stat-icon"></div>
             </div>
         </div>
 
         <!-- Tab Navigation Bar -->
         <div class="tabs-header">
-            <button class="tab-btn active" onclick="switchTab('tab-users')">👥 จัดการผู้ใช้งาน (Users)</button>
-            <button class="tab-btn" onclick="switchTab('tab-groups')">🏷️ กลุ่มผู้ใช้ (User Groups)</button>
-            <button class="tab-btn" onclick="switchTab('tab-apps')">⚙️ สิทธิ์และการเข้าถึงแอป (App Access)</button>
-            <button class="tab-btn" onclick="switchTab('tab-logs')">📜 ประวัติการเข้าสู่ระบบ (Login Logs)</button>
+            <button class="tab-btn active" onclick="switchTab('tab-users')"> จัดการผู้ใช้งาน (Users)</button>
+            <button class="tab-btn" onclick="switchTab('tab-groups')"> กลุ่มผู้ใช้ (User Groups)</button>
+            <button class="tab-btn" onclick="switchTab('tab-apps')"> สิทธิ์และการเข้าถึงแอป (App Access)</button>
+            <button class="tab-btn" onclick="switchTab('tab-logs')"> ประวัติการเข้าสู่ระบบ (Login Logs)</button>
+            <button class="tab-btn" id="pending-tab-btn" onclick="switchTab('tab-pending')" style="position:relative;"> รอการอนุมัติ<span id="pending-badge" style="display:none;position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border-radius:50%;min-width:20px;height:20px;font-size:0.7rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;">0</span></button>
         </div>
 
         <!-- TAB 1: USERS -->
@@ -852,7 +853,7 @@
                     </div>
                     <div style="display: flex; gap: 12px; align-items: center;">
                         <div class="search-box">
-                            <span class="search-icon">🔍</span>
+                            <span class="search-icon"></span>
                             <input type="text" id="user-search-input" placeholder="ค้นหาชื่อผู้ใช้, อีเมล..." oninput="filterUsers()">
                         </div>
                         <button class="btn btn-primary" onclick="openUserModal()">+ เพิ่มผู้ใช้ใหม่</button>
@@ -929,7 +930,7 @@
                     </div>
                     <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                         <div class="search-box">
-                            <span class="search-icon">🔍</span>
+                            <span class="search-icon"></span>
                             <input type="text" id="log-search-input" placeholder="ค้นหาชื่อผู้ใช้, IP..." oninput="loadLoginLogs()">
                         </div>
                         <select class="custom-select" id="log-status-filter" onchange="loadLoginLogs()">
@@ -937,7 +938,7 @@
                             <option value="success">เข้าสู่ระบบสำเร็จ (Success)</option>
                             <option value="failed">เข้าสู่ระบบไม่สำเร็จ (Failed)</option>
                         </select>
-                        <button class="btn btn-ghost btn-sm" onclick="loadLoginLogs()">🔄 รีเฟรช</button>
+                        <button class="btn btn-ghost btn-sm" onclick="loadLoginLogs()"> รีเฟรช</button>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -953,6 +954,41 @@
                             </tr>
                         </thead>
                         <tbody id="logs-table-body">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: PENDING REGISTRATIONS -->
+        <div id="tab-pending" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span>คำขอลงทะเบียนรอการอนุมัติ</span>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <button class="btn btn-ghost btn-sm" onclick="loadPendingRegistrations()"> รีเฟรช</button>
+                    </div>
+                </div>
+                <div id="pending-empty" style="display:none; padding: 3rem; text-align: center; color: var(--text-muted);">
+                    <div style="font-size:2.5rem; margin-bottom:0.75rem;"></div>
+                    <p style="font-size:1rem; font-weight:600; color: var(--text-main); margin-bottom:0.3rem;">ไม่มีคำขอที่รอการอนุมัติ</p>
+                    <p style="font-size:0.875rem;">ผู้ใช้ทุกคนได้รับการอนุมัติแล้ว</p>
+                </div>
+                <div class="table-responsive" id="pending-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>ชื่อผู้ใช้ (Username)</th>
+                                <th>อีเมล</th>
+                                <th>วันที่สมัคร</th>
+                                <th>การดำเนินการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-table-body">
                             <!-- Populated via JS -->
                         </tbody>
                     </table>
@@ -1093,7 +1129,7 @@
 
                     <div class="form-group">
                         <label>เลือกสมาชิกในกลุ่มนี้</label>
-                        <input type="text" id="group-member-search" placeholder="🔍 ค้นหารหัสนักศึกษา / ชื่อ..." oninput="filterGroupModalMembers(this.value)" class="form-control" style="margin-bottom: 6px; font-size: 12.5px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: #fff;">
+                        <input type="text" id="group-member-search" placeholder=" ค้นหารหัสนักศึกษา / ชื่อ..." oninput="filterGroupModalMembers(this.value)" class="form-control" style="margin-bottom: 6px; font-size: 12.5px; padding: 6px 10px; background: rgba(255,255,255,0.05); color: #fff;">
                         <div id="group-members-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
                             <!-- Populated dynamically -->
                         </div>
@@ -1124,6 +1160,9 @@
             if (tabId === 'tab-logs') {
                 loadLoginLogs();
             }
+            if (tabId === 'tab-pending') {
+                loadPendingRegistrations();
+            }
         }
 
         // Modal Controls
@@ -1139,7 +1178,7 @@
             const t = document.createElement('div');
             t.className = 'toast';
             t.style.borderColor = isError ? 'var(--danger)' : 'var(--success)';
-            t.innerHTML = `<span>${isError ? '⚠️' : '✅'}</span><span>${escapeHtml(msg)}</span>`;
+            t.innerHTML = `<span>${isError ? '' : ''}</span><span>${escapeHtml(msg)}</span>`;
             document.body.appendChild(t);
             setTimeout(() => t.remove(), 3200);
         }
@@ -1189,6 +1228,7 @@
                 renderUsersTable();
                 renderGroupsTable();
                 renderAppsGrid();
+                loadPendingRegistrations(); // Load pending count on init
             } catch (err) {
                 console.error('Error loading data', err);
                 showToast(err.message || 'โหลดข้อมูลระบบไม่สำเร็จ', true);
@@ -1209,7 +1249,7 @@
             const tbody = document.getElementById('users-table-body');
             
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><span>👤</span>ไม่พบข้อมูลผู้ใช้งาน</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><span></span>ไม่พบข้อมูลผู้ใช้งาน</td></tr>`;
                 return;
             }
 
@@ -1260,9 +1300,9 @@
                         <td class="mono" style="font-size: 12px; color: var(--text-dim);">${escapeHtml(u.last_login)}</td>
                         <td style="text-align: right;">
                             <div style="display: inline-flex; gap: 6px;">
-                                <button class="btn btn-ghost btn-sm" onclick="viewUserLogs(${u.id}, '${escapeHtml(u.username)}')">📜 ประวัติ</button>
-                                <button class="btn btn-ghost btn-sm" onclick="editUser(${u.id})">✏️ แก้ไข</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${escapeHtml(u.username)}')">🗑️ ลบ</button>
+                                <button class="btn btn-ghost btn-sm" onclick="viewUserLogs(${u.id}, '${escapeHtml(u.username)}')"> ประวัติ</button>
+                                <button class="btn btn-ghost btn-sm" onclick="editUser(${u.id})"> แก้ไข</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${escapeHtml(u.username)}')"> ลบ</button>
                             </div>
                         </td>
                     </tr>
@@ -1285,7 +1325,7 @@
                 const data = await safeFetchJson(url);
                 const logs = data.logs || [];
                 if (logs.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><span>📜</span>ไม่พบประวัติการเข้าสู่ระบบ</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><span></span>ไม่พบประวัติการเข้าสู่ระบบ</td></tr>`;
                     return;
                 }
 
@@ -1321,7 +1361,7 @@
                 const data = await safeFetchJson(`/api/admin/users/${userId}/login-logs`);
                 const logs = data.logs || [];
                 if (logs.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="empty-state" style="padding:24px;"><span>📜</span>ยังไม่มีประวัติการเข้าสู่ระบบ</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="4" class="empty-state" style="padding:24px;"><span></span>ยังไม่มีประวัติการเข้าสู่ระบบ</td></tr>`;
                     return;
                 }
 
@@ -1379,7 +1419,7 @@
         function renderGroupsTable() {
             const tbody = document.getElementById('groups-table-body');
             if (allGroups.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><span>🏷️</span>ยังไม่มีกลุ่มผู้ใช้งาน</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><span></span>ยังไม่มีกลุ่มผู้ใช้งาน</td></tr>`;
                 return;
             }
 
@@ -1429,8 +1469,8 @@
                         <td>${permsHtml}</td>
                         <td style="text-align: right;">
                             <div style="display: inline-flex; gap: 6px;">
-                                <button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id})">✏️ แก้ไข</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteGroup(${g.id}, '${escapeHtml(g.name)}')">🗑️ ลบ</button>
+                                <button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id})"> แก้ไข</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteGroup(${g.id}, '${escapeHtml(g.name)}')"> ลบ</button>
                             </div>
                         </td>
                     </tr>
@@ -1458,7 +1498,7 @@
                                 </div>
                             </div>
                             <span class="badge ${a.is_public ? 'badge-success' : 'badge-danger'}">
-                                ${a.is_public ? '🌐 Public (ทุกคนเข้าได้)' : '🔒 ต้อง Login'}
+                                ${a.is_public ? ' Public (ทุกคนเข้าได้)' : ' ต้อง Login'}
                             </span>
                         </div>
 
@@ -1808,6 +1848,83 @@
 
         // Initialize on load
         document.addEventListener('DOMContentLoaded', loadAllData);
+
+        // ─── Pending Registrations ───────────────────────────────────────
+        async function loadPendingRegistrations() {
+            try {
+                const data = await safeFetchJson('/api/admin/registrations/pending');
+                const list = data.pending || [];
+                const count = data.count || 0;
+
+                // Update badge
+                const badge = document.getElementById('pending-badge');
+                if (badge) {
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? 'inline-flex' : 'none';
+                }
+
+                // Update table
+                const tbody = document.getElementById('pending-table-body');
+                const emptyDiv = document.getElementById('pending-empty');
+                const tableWrap = document.getElementById('pending-table-wrap');
+                if (!tbody) return;
+
+                if (list.length === 0) {
+                    if (emptyDiv) emptyDiv.style.display = 'block';
+                    if (tableWrap) tableWrap.style.display = 'none';
+                    return;
+                }
+
+                if (emptyDiv) emptyDiv.style.display = 'none';
+                if (tableWrap) tableWrap.style.display = '';
+
+                tbody.innerHTML = list.map(u => `
+                    <tr id="pending-row-${u.id}">
+                        <td class="mono">#${u.id}</td>
+                        <td><strong>${escapeHtml(u.username)}</strong></td>
+                        <td>${escapeHtml(u.email) || '<span style="color:var(--text-dim)">-</span>'}</td>
+                        <td><span style="color:var(--text-muted); font-size:0.85rem;">${escapeHtml(u.date_joined)}</span></td>
+                        <td>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <button class="btn btn-sm" style="background:var(--success);color:#fff;border:none;padding:5px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;"
+                                    onclick="approveRegistration(${u.id}, '${escapeHtml(u.username)}')">
+                                    ✓ อนุมัติ
+                                </button>
+                                <button class="btn btn-sm" style="background:var(--danger);color:#fff;border:none;padding:5px 14px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;"
+                                    onclick="rejectRegistration(${u.id}, '${escapeHtml(u.username)}')">
+                                    ✕ ปฏิเสธ
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('loadPendingRegistrations error', err);
+            }
+        }
+
+        async function approveRegistration(userId, username) {
+            if (!confirm(`อนุมัติการลงทะเบียนของ "${username}" และเปิดใช้งานบัญชีนี้?`)) return;
+            try {
+                await safeFetchJson(`/api/admin/registrations/${userId}/approve`, { method: 'POST' });
+                showToast(`อนุมัติบัญชี "${username}" เรียบร้อยแล้ว`);
+                loadPendingRegistrations();
+                loadAllData(); // refresh user list too
+            } catch (err) {
+                showToast(err.message || 'อนุมัติไม่สำเร็จ', true);
+            }
+        }
+
+        async function rejectRegistration(userId, username) {
+            if (!confirm(`ปฏิเสธและลบคำขอลงทะเบียนของ "${username}"?\nการกระทำนี้ไม่สามารถย้อนกลับได้`)) return;
+            try {
+                await safeFetchJson(`/api/admin/registrations/${userId}/reject`, { method: 'DELETE' });
+                showToast(`ปฏิเสธและลบบัญชี "${username}" เรียบร้อยแล้ว`);
+                loadPendingRegistrations();
+            } catch (err) {
+                showToast(err.message || 'ลบไม่สำเร็จ', true);
+            }
+        }
     </script>
 </body>
 </html>

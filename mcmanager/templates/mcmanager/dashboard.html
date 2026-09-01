@@ -906,9 +906,11 @@
                 </div>
 
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    {% if role == 'moderator' or role == 'admin' %}
                     <button id="btn-server-start" class="btn btn-primary" onclick="controlAction('papermc', 'start')">Start</button>
                     <button id="btn-server-stop" class="btn btn-danger" onclick="controlAction('papermc', 'stop')">Stop</button>
                     <button id="btn-server-restart" class="btn btn-warn" onclick="controlAction('papermc', 'restart')">Restart</button>
+                    {% endif %}
                     <a href="/" class="btn" style="color: var(--text-dim);">Main Menu</a>
                 </div>
             </div>
@@ -918,9 +920,11 @@
                 <div class="nav-tab active" onclick="switchTab('overview')">Overview</div>
                 <div class="nav-tab" onclick="switchTab('console')">Console</div>
                 <div class="nav-tab" onclick="switchTab('players')">Players (<span id="tab-player-count">0</span>)</div>
+                <div class="nav-tab" onclick="switchTab('settings')">Settings</div>
+                {% if role == 'moderator' or role == 'admin' %}
                 <div class="nav-tab" onclick="switchTab('files')">File Manager</div>
                 <div class="nav-tab" onclick="switchTab('backups')">Backups</div>
-                <div class="nav-tab" onclick="switchTab('settings')">Settings</div>
+                {% endif %}
             </nav>
         </div>
 
@@ -1076,7 +1080,9 @@
                         </select>
                     </div>
                     <div style="display: flex; gap: 8px;">
+                        {% if role == 'moderator' or role == 'admin' %}
                         <button class="btn btn-primary btn-sm" onclick="openAddPlayerModal()">+ Add Player</button>
+                        {% endif %}
                         <button class="btn btn-sm" onclick="loadPlayers()">Refresh</button>
                     </div>
                 </div>
@@ -1099,6 +1105,7 @@
             </div>
         </div>
 
+        {% if role == 'moderator' or role == 'admin' %}
         <!-- ============================================================ -->
         <!-- TAB 4: FILE MANAGER -->
         <!-- ============================================================ -->
@@ -1167,21 +1174,31 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- ============================================================ -->
         <!-- TAB 6: SETTINGS -->
         <!-- ============================================================ -->
         <div id="tab-settings" class="tab-content">
+            {% if role != 'moderator' and role != 'admin' %}
+            <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; color: #93c5fd; font-size: 13px;">
+                <span style="font-size: 18px;">ℹ️</span>
+                <span><b>Read-Only Mode:</b> You are viewing game settings with <b>Viewer</b> permissions. Only Moderators and Admins can save changes.</span>
+            </div>
+            {% endif %}
+
             <!-- RAM Settings -->
             <div class="card">
                 <h3 class="card-title" style="margin-bottom: 8px;">RAM Allocation</h3>
                 <p style="color: var(--text-dim); font-size: 13px; margin: 0 0 16px;">Maximum safe limit: <b>{{ max_ram_gb }} GB</b> (leaves at least 6 GB for the OS and services).</p>
                 <div style="display: flex; gap: 12px; max-width: 400px; align-items: center;">
                     <div style="position: relative; flex: 1;">
-                        <input type="number" id="setting-ram" min="1" max="{{ max_ram_gb }}" step="0.5" value="{{ current_ram_gb }}" style="padding-right: 48px; font-family: 'JetBrains Mono', monospace; font-size: 16px;">
+                        <input type="number" id="setting-ram" min="1" max="{{ max_ram_gb }}" step="0.5" value="{{ current_ram_gb }}" {% if role != 'moderator' and role != 'admin' %}disabled{% endif %} style="padding-right: 48px; font-family: 'JetBrains Mono', monospace; font-size: 16px;">
                         <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-family: 'JetBrains Mono', monospace; pointer-events: none;">GB</span>
                     </div>
+                    {% if role == 'moderator' or role == 'admin' %}
                     <button class="btn btn-primary" onclick="saveRamSetting()">Save RAM</button>
+                    {% endif %}
                 </div>
             </div>
 
@@ -1192,19 +1209,23 @@
                         <h3 class="card-title">server.properties Editor</h3>
                         <p style="color: var(--text-dim); font-size: 13px; margin: 4px 0 0;">Edit game settings directly. (RCON settings are managed automatically).</p>
                     </div>
+                    {% if role == 'moderator' or role == 'admin' %}
                     <button class="btn btn-primary btn-sm" onclick="saveProperties()">Save Properties</button>
+                    {% endif %}
                 </div>
                 <div id="properties-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; max-height: 420px; overflow-y: auto; padding-right: 8px;">
                     <!-- Loaded dynamically -->
                 </div>
             </div>
 
+            {% if role == 'moderator' or role == 'admin' %}
             <!-- Danger Zone -->
             <div class="card" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.03);">
                 <h3 class="card-title" style="color: var(--danger); margin-bottom: 8px;">Danger Zone</h3>
                 <p style="color: var(--text-dim); font-size: 13px; margin: 0 0 16px;">Permanently delete the current world (Overworld, Nether, End) and generate a fresh one.</p>
                 <button class="btn btn-danger" onclick="triggerResetWorld()">Reset World (Delete All World Data)</button>
             </div>
+            {% endif %}
         </div>
 
     </div>
@@ -2856,6 +2877,8 @@
                 return;
             }
 
+            const isModOrAdmin = ("{{ role }}" === "moderator" || "{{ role }}" === "admin");
+
             tbody.innerHTML = filtered.map(p => `
                 <tr>
                     <td>
@@ -2888,22 +2911,24 @@
                                 <button class="player-dropdown-item item-primary" onclick="openEntityPropertiesModal('${p.name}', ${p.online})">
                                     👁️ View Entity Data
                                 </button>
-                                <div class="player-dropdown-divider"></div>
+                                ${isModOrAdmin ? `
+                                    <div class="player-dropdown-divider"></div>
 
-                                ${p.is_op 
-                                    ? `<button class="player-dropdown-item item-warn" onclick="playerAction('deop', '${p.name}')">Remove OP (Deop)</button>` 
-                                    : `<button class="player-dropdown-item" onclick="playerAction('op', '${p.name}')">Make OP</button>`}
-                                
-                                ${p.is_whitelisted 
-                                    ? `<button class="player-dropdown-item item-danger" onclick="playerAction('whitelist_remove', '${p.name}')">Remove Whitelist</button>` 
-                                    : `<button class="player-dropdown-item item-primary" onclick="playerAction('whitelist_add', '${p.name}')">Add Whitelist</button>`}
+                                    ${p.is_op 
+                                        ? `<button class="player-dropdown-item item-warn" onclick="playerAction('deop', '${p.name}')">Remove OP (Deop)</button>` 
+                                        : `<button class="player-dropdown-item" onclick="playerAction('op', '${p.name}')">Make OP</button>`}
                                     
-                                ${p.online ? `<div class="player-dropdown-divider"></div><button class="player-dropdown-item item-danger" onclick="playerAction('kick', '${p.name}')">Kick Player</button>` : ''}
-                                
-                                <div class="player-dropdown-divider"></div>
-                                ${p.is_banned 
-                                    ? `<button class="player-dropdown-item item-primary" onclick="playerAction('pardon', '${p.name}')">Unban Player</button>` 
-                                    : `<button class="player-dropdown-item item-danger" onclick="playerAction('ban', '${p.name}')">Ban Player</button>`}
+                                    ${p.is_whitelisted 
+                                        ? `<button class="player-dropdown-item item-danger" onclick="playerAction('whitelist_remove', '${p.name}')">Remove Whitelist</button>` 
+                                        : `<button class="player-dropdown-item item-primary" onclick="playerAction('whitelist_add', '${p.name}')">Add Whitelist</button>`}
+                                        
+                                    ${p.online ? `<div class="player-dropdown-divider"></div><button class="player-dropdown-item item-danger" onclick="playerAction('kick', '${p.name}')">Kick Player</button>` : ''}
+                                    
+                                    <div class="player-dropdown-divider"></div>
+                                    ${p.is_banned 
+                                        ? `<button class="player-dropdown-item item-primary" onclick="playerAction('pardon', '${p.name}')">Unban Player</button>` 
+                                        : `<button class="player-dropdown-item item-danger" onclick="playerAction('ban', '${p.name}')">Ban Player</button>`}
+                                ` : ''}
                             </div>
                         </div>
                     </td>
@@ -3374,15 +3399,15 @@
                     let inputHtml = '';
                     const lowerVal = String(val).toLowerCase();
                     const options = PROPERTY_DROPDOWNS[key] || (lowerVal === 'true' || lowerVal === 'false' ? ['true', 'false'] : null);
-
+                    const isModOrAdmin = ("{{ role }}" === "moderator" || "{{ role }}" === "admin");
                     if (options) {
                         inputHtml = `
-                            <select id="prop-${key}" style="font-family:'JetBrains Mono', monospace; font-size:13px; padding:6px 10px;">
+                            <select id="prop-${key}" ${isModOrAdmin ? '' : 'disabled'} style="font-family:'JetBrains Mono', monospace; font-size:13px; padding:6px 10px; ${isModOrAdmin ? '' : 'opacity:0.7; cursor:not-allowed;'}">
                                 ${options.map(opt => `<option value="${opt}" ${String(val) === String(opt) ? 'selected' : ''}>${opt}</option>`).join('')}
                             </select>
                         `;
                     } else {
-                        inputHtml = `<input type="text" id="prop-${key}" value="${val}" style="font-family:'JetBrains Mono', monospace; font-size:13px; padding:6px 10px;">`;
+                        inputHtml = `<input type="text" id="prop-${key}" value="${val}" ${isModOrAdmin ? '' : 'disabled'} style="font-family:'JetBrains Mono', monospace; font-size:13px; padding:6px 10px; ${isModOrAdmin ? '' : 'opacity:0.7; cursor:not-allowed;'}">`;
                     }
 
                     div.innerHTML = `

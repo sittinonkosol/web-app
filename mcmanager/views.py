@@ -6,7 +6,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from core.permissions import require_app_access
+from core.permissions import require_app_access, has_app_permission, get_user_app_role
 from .models import ServerSetting
 from .utils import (
     get_max_allowed_ram_mb,
@@ -48,7 +48,7 @@ def dashboard_view(request):
     if current_ram_gb.is_integer():
         current_ram_gb = int(current_ram_gb)
     
-    role = getattr(request, 'user_app_role', 'viewer')
+    role = get_user_app_role(request.user, 'mcmanager')
     
     return render(request, 'mcmanager/dashboard.html', {
         'role': role,
@@ -102,7 +102,7 @@ def api_server_status(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@require_app_access('mcmanager', 'admin')
+@require_app_access('mcmanager', 'moderator')
 def api_server_action(request):
     try:
         data = json.loads(request.body)
@@ -150,7 +150,7 @@ PROTECTED_PROPERTIES = {
 
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
-@require_app_access('mcmanager', 'admin')
+@require_app_access('mcmanager', 'viewer')
 def api_server_config(request):
     settings = ServerSetting.get_settings()
     props_path = f"{settings.server_path}/server.properties"
@@ -164,6 +164,8 @@ def api_server_config(request):
             "properties": safe_props
         })
     elif request.method == "POST":
+        if not has_app_permission(request.user, 'mcmanager', 'moderator'):
+            return JsonResponse({"success": False, "error": "Permission denied: Changing server settings requires Moderator or Admin privileges."}, status=403)
         try:
             data = json.loads(request.body)
             # Update RAM
@@ -209,7 +211,7 @@ def api_server_config(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@require_app_access('mcmanager', 'admin')
+@require_app_access('mcmanager', 'viewer')
 def api_send_rcon(request):
     try:
         data = json.loads(request.body)
@@ -217,6 +219,27 @@ def api_send_rcon(request):
         if not cmd:
             return JsonResponse({"error": "Command is required"}, status=400)
             
+        cmd_clean = cmd.strip()
+        if cmd_clean.startswith('/'):
+            cmd_clean = cmd_clean[1:].strip()
+            
+        role = get_user_app_role(request.user, 'mcmanager')
+        if role not in ['admin', 'moderator']:
+            cmd_root = cmd_clean.split()[0].lower() if cmd_clean else ""
+            ALLOWED_VIEWER_COMMANDS = {'list', 'say', 'tell', 'msg', 'w', 'me', 'help', 'seed', 'tps', 'ping', 'version', 'plugins', 'pl'}
+            BLOCKED_ADMIN_COMMANDS = {
+                'op', 'deop', 'ban', 'ban-ip', 'pardon', 'pardon-ip', 'kick', 
+                'stop', 'restart', 'save-all', 'save-off', 'save-on', 'reload', 
+                'whitelist', 'datapack', 'forceload', 'gamerule', 'defaultgamemode', 
+                'setworldspawn', 'difficulty', 'execute', 'publish', 'debug', 
+                'kill', 'clear', 'give', 'item', 'effect', 'enchant', 'experience', 
+                'xp', 'summon', 'fill', 'clone', 'setblock', 'worldborder', 'weather', 
+                'time', 'locate', 'scoreboard', 'tag', 'team', 'bossbar', 'attribute', 
+                'advancement', 'schedule', 'function', 'spreadplayers', 'teleport', 'tp'
+            }
+            if cmd_root in BLOCKED_ADMIN_COMMANDS or (cmd_root not in ALLOWED_VIEWER_COMMANDS and not cmd_root.startswith('?')):
+                return JsonResponse({"error": f"Permission denied: Command '{cmd_root}' requires Moderator or Admin privileges."}, status=403)
+
         settings = ServerSetting.get_settings()
         response = send_rcon_command(cmd, port=settings.rcon_port, password=settings.rcon_password)
 
@@ -253,13 +276,15 @@ def api_send_rcon(request):
 
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
-@require_app_access('mcmanager', 'admin')
+@require_app_access('mcmanager', 'viewer')
 def api_players(request):
     settings = ServerSetting.get_settings()
     if request.method == "GET":
         data = get_players_data(settings.server_path, port=settings.rcon_port, password=settings.rcon_password)
         return JsonResponse(data)
     elif request.method == "POST":
+        if not has_app_permission(request.user, 'mcmanager', 'moderator'):
+            return JsonResponse({"success": False, "error": "Permission denied: Player moderation (kick/ban/op) requires Moderator or Admin privileges."}, status=403)
         try:
             body = json.loads(request.body)
             action = body.get('action')

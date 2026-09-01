@@ -7,7 +7,8 @@ urlpatterns = [
     path('', views.landing_page, name='landing'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    
+    path('register/', views.register_view, name='register'),
+
     # Central Admin Dashboard
     path('admin/', views.admin_dashboard_view, name='admin_dashboard'),
     
@@ -20,6 +21,9 @@ urlpatterns = [
     path('api/admin/app-settings/<str:app_name>', views.api_app_setting_detail, name='api_admin_app_setting_detail'),
     path('api/admin/login-logs', views.api_login_logs_list, name='api_admin_login_logs'),
     path('api/admin/users/<int:user_id>/login-logs', views.api_user_login_logs, name='api_admin_user_login_logs'),
+    path('api/admin/registrations/pending', views.api_pending_registrations, name='api_admin_pending_registrations'),
+    path('api/admin/registrations/<int:user_id>/approve', views.api_approve_registration, name='api_admin_approve_registration'),
+    path('api/admin/registrations/<int:user_id>/reject', views.api_reject_registration, name='api_admin_reject_registration'),
 
     # Apps
     path('ict/scquizz/', include('scquizz.urls')),

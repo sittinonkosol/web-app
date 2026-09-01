@@ -214,6 +214,105 @@ def logout_view(request):
     logout(request)
     return redirect(next_url)
 
+
+def register_view(request):
+    """
+    User self-registration endpoint.
+    New accounts are created with is_active=False and must be approved by an admin.
+    """
+    if request.user.is_authenticated:
+        return redirect('/')
+
+    errors = {}
+    form_data = {}
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+
+        form_data = {
+            'username': username,
+            'email': email,
+        }
+
+        # --- Validation ---
+        import re
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        from django.core.validators import validate_email
+        from django.core.exceptions import ValidationError as CoreValidationError
+
+        if not username:
+            errors['username'] = 'กรุณาระบุชื่อผู้ใช้'
+        elif not re.match(r'^[\w.@+-]+$', username):
+            errors['username'] = 'ชื่อผู้ใช้มีอักขระที่ไม่อนุญาต (ใช้ได้: ตัวอักษร, ตัวเลข, . @ + - _)'
+        elif len(username) < 3:
+            errors['username'] = 'ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร'
+        elif len(username) > 150:
+            errors['username'] = 'ชื่อผู้ใช้ยาวเกินไป (สูงสุด 150 ตัวอักษร)'
+        elif User.objects.filter(username=username).exists():
+            errors['username'] = f'ชื่อผู้ใช้ "{username}" มีผู้ใช้งานแล้ว กรุณาเลือกชื่ออื่น'
+
+        if email:
+            try:
+                validate_email(email)
+            except CoreValidationError:
+                errors['email'] = 'รูปแบบอีเมลไม่ถูกต้อง'
+            else:
+                if User.objects.filter(email=email).exists():
+                    errors['email'] = 'อีเมลนี้ถูกใช้งานแล้ว'
+
+        if not password:
+            errors['password'] = 'กรุณาระบุรหัสผ่าน'
+        else:
+            try:
+                validate_password(password)
+            except DjangoValidationError as ve:
+                errors['password'] = ' '.join(ve.messages)
+
+        if not errors.get('password'):
+            if not confirm_password:
+                errors['confirm_password'] = 'กรุณายืนยันรหัสผ่าน'
+            elif password != confirm_password:
+                errors['confirm_password'] = 'รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง'
+
+        if not errors:
+            try:
+                with transaction.atomic():
+                    user = User.objects.create_user(
+                        username=username,
+                        email=email,
+                        password=password,
+                        is_active=False,  # Requires admin approval
+                    )
+                logger.info(f"New registration: username={username}, email={email}, ip={_get_client_ip_from_request(request)}")
+                return render(request, 'core/register.html', {
+                    'success': True,
+                    'username': username,
+                })
+            except Exception as e:
+                logger.error(f"register_view error: {e}", exc_info=True)
+                errors['non_field_errors'] = 'เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง'
+
+    return render(request, 'core/register.html', {
+        'errors': errors,
+        'form_data': form_data,
+    })
+
+
+def _get_client_ip_from_request(request):
+    """Resolve real client IP (mirrors signals.py logic)."""
+    cf_ip = request.META.get('HTTP_CF_CONNECTING_IP')
+    if cf_ip:
+        return cf_ip.strip()
+    forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if forwarded_for:
+        return forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '')
+
+
 # ==============================================================================
 # Central Admin Dashboard Views & APIs
 # ==============================================================================
@@ -611,4 +710,55 @@ def api_user_login_logs(request, user_id):
         for log in UserLoginLog.objects.filter(user=user).order_by('-timestamp')[:50]
     ]
     return JsonResponse({'username': user.username, 'logs': logs})
+
+
+# --- Pending Registrations API ---
+
+@csrf_exempt
+@staff_member_required
+@require_http_methods(["GET"])
+def api_pending_registrations(request):
+    """
+    List all users with is_active=False (pending admin approval).
+    """
+    pending = User.objects.filter(is_active=False).order_by('date_joined')
+    data = [
+        {
+            'id': u.id,
+            'username': u.username,
+            'email': u.email,
+            'date_joined': u.date_joined.strftime('%Y-%m-%d %H:%M') if u.date_joined else '',
+        }
+        for u in pending
+    ]
+    return JsonResponse({'pending': data, 'count': len(data)})
+
+
+@csrf_exempt
+@staff_member_required
+@require_http_methods(["POST"])
+def api_approve_registration(request, user_id):
+    """
+    Approve (activate) a pending registration.
+    """
+    user = get_object_or_404(User, id=user_id, is_active=False)
+    user.is_active = True
+    user.save(update_fields=['is_active'])
+    logger.info(f"Admin {request.user.username} approved registration for user {user.username} (id={user.id})")
+    return JsonResponse({'success': True, 'username': user.username})
+
+
+@csrf_exempt
+@staff_member_required
+@require_http_methods(["DELETE"])
+def api_reject_registration(request, user_id):
+    """
+    Reject (delete) a pending registration.
+    """
+    user = get_object_or_404(User, id=user_id, is_active=False)
+    username = user.username
+    user.delete()
+    logger.info(f"Admin {request.user.username} rejected and deleted registration for user {username}")
+    return JsonResponse({'success': True, 'username': username})
+
 

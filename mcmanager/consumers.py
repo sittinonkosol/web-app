@@ -84,13 +84,26 @@ class ConsoleConsumer(AsyncWebsocketConsumer):
         if not command:
             return
 
-        # Permission check: viewer cannot execute commands
+        # Permission check: viewer can only run non-admin/safe commands
         if self.role not in ['admin', 'moderator']:
-            await self.send(text_data=json.dumps({
-                "type": "console_message",
-                "message": "\x1b[31m[Permission Denied] You must have admin/moderator permissions to execute console commands.\x1b[0m\n"
-            }))
-            return
+            cmd_root = command.strip().split()[0].lower() if command.strip() else ""
+            ALLOWED_VIEWER_COMMANDS = {'list', 'say', 'tell', 'msg', 'w', 'me', 'help', 'seed', 'tps', 'ping', 'version', 'plugins', 'pl'}
+            BLOCKED_ADMIN_COMMANDS = {
+                'op', 'deop', 'ban', 'ban-ip', 'pardon', 'pardon-ip', 'kick', 
+                'stop', 'restart', 'save-all', 'save-off', 'save-on', 'reload', 
+                'whitelist', 'datapack', 'forceload', 'gamerule', 'defaultgamemode', 
+                'setworldspawn', 'difficulty', 'execute', 'publish', 'debug', 
+                'kill', 'clear', 'give', 'item', 'effect', 'enchant', 'experience', 
+                'xp', 'summon', 'fill', 'clone', 'setblock', 'worldborder', 'weather', 
+                'time', 'locate', 'scoreboard', 'tag', 'team', 'bossbar', 'attribute', 
+                'advancement', 'schedule', 'function', 'spreadplayers', 'teleport', 'tp'
+            }
+            if cmd_root in BLOCKED_ADMIN_COMMANDS or (cmd_root not in ALLOWED_VIEWER_COMMANDS and not cmd_root.startswith('?')):
+                await self.send(text_data=json.dumps({
+                    "type": "console_message",
+                    "message": f"\x1b[31m[Permission Denied] Command '{cmd_root}' requires Moderator or Admin privileges.\x1b[0m\n"
+                }))
+                return
 
         username = getattr(self.user, 'username', 'Console')
 

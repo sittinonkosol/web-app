@@ -299,13 +299,13 @@
 
     <div class="login-card">
         <div class="card-header" style="margin-bottom: 1.5rem;">
-            <div class="badge-icon">🔐</div>
+            <div class="badge-icon"></div>
             <h1>เข้าสู่ระบบ</h1>
         </div>
 
         {% if error_message %}
         <div class="error-alert">
-            <span>⚠️</span>
+            <span></span>
             <span>{{ error_message }}</span>
         </div>
         {% endif %}
@@ -339,6 +339,14 @@
                 <span>←</span>
                 <span>ยกเลิก / กลับสู่หน้าเดิม</span>
             </a>
+            <div style="margin-top: 0.9rem; padding-top: 0.9rem; border-top: 1px solid rgba(255,255,255,0.06);">
+                <span style="color: #64748b; font-size: 0.875rem;">ยังไม่มีบัญชี? </span>
+                <a href="{% url 'register' %}" style="color: #3b82f6; text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: color 0.2s;"
+                   onmouseover="this.style.color='#60a5fa';this.style.textDecoration='underline'"
+                   onmouseout="this.style.color='#3b82f6';this.style.textDecoration='none'">
+                    สมัครสมาชิก →
+                </a>
+            </div>
         </div>
     </div>
 
