@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.crypto import get_random_string
 
 class ServerSetting(models.Model):
-    server_path = models.CharField(max_length=255, default='/wdc/papermc')
+    server_path = models.CharField(max_length=255, default='/wdc/PaperMC')
     rcon_port = models.IntegerField(default=25575)
     rcon_password = models.CharField(max_length=128, blank=True)
     

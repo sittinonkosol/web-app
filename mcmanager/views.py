@@ -46,13 +46,24 @@ def api_server_action(request):
     try:
         data = json.loads(request.body)
         service = data.get('service') # 'papermc' or 'playit'
-        action = data.get('action') # 'start', 'stop', 'restart'
+        action = data.get('action') # 'start', 'stop', 'restart', 'reset_world'
         
+        if action == 'reset_world':
+            settings = ServerSetting.get_settings()
+            from .utils import reset_world
+            success, err_msg = reset_world(settings.server_path)
+            if success:
+                return JsonResponse({"success": True})
+            return JsonResponse({"success": False, "error": err_msg})
+            
         if service not in ['papermc', 'playit'] or action not in ['start', 'stop', 'restart']:
             return JsonResponse({"error": "Invalid service or action"}, status=400)
             
-        success = control_service(service, action)
-        return JsonResponse({"success": success})
+        success, err_msg = control_service(service, action)
+        if success:
+            return JsonResponse({"success": True})
+        else:
+            return JsonResponse({"success": False, "error": err_msg})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 

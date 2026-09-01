@@ -15,11 +15,11 @@ After=network.target
 
 [Service]
 User=root
-WorkingDirectory=/wdc/papermc
+WorkingDirectory=/wdc/PaperMC
 # We read the max RAM setting dynamically from a config or just use the default.
 # The Django app should rewrite this ExecStart line when RAM changes, or we use a start script.
 # For simplicity, we call a start.sh script that Django updates, or Django updates this unit file.
-ExecStart=/bin/bash /wdc/papermc/start.sh
+ExecStart=/bin/bash /wdc/PaperMC/start.sh
 Restart=on-failure
 SuccessExitStatus=143
 
@@ -27,10 +27,11 @@ SuccessExitStatus=143
 WantedBy=multi-user.target
 EOF
 
-# Create a default start.sh in /wdc/papermc
-if [ ! -f /wdc/papermc/start.sh ]; then
-    echo "java -Xms1024M -Xmx4096M -jar paper.jar --nogui" > /wdc/papermc/start.sh
-    chmod +x /wdc/papermc/start.sh
+# Create a default start.sh in /wdc/PaperMC
+mkdir -p /wdc/PaperMC
+if [ ! -f /wdc/PaperMC/start.sh ]; then
+    echo "java -Xms1024M -Xmx4096M -jar paper.jar --nogui" > /wdc/PaperMC/start.sh
+    chmod +x /wdc/PaperMC/start.sh
 fi
 
 cat <<EOF > /etc/systemd/system/playit.service

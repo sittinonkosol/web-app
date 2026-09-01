@@ -113,12 +113,13 @@
             <div class="glass-card">
                 <h2>Server Status</h2>
                 <div style="margin-bottom: 1.5rem;">
-                    <h3>PaperMC: <span id="mc-status" class="status-badge status-offline">Checking...</span></h3>
-                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                        <button class="btn btn-start" onclick="controlService('papermc', 'start')">Start</button>
-                        <button class="btn btn-stop" onclick="controlService('papermc', 'stop')">Stop</button>
-                        <button class="btn btn-restart" onclick="controlService('papermc', 'restart')">Restart</button>
-                    </div>
+                    <h3 style="margin-top: 1.5rem;">PaperMC: <span id="mc-status" class="status-badge status-offline">Offline</span></h3>
+                <div style="margin-top: 1rem;">
+                    <button class="btn btn-start" onclick="controlService('papermc', 'start')">Start</button>
+                    <button class="btn btn-stop" onclick="controlService('papermc', 'stop')">Stop</button>
+                    <button class="btn btn-restart" onclick="controlService('papermc', 'restart')">Restart</button>
+                    <button class="btn btn-stop" style="margin-left: 1rem;" onclick="resetWorld()">Reset World</button>
+                </div>
                 </div>
                 <hr style="border-color: var(--glass-border); margin: 1.5rem 0;">
                 <div>
@@ -216,6 +217,27 @@
                 alert(`Error: ${e}`);
             }
         }
+        
+        // Reset World
+        async function resetWorld() {
+            if(!confirm("ARE YOU SURE? This will PERMANENTLY delete the current world! The server will be stopped automatically.")) return;
+            try {
+                const res = await fetch('/mc/api/action', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({service: 'papermc', action: 'reset_world'})
+                });
+                const data = await res.json();
+                if(data.success) {
+                    alert("World deleted successfully! Start the server to generate a new one.");
+                    fetchStatus();
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            } catch(e) {
+                alert(`Error: ${e}`);
+            }
+        }
 
         // Save RAM
         async function saveRam() {
@@ -234,20 +256,31 @@
         // Load & Save Config
         let currentConfig = {};
         async function loadConfig() {
-            const res = await fetch('/mc/api/config');
-            const data = await res.json();
-            currentConfig = data.properties;
-            const editor = document.getElementById('config-editor');
-            editor.innerHTML = '';
-            for(let key in currentConfig) {
-                if(key.startsWith('rcon')) continue; // hide rcon configs
+            try {
+                const res = await fetch('/mc/api/config');
+                const data = await res.json();
                 
-                const wrapper = document.createElement('div');
-                wrapper.innerHTML = `
-                    <label style="display:block; font-size: 0.8rem; color: var(--text-muted);">${key}</label>
-                    <input type="text" id="cfg-${key}" value="${currentConfig[key]}" style="width: 100%; padding: 0.5rem;">
-                `;
-                editor.appendChild(wrapper);
+                const editor = document.getElementById('config-editor');
+                if(!res.ok || data.error) {
+                    editor.innerHTML = `<div style="grid-column: 1 / -1; color: var(--error);">${data.error || 'Failed to load configuration. Admin privileges required.'}</div>`;
+                    return;
+                }
+                
+                currentConfig = data.properties;
+                editor.innerHTML = '';
+                for(let key in currentConfig) {
+                    if(key.startsWith('rcon')) continue; // hide rcon configs
+                    
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = `
+                        <label style="display:block; font-size: 0.8rem; color: var(--text-muted);">${key}</label>
+                        <input type="text" id="cfg-${key}" value="${currentConfig[key]}" style="width: 100%; padding: 0.5rem;">
+                    `;
+                    editor.appendChild(wrapper);
+                }
+            } catch(e) {
+                console.error("Config load error:", e);
+                document.getElementById('config-editor').innerHTML = `<div style="grid-column: 1 / -1; color: var(--error);">Failed to load configuration.</div>`;
             }
         }
         

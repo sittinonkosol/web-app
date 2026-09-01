@@ -8,10 +8,14 @@ django_asgi_app = get_asgi_application()
 import scquizz.routing
 import mcmanager.routing
 
+from channels.auth import AuthMiddlewareStack
+
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
-    "websocket": URLRouter(
-        scquizz.routing.websocket_urlpatterns +
-        mcmanager.routing.websocket_urlpatterns
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+            scquizz.routing.websocket_urlpatterns +
+            mcmanager.routing.websocket_urlpatterns
+        )
     ),
 })

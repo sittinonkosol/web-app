@@ -88,7 +88,7 @@ def require_app_access(app_name, min_role='viewer'):
             required_level = ROLE_LEVELS.get(min_role, 1)
 
             if user_level < required_level:
-                if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.path.startswith('/api/'):
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest' or '/api/' in request.path:
                     return JsonResponse({'error': 'Permission denied. Insufficient privileges.'}, status=403)
                 
                 return render(request, 'core/permission_denied.html', {

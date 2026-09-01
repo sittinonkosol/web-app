@@ -23,7 +23,7 @@ class LogConsumer(AsyncWebsocketConsumer):
     async def tail_log(self):
         # We need synchronous DB call wrapped in sync_to_async to get the path
         # But we can hardcode it to '/wdc/papermc/logs/latest.log' as per the plan to avoid DB hit.
-        log_path = '/wdc/papermc/logs/latest.log'
+        log_path = '/wdc/PaperMC/logs/latest.log'
         
         if not os.path.exists(log_path):
             await self.send(text_data="Log file not found. Waiting for server to start...\n")

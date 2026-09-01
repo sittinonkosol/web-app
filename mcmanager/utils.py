@@ -59,20 +59,44 @@ def get_service_status(service_name):
     except Exception:
         return False
 
+import shutil
+
 def control_service(service_name, action):
     if action not in ['start', 'stop', 'restart']:
-        return False
+        return False, "Invalid action"
     try:
-        subprocess.run(['sudo', 'systemctl', action, service_name], check=True)
-        return True
-    except subprocess.CalledProcessError:
-        return False
+        result = subprocess.run(['sudo', '-n', 'systemctl', action, service_name], capture_output=True, text=True)
+        if result.returncode != 0:
+            return False, result.stderr.strip() or result.stdout.strip() or "systemctl failed"
+        return True, ""
+    except Exception as e:
+        return False, str(e)
+
+def reset_world(server_path):
+    # Ensure service is stopped
+    control_service('papermc', 'stop')
+    
+    success = True
+    errors = []
+    
+    for folder in ['world', 'world_nether', 'world_the_end']:
+        folder_path = os.path.join(server_path, folder)
+        if os.path.exists(folder_path):
+            try:
+                shutil.rmtree(folder_path)
+            except Exception as e:
+                success = False
+                errors.append(str(e))
+                
+    if not success:
+        return False, f"Failed to delete folders: {', '.join(errors)}"
+    return True, ""
 
 def get_java_resource_usage():
     for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
             if 'java' in proc.info['name'].lower() and proc.info['cmdline'] and 'paper' in ' '.join(proc.info['cmdline']).lower():
-                cpu = proc.cpu_percent(interval=0.1)
+                cpu = round(proc.cpu_percent(interval=0.1) / psutil.cpu_count(), 1)
                 mem = proc.memory_info().rss / (1024 * 1024)
                 return {"cpu_percent": cpu, "ram_mb": mem}
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
