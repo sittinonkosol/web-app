@@ -4,6 +4,8 @@ from django.shortcuts import render
 from django.http import JsonResponse, FileResponse, Http404
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from core.permissions import require_app_access
 from .models import ServerSetting
 from .utils import (
@@ -108,6 +110,18 @@ def api_server_action(request):
             
         success, err_msg = control_service(service, action)
         if success:
+            try:
+                from .consumers import ConsoleConsumer
+                import asyncio
+                username = getattr(request.user, 'username', 'Admin')
+                loop = asyncio.get_event_loop()
+                if loop.is_running() and service == 'papermc':
+                    asyncio.create_task(ConsoleConsumer.broadcast({
+                        "type": "console_message",
+                        "message": f"\x1b[33m[Server Control] Action '{action.upper()}' performed by {username}\x1b[0m\n",
+                    }))
+            except Exception:
+                pass
             return JsonResponse({"success": True})
         else:
             return JsonResponse({"success": False, "error": err_msg})
@@ -194,6 +208,30 @@ def api_send_rcon(request):
             
         settings = ServerSetting.get_settings()
         response = send_rcon_command(cmd, port=settings.rcon_port, password=settings.rcon_password)
+
+        try:
+            from .consumers import ConsoleConsumer
+            import asyncio
+            username = getattr(request.user, 'username', 'Web')
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.create_task(ConsoleConsumer.broadcast({
+                    "type": "console_message",
+                    "message": f"\x1b[32m> \x1b[1m{cmd}\x1b[0m \x1b[90m(by {username})\x1b[0m\n",
+                    "is_command": True,
+                    "command": cmd
+                }))
+                if response:
+                    resp_lines = response.strip().split('\n')
+                    formatted_resp = '\n'.join(f"\x1b[37m< {line}\x1b[0m" for line in resp_lines) + '\n'
+                    asyncio.create_task(ConsoleConsumer.broadcast({
+                        "type": "console_message",
+                        "message": formatted_resp,
+                        "is_response": True
+                    }))
+        except Exception:
+            pass
+
         return JsonResponse({"response": response})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)

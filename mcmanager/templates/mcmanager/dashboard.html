@@ -254,43 +254,217 @@
         }
         table.msm-table tr:hover td { background: var(--surface-hover); }
 
-        /* Console */
+        /* Enhanced Real Minecraft Console */
         .console-container {
-            background: #090a0f;
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            height: 480px;
+            background: #080a0f;
+            border: 1px solid var(--line-strong);
+            border-radius: 12px;
+            height: 560px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+            transition: all 0.25s ease;
+        }
+        .console-container.is-fullscreen {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            bottom: 16px;
+            height: calc(100vh - 32px);
+            z-index: 9999;
+            border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.85);
         }
         .console-toolbar {
-            background: var(--surface);
-            border-bottom: 1px solid var(--line);
+            background: #11141c;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             padding: 8px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            font-size: 12.5px;
+            font-size: 12px;
+            flex-wrap: wrap;
+        }
+        .console-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: rgba(74, 222, 128, 0.12);
+            color: #4ade80;
+            font-weight: 600;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(74, 222, 128, 0.25);
+        }
+        .console-status-pill.disconnected {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.25);
+        }
+        .console-status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 8px #4ade80;
+            animation: pulse-dot 2s infinite ease-in-out;
+        }
+        .console-status-pill.disconnected .console-status-dot {
+            background: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+            animation: none;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+        .console-quick-bar {
+            background: #0d1017;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .quick-cmd-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #94a3b8;
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+        .quick-cmd-btn:hover {
+            background: rgba(74, 222, 128, 0.15);
+            border-color: rgba(74, 222, 128, 0.4);
+            color: #4ade80;
         }
         .console-output {
             flex: 1;
-            padding: 14px;
+            padding: 14px 16px;
             overflow-y: auto;
             font-size: 13px;
-            line-height: 1.6;
+            line-height: 1.65;
             color: #d1d5db;
             white-space: pre-wrap;
             word-break: break-all;
+            background: #080a0f;
+            scroll-behavior: smooth;
+        }
+        .console-output::-webkit-scrollbar {
+            width: 8px;
+        }
+        .console-output::-webkit-scrollbar-track {
+            background: #080a0f;
+        }
+        .console-output::-webkit-scrollbar-thumb {
+            background: #1e2433;
+            border-radius: 4px;
+        }
+        .console-output::-webkit-scrollbar-thumb:hover {
+            background: #2e384d;
         }
         .console-input-bar {
             display: flex;
-            background: var(--surface);
-            border-top: 1px solid var(--line);
-            padding: 8px 12px;
-            gap: 8px;
+            background: #11141c;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 14px;
+            gap: 10px;
+            align-items: center;
+        }
+        .console-input-prompt {
+            color: #4ade80;
+            font-weight: 700;
+            font-size: 15px;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .console-input-bar input {
+            background: #080a0f;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
+            padding: 9px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            flex: 1;
+        }
+        .console-input-bar input:focus {
+            border-color: #4ade80;
+            box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
+        }
+
+        /* Log Line Styling */
+        .mc-line {
+            display: block;
+            margin-bottom: 2px;
+            word-break: break-word;
+        }
+        .mc-line.mc-filter-hidden {
+            display: none !important;
+        }
+        .mc-time {
+            color: #64748b;
+            font-size: 11.5px;
+            margin-right: 6px;
+            user-select: none;
+        }
+        .mc-badge {
+            display: inline-block;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 10.5px;
+            font-weight: 600;
+            margin-right: 6px;
+            text-transform: uppercase;
+            user-select: none;
+        }
+        .mc-badge-info { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+        .mc-badge-warn { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+        .mc-badge-error { background: rgba(248, 113, 113, 0.2); color: #f87171; font-weight: 700; }
+        .mc-cmd-echo {
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.06);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border-left: 3px solid #4ade80;
+            margin: 4px 0;
+            display: block;
+        }
+        .mc-resp-echo {
+            color: #e2e8f0;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border-left: 3px solid #94a3b8;
+            margin: 2px 0 4px 0;
+            display: block;
+        }
+        .mc-chat-line {
+            color: #38bdf8;
+        }
+        .mc-advancement-line {
+            color: #fbbf24;
+        }
+        .mc-join-line {
+            color: #4ade80;
+        }
+        .mc-leave-line {
+            color: #f87171;
         }
 
         /* Inputs */
@@ -662,59 +836,51 @@
         <!-- TAB 2: CONSOLE -->
         <!-- ============================================================ -->
         <div id="tab-console" class="tab-content">
-            <div class="console-container">
+            <div class="console-container" id="console-wrapper">
                 <div class="console-toolbar">
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <span style="color: var(--text-dim); font-size: 12px; font-weight: 600; text-transform: uppercase;">Filters:</span>
-                        <span class="chip-filter active" onclick="toggleLogFilter(this, 'ALL')">ALL</span>
-                        <span class="chip-filter" onclick="toggleLogFilter(this, 'INFO')">INFO</span>
-                        <span class="chip-filter" onclick="toggleLogFilter(this, 'WARN')">WARN</span>
-                        <span class="chip-filter" onclick="toggleLogFilter(this, 'ERROR')">ERROR</span>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <span class="console-status-pill" id="console-status-pill">
+                            <span class="console-status-dot"></span>
+                            <span id="console-status-text">LIVE CONSOLE</span>
+                        </span>
+                        <div style="display: flex; gap: 4px; align-items: center; margin-left: 6px;">
+                            <span style="color: var(--text-dim); font-size: 11px; font-weight: 600; text-transform: uppercase; margin-right: 2px;">Filter:</span>
+                            <span class="chip-filter active" onclick="toggleLogFilter(this, 'ALL')">ALL</span>
+                            <span class="chip-filter" onclick="toggleLogFilter(this, 'INFO')">INFO</span>
+                            <span class="chip-filter" onclick="toggleLogFilter(this, 'WARN')">WARN</span>
+                            <span class="chip-filter" onclick="toggleLogFilter(this, 'ERROR')">ERROR</span>
+                            <span class="chip-filter" onclick="toggleLogFilter(this, 'CMD')">COMMANDS</span>
+                            <span class="chip-filter" onclick="toggleLogFilter(this, 'CHAT')">CHAT</span>
+                        </div>
                     </div>
-                    <div>
-                        <a href="/mc/api/logs/download" class="btn btn-sm">Download Log</a>
-                        <button class="btn btn-sm" onclick="clearConsole()">Clear</button>
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        <button class="btn btn-sm" id="btn-autoscroll" onclick="toggleAutoScroll()" title="Toggle Auto-Scroll">Scroll: ON</button>
+                        <button class="btn btn-sm" onclick="copyConsoleOutput()" title="Copy output to clipboard">Copy</button>
+                        <button class="btn btn-sm" onclick="clearConsole()" title="Clear screen">Clear</button>
+                        <button class="btn btn-sm" onclick="toggleFullscreenConsole()" title="Toggle Fullscreen" id="btn-fullscreen">⛶ Fullscreen</button>
+                        <a href="/mc/api/logs/download" class="btn btn-sm" download>Download Log</a>
                     </div>
                 </div>
-                
-                <div class="console-output" id="console-output">Connecting to Minecraft log stream...</div>
 
-                <form class="console-input-bar" onsubmit="sendRconCommand(event)">
-                    <span style="display: grid; place-items: center; padding: 0 8px; color: var(--grass-400); font-weight: 700;">/</span>
-                    <input type="text" id="rcon-input" list="mc-commands" placeholder="Type a server command (e.g. say Hello, time set day, gamemode creative)..." autocomplete="off">
-                    <datalist id="mc-commands">
-                        <option value="help">
-                        <option value="list">
-                        <option value="say ">
-                        <option value="time set day">
-                        <option value="time set night">
-                        <option value="weather clear">
-                        <option value="weather rain">
-                        <option value="gamemode creative ">
-                        <option value="gamemode survival ">
-                        <option value="gamemode spectator ">
-                        <option value="tp ">
-                        <option value="op ">
-                        <option value="deop ">
-                        <option value="kick ">
-                        <option value="ban ">
-                        <option value="pardon ">
-                        <option value="whitelist add ">
-                        <option value="whitelist remove ">
-                        <option value="whitelist on">
-                        <option value="whitelist off">
-                        <option value="stop">
-                        <option value="kill @e">
-                        <option value="give ">
-                        <option value="clear ">
-                        <option value="difficulty easy">
-                        <option value="difficulty normal">
-                        <option value="difficulty hard">
-                        <option value="difficulty peaceful">
-                        <option value="save-all">
-                        <option value="seed">
-                    </datalist>
-                    <button type="submit" class="btn btn-primary" style="padding: 6px 18px;">Send</button>
+                <!-- Quick Action Command Bar -->
+                <div class="console-quick-bar">
+                    <span style="color: var(--text-dim); font-size: 11px; font-weight: 600; text-transform: uppercase;">Presets:</span>
+                    <button class="quick-cmd-btn" onclick="sendQuickCommand('list')">/list</button>
+                    <button class="quick-cmd-btn" onclick="sendQuickCommand('tps')">/tps</button>
+                    <button class="quick-cmd-btn" onclick="sendQuickCommand('help')">/help</button>
+                    <button class="quick-cmd-btn" onclick="sendQuickCommand('save-all')">/save-all</button>
+                    <button class="quick-cmd-btn" onclick="sendQuickCommand('whitelist list')">/whitelist list</button>
+                    <button class="quick-cmd-btn" onclick="sendQuickCommand('time set day')">/time set day</button>
+                    <button class="quick-cmd-btn" onclick="sendQuickCommand('weather clear')">/weather clear</button>
+                    <button class="quick-cmd-btn" onclick="sendQuickCommand('seed')">/seed</button>
+                </div>
+                
+                <div class="console-output" id="console-output">Connecting to Minecraft interactive console...</div>
+
+                <form class="console-input-bar" onsubmit="sendConsoleCommand(event)">
+                    <span class="console-input-prompt">&gt;</span>
+                    <input type="text" id="rcon-input" placeholder="Type command (e.g. whitelist, gamemode, op) — Press TAB to complete, '?' for help..." autocomplete="off" spellcheck="false">
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 20px; font-weight: 600;">Execute</button>
                 </form>
             </div>
         </div>
@@ -1155,26 +1321,664 @@
         }
 
         // ============================================================
-        // CONSOLE (WebSocket)
+        // INTERACTIVE MINECRAFT CONSOLE (WebSocket + ANSI / § Colors)
         // ============================================================
         const consoleEl = document.getElementById('console-output');
+        const statusPillEl = document.getElementById('console-status-pill');
+        const statusTextEl = document.getElementById('console-status-text');
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${wsProtocol}//${window.location.host}/ws/mc/logs/`;
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws/mc/console/`;
         let ws;
         let pingInterval;
         let activeLogFilter = 'ALL';
+        let autoScroll = true;
 
-                function appendCustomLog(text) {
-            consoleEl.textContent += text;
-            consoleEl.scrollTop = consoleEl.scrollHeight;
-            let hist = sessionStorage.getItem('webConsoleHist') || '';
-            hist += text;
-            if(hist.length > 20000) hist = hist.slice(-20000);
-            sessionStorage.setItem('webConsoleHist', hist);
+        // ============================================================
+        // COMMAND ENGINE (TAB Completion & '?' Help)
+        // ============================================================
+        const MC_COMMAND_TREE = {
+            "help": {
+                desc: "Display help for server commands",
+                params: ["<command>"]
+            },
+            "list": {
+                desc: "List players on the server",
+                subcommands: {
+                    "uuids": { desc: "List players including their UUIDs" }
+                }
+            },
+            "whitelist": {
+                desc: "Manage server whitelist",
+                subcommands: {
+                    "add": { desc: "Add player to whitelist", params: ["<player>"] },
+                    "remove": { desc: "Remove player from whitelist", params: ["<player>"] },
+                    "list": { desc: "List all whitelisted players" },
+                    "on": { desc: "Enable whitelist enforcement" },
+                    "off": { desc: "Disable whitelist enforcement" },
+                    "reload": { desc: "Reload whitelist from file" }
+                }
+            },
+            "gamemode": {
+                desc: "Set player game mode",
+                subcommands: {
+                    "survival": { desc: "Set mode to Survival", params: ["<player>"] },
+                    "creative": { desc: "Set mode to Creative", params: ["<player>"] },
+                    "adventure": { desc: "Set mode to Adventure", params: ["<player>"] },
+                    "spectator": { desc: "Set mode to Spectator", params: ["<player>"] }
+                }
+            },
+            "time": {
+                desc: "Change or query world time",
+                subcommands: {
+                    "set": {
+                        desc: "Set the time of day",
+                        subcommands: {
+                            "day": { desc: "Set time to daytime (1000)" },
+                            "night": { desc: "Set time to night (13000)" },
+                            "noon": { desc: "Set time to midday (6000)" },
+                            "midnight": { desc: "Set time to midnight (18000)" }
+                        },
+                        params: ["<ticks>"]
+                    },
+                    "add": { desc: "Add ticks to world time", params: ["<amount>"] },
+                    "query": {
+                        desc: "Query current time value",
+                        subcommands: {
+                            "daytime": { desc: "Query daytime tick count" },
+                            "gametime": { desc: "Query total world age" },
+                            "day": { desc: "Query in-game days passed" }
+                        }
+                    }
+                }
+            },
+            "weather": {
+                desc: "Set the weather conditions",
+                subcommands: {
+                    "clear": { desc: "Set weather to clear sky", params: ["<duration>"] },
+                    "rain": { desc: "Set weather to rain", params: ["<duration>"] },
+                    "thunder": { desc: "Set weather to thunderstorm", params: ["<duration>"] }
+                }
+            },
+            "difficulty": {
+                desc: "Set game difficulty",
+                subcommands: {
+                    "peaceful": { desc: "Peaceful mode (no hostiles)" },
+                    "easy": { desc: "Easy difficulty" },
+                    "normal": { desc: "Normal difficulty" },
+                    "hard": { desc: "Hard difficulty" }
+                }
+            },
+            "op": {
+                desc: "Grant operator status to player",
+                params: ["<player>"]
+            },
+            "deop": {
+                desc: "Revoke operator status from player",
+                params: ["<player>"]
+            },
+            "kick": {
+                desc: "Disconnect player from server",
+                params: ["<player>", "<reason>"]
+            },
+            "ban": {
+                desc: "Ban player from server",
+                params: ["<player>", "<reason>"]
+            },
+            "ban-ip": {
+                desc: "Ban an IP address or player IP",
+                params: ["<ip|player>", "<reason>"]
+            },
+            "pardon": {
+                desc: "Remove player from banlist",
+                params: ["<player>"]
+            },
+            "pardon-ip": {
+                desc: "Remove IP address from banlist",
+                params: ["<ip>"]
+            },
+            "tp": {
+                desc: "Teleport entities/players",
+                params: ["<player>", "<target>"]
+            },
+            "teleport": {
+                desc: "Teleport entities/players",
+                params: ["<player>", "<target>"]
+            },
+            "say": {
+                desc: "Broadcast message to all players",
+                params: ["<message>"]
+            },
+            "give": {
+                desc: "Give item to player",
+                params: ["<player>", "<item>", "<count>"]
+            },
+            "clear": {
+                desc: "Clear inventory of player",
+                params: ["<player>", "<item>"]
+            },
+            "kill": {
+                desc: "Kill entity or player (@e, @a, <player>)",
+                params: ["<target>"]
+            },
+            "effect": {
+                desc: "Modify status effects",
+                subcommands: {
+                    "give": { desc: "Give effect to player", params: ["<player>", "<effect>", "<seconds>", "<amplifier>"] },
+                    "clear": { desc: "Clear effect from player", params: ["<player>", "<effect>"] }
+                }
+            },
+            "gamerule": {
+                desc: "Set or query game rules",
+                subcommands: {
+                    "keepInventory": { desc: "Keep inventory after dying", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "doDaylightCycle": { desc: "Daylight progression", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "doMobSpawning": { desc: "Natural mob spawning", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "mobGriefing": { desc: "Mob block destruction", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "doFireTick": { desc: "Fire spreading", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "doWeatherCycle": { desc: "Weather changes", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "showDeathMessages": { desc: "Death announcements", subcommands: { "true": { desc: "Enable" }, "false": { desc: "Disable" } } },
+                    "randomTickSpeed": { desc: "Block tick speed rate", params: ["<value>"] }
+                }
+            },
+            "worldborder": {
+                desc: "Manage world border boundary",
+                subcommands: {
+                    "set": { desc: "Set world border diameter", params: ["<distance>", "<time>"] },
+                    "add": { desc: "Add to world border diameter", params: ["<distance>", "<time>"] },
+                    "center": { desc: "Set world border center", params: ["<x>", "<z>"] },
+                    "get": { desc: "Get current world border diameter" },
+                    "warning": {
+                        desc: "Configure world border warnings",
+                        subcommands: {
+                            "distance": { desc: "Warning distance in blocks", params: ["<blocks>"] },
+                            "time": { desc: "Warning time in seconds", params: ["<seconds>"] }
+                        }
+                    }
+                }
+            },
+            "tps": {
+                desc: "Show server tick rate and performance"
+            },
+            "save-all": {
+                desc: "Save world data to disk",
+                subcommands: {
+                    "flush": { desc: "Force complete flush immediately" }
+                }
+            },
+            "save-on": {
+                desc: "Enable automatic world saving"
+            },
+            "save-off": {
+                desc: "Disable automatic world saving"
+            },
+            "seed": {
+                desc: "Display world seed value"
+            },
+            "reload": {
+                desc: "Reload server configuration and plugins",
+                subcommands: {
+                    "confirm": { desc: "Confirm reload execution" }
+                }
+            },
+            "plugins": {
+                desc: "List loaded server plugins"
+            },
+            "timings": {
+                desc: "Manage server performance timings",
+                subcommands: {
+                    "on": { desc: "Enable timings recording" },
+                    "off": { desc: "Disable timings recording" },
+                    "paste": { desc: "Generate timings report link" },
+                    "reset": { desc: "Reset timings statistics" }
+                }
+            },
+            "paper": {
+                desc: "Paper server management commands",
+                subcommands: {
+                    "version": { desc: "Show Paper server version" },
+                    "reload": { desc: "Reload Paper configuration" },
+                    "tps": { desc: "Show server tick statistics" }
+                }
+            },
+            "stop": {
+                desc: "Gracefully shut down the server"
+            }
+        };
+
+        function getKnownPlayerNames() {
+            let names = new Set(['@a', '@p', '@r', '@e', '@s']);
+            if (Array.isArray(allPlayers)) {
+                allPlayers.forEach(p => {
+                    if (typeof p === 'string' && p) names.add(p);
+                    else if (p && p.name) names.add(p.name);
+                });
+            }
+            return Array.from(names);
+        }
+
+        function findLongestCommonPrefix(strings) {
+            if (!strings || strings.length === 0) return '';
+            if (strings.length === 1) return strings[0];
+            let prefix = strings[0];
+            for (let i = 1; i < strings.length; i++) {
+                while (strings[i].toLowerCase().indexOf(prefix.toLowerCase()) !== 0) {
+                    prefix = prefix.substring(0, prefix.length - 1);
+                    if (!prefix) return '';
+                }
+            }
+            return prefix;
+        }
+
+        function getContextSuggestions(rawInput) {
+            let clean = rawInput.trimStart();
+            if (clean.startsWith('/')) clean = clean.substring(1);
+
+            const isTrailingSpace = rawInput.endsWith(' ');
+            const rawTokens = clean.split(/\s+/).filter(t => t.length > 0);
+
+            // If input is completely empty
+            if (rawTokens.length === 0) {
+                const list = Object.keys(MC_COMMAND_TREE).sort().map(k => ({
+                    token: k,
+                    desc: MC_COMMAND_TREE[k].desc || ''
+                }));
+                return { type: 'commands', title: '% Exec commands:', list, prefix: '', beforeText: '' };
+            }
+
+            // Case 1: Single token being typed (e.g. "whi")
+            if (rawTokens.length === 1 && !isTrailingSpace) {
+                const prefix = rawTokens[0].toLowerCase();
+                const matches = Object.keys(MC_COMMAND_TREE)
+                    .filter(k => k.toLowerCase().startsWith(prefix))
+                    .sort()
+                    .map(k => ({
+                        token: k,
+                        desc: MC_COMMAND_TREE[k].desc || ''
+                    }));
+                return {
+                    type: 'commands',
+                    title: matches.length > 0 ? '% Matching commands:' : `% Unrecognized command: '${rawTokens[0]}'`,
+                    list: matches,
+                    prefix: rawTokens[0],
+                    beforeText: ''
+                };
+            }
+
+            // Case 2: Multi-token traversal
+            const rootName = rawTokens[0].toLowerCase();
+            let currentNode = MC_COMMAND_TREE[rootName];
+
+            if (!currentNode) {
+                return {
+                    type: 'error',
+                    title: `% Unrecognized command: '${rawTokens[0]}'`,
+                    list: [],
+                    prefix: '',
+                    beforeText: ''
+                };
+            }
+
+            let tokenIdx = 1;
+            let currentPath = [rootName];
+
+            while (tokenIdx < rawTokens.length - (isTrailingSpace ? 0 : 1)) {
+                const curToken = rawTokens[tokenIdx].toLowerCase();
+                if (currentNode.subcommands && currentNode.subcommands[curToken]) {
+                    currentNode = currentNode.subcommands[curToken];
+                    currentPath.push(curToken);
+                    tokenIdx++;
+                } else {
+                    break;
+                }
+            }
+
+            const currentPrefix = isTrailingSpace ? '' : rawTokens[rawTokens.length - 1].toLowerCase();
+            const beforeTokens = isTrailingSpace ? rawTokens : rawTokens.slice(0, -1);
+            const beforeText = beforeTokens.join(' ') + ' ';
+
+            // Check if currentNode has subcommands
+            if (currentNode.subcommands) {
+                const subKeys = Object.keys(currentNode.subcommands)
+                    .filter(k => k.toLowerCase().startsWith(currentPrefix))
+                    .sort()
+                    .map(k => ({
+                        token: k,
+                        desc: currentNode.subcommands[k].desc || ''
+                    }));
+                if (subKeys.length > 0) {
+                    return {
+                        type: 'subcommands',
+                        title: `% Subcommands for '${currentPath.join(' ')}':`,
+                        list: subKeys,
+                        prefix: currentPrefix,
+                        beforeText: beforeText
+                    };
+                }
+            }
+
+            // Check if expecting player or target parameter
+            const players = getKnownPlayerNames();
+            const matchingPlayers = players
+                .filter(p => p.toLowerCase().startsWith(currentPrefix))
+                .sort()
+                .map(p => ({
+                    token: p,
+                    desc: p.startsWith('@') ? 'Target selector' : 'Player name'
+                }));
+
+            if (matchingPlayers.length > 0 && currentPrefix !== '') {
+                return {
+                    type: 'players',
+                    title: `% Parameter: <player> (Online / Known players):`,
+                    list: matchingPlayers,
+                    prefix: currentPrefix,
+                    beforeText: beforeText
+                };
+            }
+
+            if (currentNode.params) {
+                return {
+                    type: 'params',
+                    title: `% Parameter expected: ${currentNode.params.join(' ')}`,
+                    list: matchingPlayers,
+                    prefix: currentPrefix,
+                    beforeText: beforeText
+                };
+            }
+
+            return {
+                type: 'unknown',
+                title: '% <cr> (Press Enter to execute command)',
+                list: [],
+                prefix: currentPrefix,
+                beforeText: beforeText
+            };
+        }
+
+        function handleHelp() {
+            const input = rconInputEl.value;
+            const context = getContextSuggestions(input);
+
+            let lines = [];
+            lines.push(`\x1b[36m> \x1b[1m${input}?\x1b[0m`);
+
+            if (context.title) {
+                lines.push(`\x1b[90m${context.title}\x1b[0m`);
+            }
+
+            if (context.list && context.list.length > 0) {
+                const maxLen = Math.max(...context.list.map(item => item.token.length), 10);
+                for (const item of context.list) {
+                    const pad = ' '.repeat(Math.max(2, maxLen - item.token.length + 3));
+                    lines.push(`  \x1b[32m${item.token}\x1b[0m${pad}\x1b[37m${item.desc}\x1b[0m`);
+                }
+            }
+
+            appendConsoleLines(lines.join('\n') + '\n');
+        }
+
+        function handleTab() {
+            const input = rconInputEl.value;
+            const context = getContextSuggestions(input);
+
+            if (!context.list || context.list.length === 0) {
+                return;
+            }
+
+            if (context.list.length === 1) {
+                // Exactly 1 match -> Complete word with trailing space
+                const completed = context.list[0].token;
+                rconInputEl.value = (context.beforeText || '') + completed + ' ';
+            } else {
+                // Multiple matches -> Longest Common Prefix (LCP)
+                const tokens = context.list.map(item => item.token);
+                const lcp = findLongestCommonPrefix(tokens);
+                if (lcp.length > context.prefix.length) {
+                    rconInputEl.value = (context.beforeText || '') + lcp;
+                } else {
+                    // Output options to console
+                    let lines = [];
+                    lines.push(`\x1b[36m> \x1b[1m${input}\x1b[0m`);
+                    lines.push(`\x1b[90m% Available options:\x1b[0m`);
+                    const optionStr = context.list.map(item => `\x1b[32m${item.token}\x1b[0m`).join('   ');
+                    lines.push(`  ${optionStr}`);
+                    appendConsoleLines(lines.join('\n') + '\n');
+                }
+            }
+        }
+
+        // Command History
+        let commandHistory = [];
+        try {
+            commandHistory = JSON.parse(localStorage.getItem('mc_console_history') || '[]');
+        } catch(e) { commandHistory = []; }
+        let historyIndex = -1;
+        let tempCurrentInput = '';
+
+        const rconInputEl = document.getElementById('rcon-input');
+        if (rconInputEl) {
+            rconInputEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    handleTab();
+                } else if (e.key === '?') {
+                    e.preventDefault();
+                    handleHelp();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (commandHistory.length === 0) return;
+                    if (historyIndex === -1) {
+                        tempCurrentInput = rconInputEl.value;
+                        historyIndex = commandHistory.length - 1;
+                    } else if (historyIndex > 0) {
+                        historyIndex--;
+                    }
+                    rconInputEl.value = commandHistory[historyIndex];
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (historyIndex === -1) return;
+                    if (historyIndex < commandHistory.length - 1) {
+                        historyIndex++;
+                        rconInputEl.value = commandHistory[historyIndex];
+                    } else {
+                        historyIndex = -1;
+                        rconInputEl.value = tempCurrentInput;
+                    }
+                }
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        const MC_COLORS = {
+            '0': '#000000', '1': '#0000aa', '2': '#00aa00', '3': '#00aaaa',
+            '4': '#aa0000', '5': '#aa00aa', '6': '#ffaa00', '7': '#aaaaaa',
+            '8': '#555555', '9': '#5555ff', 'a': '#55ff55', 'b': '#55ffff',
+            'c': '#ff5555', 'd': '#ff55ff', 'e': '#ffff55', 'f': '#ffffff'
+        };
+
+        const ANSI_COLORS = {
+            '30': '#000000', '31': '#ff5555', '32': '#55ff55', '33': '#ffff55',
+            '34': '#5555ff', '35': '#ff55ff', '36': '#55ffff', '37': '#f8fafc',
+            '90': '#64748b', '91': '#f87171', '92': '#4ade80', '93': '#fde047',
+            '94': '#60a5fa', '95': '#c084fc', '96': '#22d3ee', '97': '#ffffff'
+        };
+
+        function parseMinecraftAndAnsi(text) {
+            let html = escapeHtml(text);
+
+            // Parse ANSI Escape Codes
+            html = html.replace(/(?:\x1b|\u001b)\[(\d+(?:;\d+)*)m/g, (match, codeStr) => {
+                const codes = codeStr.split(';');
+                let styles = [];
+                let isReset = false;
+                for (const c of codes) {
+                    if (c === '0') isReset = true;
+                    else if (c === '1') styles.push('font-weight: 700');
+                    else if (c === '3') styles.push('font-style: italic');
+                    else if (c === '4') styles.push('text-decoration: underline');
+                    else if (ANSI_COLORS[c]) styles.push(`color: ${ANSI_COLORS[c]}`);
+                }
+                if (isReset) return '</span>';
+                if (styles.length) return `<span style="${styles.join('; ')}">`;
+                return '';
+            });
+
+            // Parse Minecraft section formatting (§0 - §f, §l, §r)
+            html = html.replace(/§([0-9a-fk-or])/gi, (match, code) => {
+                const c = code.toLowerCase();
+                if (c === 'r') return '</span>';
+                if (c === 'l') return '<span style="font-weight:700;">';
+                if (c === 'o') return '<span style="font-style:italic;">';
+                if (c === 'n') return '<span style="text-decoration:underline;">';
+                if (MC_COLORS[c]) return `<span style="color: ${MC_COLORS[c]};">`;
+                return '';
+            });
+
+            return html;
+        }
+
+        function renderLogLine(rawLine) {
+            if (!rawLine || !rawLine.trim()) return null;
+            const line = rawLine.trim();
+
+            const lineEl = document.createElement('div');
+            lineEl.className = 'mc-line';
+
+            let category = 'ALL';
+
+            // Check if Command Prompt Echo (> command)
+            if (line.startsWith('> ') || line.includes('\x1b[32m> ') || line.startsWith('&gt; ')) {
+                category = 'CMD';
+                lineEl.classList.add('mc-cmd-echo');
+                lineEl.innerHTML = parseMinecraftAndAnsi(line);
+                lineEl.dataset.category = category;
+                return lineEl;
+            }
+
+            // Check if Command Response (< response)
+            if (line.startsWith('< ') || line.includes('\x1b[37m< ') || line.startsWith('&lt; ')) {
+                category = 'CMD';
+                lineEl.classList.add('mc-resp-echo');
+                lineEl.innerHTML = parseMinecraftAndAnsi(line);
+                lineEl.dataset.category = category;
+                return lineEl;
+            }
+
+            // Standard Minecraft Log Pattern: [HH:mm:ss LEVEL]: message
+            const match = line.match(/^\[(\d{2}:\d{2}:\d{2})\s+([A-Z]+)\]:\s*(.*)$/);
+            if (match) {
+                const [, timeStr, level, msg] = match;
+                const badgeClass = level === 'ERROR' || level === 'FATAL' ? 'mc-badge-error' :
+                                   level === 'WARN' ? 'mc-badge-warn' : 'mc-badge-info';
+                
+                category = level; // INFO, WARN, ERROR
+
+                let contentHtml = parseMinecraftAndAnsi(msg);
+
+                // Detect chat & player events
+                if (msg.startsWith('&lt;') || msg.startsWith('<')) {
+                    category = 'CHAT';
+                    lineEl.classList.add('mc-chat-line');
+                } else if (msg.includes('made the advancement')) {
+                    lineEl.classList.add('mc-advancement-line');
+                } else if (msg.includes('joined the game') || msg.includes('logged in with entity id')) {
+                    lineEl.classList.add('mc-join-line');
+                } else if (msg.includes('left the game') || msg.includes('lost connection')) {
+                    lineEl.classList.add('mc-leave-line');
+                }
+
+                lineEl.innerHTML = `<span class="mc-time">[${timeStr}]</span><span class="mc-badge ${badgeClass}">${level}</span><span>${contentHtml}</span>`;
+            } else {
+                // Notice / System banner / raw output
+                lineEl.innerHTML = parseMinecraftAndAnsi(line);
+                if (line.toLowerCase().includes('error')) category = 'ERROR';
+                else if (line.toLowerCase().includes('warn')) category = 'WARN';
+            }
+
+            lineEl.dataset.category = category;
+
+            // Apply active filter
+            if (activeLogFilter !== 'ALL' && activeLogFilter !== category) {
+                lineEl.classList.add('mc-filter-hidden');
+            }
+
+            return lineEl;
+        }
+
+        function appendConsoleLines(text) {
+            if (!text || !consoleEl) return;
+            const lines = text.split('\n');
+            const frag = document.createDocumentFragment();
+            let addedCount = 0;
+
+            for (const line of lines) {
+                const rendered = renderLogLine(line);
+                if (rendered) {
+                    frag.appendChild(rendered);
+                    addedCount++;
+                }
+            }
+
+            if (addedCount > 0) {
+                consoleEl.appendChild(frag);
+
+                // Trim DOM nodes if more than 2500 lines to preserve high performance
+                while (consoleEl.children.length > 2500) {
+                    consoleEl.removeChild(consoleEl.firstChild);
+                }
+
+                if (autoScroll) {
+                    consoleEl.scrollTop = consoleEl.scrollHeight;
+                }
+            }
+        }
+
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+            const btn = document.getElementById('btn-autoscroll');
+            if (btn) {
+                btn.innerText = `Scroll: ${autoScroll ? 'ON' : 'OFF'}`;
+                btn.style.color = autoScroll ? 'var(--grass-400)' : '#f87171';
+            }
+            if (autoScroll && consoleEl) {
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }
+        }
+
+        function toggleFullscreenConsole() {
+            const wrapper = document.getElementById('console-wrapper');
+            const btn = document.getElementById('btn-fullscreen');
+            if (!wrapper) return;
+            wrapper.classList.toggle('is-fullscreen');
+            if (wrapper.classList.contains('is-fullscreen')) {
+                if (btn) btn.innerText = '✖ Exit Fullscreen';
+            } else {
+                if (btn) btn.innerText = '⛶ Fullscreen';
+            }
+            if (autoScroll && consoleEl) consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function copyConsoleOutput() {
+            if (!consoleEl) return;
+            const text = consoleEl.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Console text copied to clipboard', 'success');
+            }).catch(() => {
+                showToast('Failed to copy text', 'error');
+            });
         }
 
         async function clearConsole() {
-            consoleEl.textContent = '';
+            if (consoleEl) consoleEl.innerHTML = '';
             try {
                 await fetch('/mc/api/logs/clear', {method: 'POST'});
                 showToast('Console log cleared', 'info');
@@ -1182,9 +1986,22 @@
         }
 
         function toggleLogFilter(el, filter) {
-            document.querySelectorAll('.chip-filter').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('#tab-console .chip-filter').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
             activeLogFilter = filter;
+
+            if (!consoleEl) return;
+            const lines = consoleEl.querySelectorAll('.mc-line');
+            lines.forEach(line => {
+                const cat = line.dataset.category || 'ALL';
+                if (filter === 'ALL' || filter === cat) {
+                    line.classList.remove('mc-filter-hidden');
+                } else {
+                    line.classList.add('mc-filter-hidden');
+                }
+            });
+
+            if (autoScroll) consoleEl.scrollTop = consoleEl.scrollHeight;
         }
 
         function connectWs() {
@@ -1193,27 +2010,34 @@
 
             ws = new WebSocket(wsUrl);
             ws.onopen = () => {
-                consoleEl.textContent = '';
+                if (statusPillEl) statusPillEl.classList.remove('disconnected');
+                if (statusTextEl) statusTextEl.innerText = 'LIVE CONSOLE';
+                if (consoleEl && consoleEl.innerHTML.includes('Connecting to')) {
+                    consoleEl.innerHTML = '';
+                }
                 pingInterval = setInterval(() => {
                     if (ws.readyState === WebSocket.OPEN) ws.send('ping');
-                }, 25000);
+                }, 20000);
             };
 
             ws.onmessage = (e) => {
                 if (e.data === 'pong') return;
-                const isInitial = (e.data.length > 1000 && consoleEl.textContent === '');
-                consoleEl.textContent += e.data;
-                if (isInitial) {
-                    const hist = sessionStorage.getItem('webConsoleHist');
-                    if (hist) consoleEl.textContent += '\n--- Restored Web Command History ---\n' + hist;
+                try {
+                    const data = JSON.parse(e.data);
+                    if (data.type === 'console_message' && data.message) {
+                        if (data.is_initial && consoleEl) {
+                            consoleEl.innerHTML = '';
+                        }
+                        appendConsoleLines(data.message);
+                    }
+                } catch(err) {
+                    appendConsoleLines(e.data);
                 }
-                if (consoleEl.textContent.length > 80000) {
-                    consoleEl.textContent = consoleEl.textContent.slice(-60000);
-                }
-                consoleEl.scrollTop = consoleEl.scrollHeight;
             };
 
             ws.onclose = () => {
+                if (statusPillEl) statusPillEl.classList.add('disconnected');
+                if (statusTextEl) statusTextEl.innerText = 'RECONNECTING...';
                 clearInterval(pingInterval);
                 setTimeout(connectWs, 3000);
             };
@@ -1221,26 +2045,57 @@
         }
         connectWs();
 
-        async function sendRconCommand(e) {
-            e.preventDefault();
+        async function sendConsoleCommand(e) {
+            if (e) e.preventDefault();
             const input = document.getElementById('rcon-input');
             const cmd = input.value.trim();
-            if(!cmd) return;
+            if (!cmd) return;
 
-            appendCustomLog(`> ${cmd}\n`);
+            // Save to local command history
+            if (commandHistory[commandHistory.length - 1] !== cmd) {
+                commandHistory.push(cmd);
+                if (commandHistory.length > 100) commandHistory.shift();
+                try {
+                    localStorage.setItem('mc_console_history', JSON.stringify(commandHistory));
+                } catch(e) {}
+            }
+            historyIndex = -1;
+            tempCurrentInput = '';
             input.value = '';
 
-            try {
-                const res = await fetch('/mc/api/rcon', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({command: cmd})
-                });
-                const data = await res.json();
-                if(data.response) {
-                    appendCustomLog(`< ${data.response}\n`);
+            // Send via active WebSocket for zero-latency direct broadcast
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    action: 'command',
+                    command: cmd
+                }));
+            } else {
+                // Fallback to REST endpoint
+                try {
+                    const res = await fetch('/mc/api/rcon', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({command: cmd})
+                    });
+                    const data = await res.json();
+                    if (data.response) {
+                        appendConsoleLines(`< ${data.response}\n`);
+                    }
+                } catch(err) {
+                    appendConsoleLines(`[Execution Error]: ${err}\n`);
                 }
-            } catch(err) { console.error(err); }
+            }
+        }
+
+        // Backward compatibility
+        const sendRconCommand = sendConsoleCommand;
+
+        function sendQuickCommand(cmd) {
+            const input = document.getElementById('rcon-input');
+            if (input) {
+                input.value = cmd;
+                sendConsoleCommand();
+            }
         }
 
         // ============================================================

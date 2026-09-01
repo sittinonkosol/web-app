@@ -82,10 +82,7 @@ _redis_port = int(os.environ.get('REDIS_PORT', '6379'))
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [(_redis_host, _redis_port)],
-        },
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
 }
 
