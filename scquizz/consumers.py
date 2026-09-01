@@ -8,6 +8,12 @@ class QuizConsumer(AsyncWebsocketConsumer):
     active_user_count = 0
 
     async def connect(self):
+        # Require authentication — unauthenticated connections are rejected
+        user = self.scope.get("user")
+        if not user or not user.is_authenticated:
+            await self.close(code=4001)
+            return
+
         await self.channel_layer.group_add(
             self.GROUP_NAME,
             self.channel_name
@@ -24,18 +30,21 @@ class QuizConsumer(AsyncWebsocketConsumer):
         )
 
     async def disconnect(self, close_code):
+        # Only decrement counter if this connection was accepted (authenticated)
+        if close_code != 4001:
+            QuizConsumer.active_user_count = max(0, QuizConsumer.active_user_count - 1)
         await self.channel_layer.group_discard(
             self.GROUP_NAME,
             self.channel_name
         )
-        QuizConsumer.active_user_count = max(0, QuizConsumer.active_user_count - 1)
-        await self.channel_layer.group_send(
-            self.GROUP_NAME,
-            {
-                "type": "quiz.broadcast",
-                "message": f"USERS:{QuizConsumer.active_user_count}"
-            }
-        )
+        if close_code != 4001:
+            await self.channel_layer.group_send(
+                self.GROUP_NAME,
+                {
+                    "type": "quiz.broadcast",
+                    "message": f"USERS:{QuizConsumer.active_user_count}"
+                }
+            )
 
     async def receive(self, text_data=None, bytes_data=None):
         pass

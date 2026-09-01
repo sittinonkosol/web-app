@@ -16,7 +16,7 @@ urlpatterns = [
     path('api/sessions', views.sessions_view, name='sessions_api'),
     path('api/sessions/<str:session_id>/activate', views.activate_session, name='activate_session'),
     path('api/sessions/<str:session_id>/settings', views.update_session_settings, name='update_session_settings'),
-    path('api/sessions/<str:session_id>', views.delete_session, name='delete_session'),
+    path('api/sessions/<str:session_id>', views.session_detail_view, name='session_detail'),
 
     # Messages API
     path('api/messages', views.messages_view, name='messages_api'),

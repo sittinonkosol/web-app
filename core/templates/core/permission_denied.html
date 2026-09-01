@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noai, noimageai">
     <title>ไม่มีสิทธิ์เข้าถึง — {{ display_name }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -143,7 +144,7 @@
         <div class="btn-group">
             <a href="/" class="btn btn-primary">กลับหน้าหลัก</a>
             {% if user.is_authenticated %}
-            <a href="/logout/?next=/" class="btn btn-ghost">ออกจากระบบ</a>
+            <form method="POST" action="/logout/" style="display:inline;">{% csrf_token %}<input type="hidden" name="next" value="/"><button type="submit" class="btn btn-ghost">ออกจากระบบ</button></form>
             {% else %}
             <a href="/login/?next={{ request.path }}" class="btn btn-ghost">เข้าสู่ระบบ</a>
             {% endif %}

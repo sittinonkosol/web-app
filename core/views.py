@@ -1,14 +1,79 @@
 import json
+import logging
 from functools import wraps
+from urllib.parse import urlparse
 from django.apps import apps
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import get_resolver, URLResolver
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User, Group
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
+
+logger = logging.getLogger('core')
+
+
+def robots_txt(request):
+    """Serve robots.txt blocking all web search crawlers and AI scrapers."""
+    content = """User-agent: *
+Disallow: /
+
+# AI Training Crawlers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: YouBot
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+"""
+    return HttpResponse(content, content_type='text/plain')
+
 
 from .models import AppSetting, UserAppPermission, GroupAppPermission, UserLoginLog
 from .permissions import (
@@ -83,26 +148,38 @@ def landing_page(request):
     })
 
 def sanitize_next_url(url):
+    """
+    Sanitize a redirect URL to prevent Open Redirect attacks.
+    Only relative paths (no scheme, no netloc) are allowed.
+    """
     if not url:
         return '/'
     clean = url.strip()
-    # Prevent redirecting back to login or logout endpoints which causes loops
-    if clean in ['/login', '/login/', '/logout', '/logout/'] or clean.startswith('/login?') or clean.startswith('/logout?'):
+    # Block absolute URLs: //evil.com, http://evil.com, https://evil.com
+    parsed = urlparse(clean)
+    if parsed.scheme or parsed.netloc:
+        return '/'
+    # Block protocol-relative URLs starting with //
+    if clean.startswith('//'):
+        return '/'
+    # Prevent redirect loops back to login/logout
+    if clean in ['/login', '/login/', '/logout', '/logout/'] \
+            or clean.startswith('/login?') or clean.startswith('/logout?'):
         return '/'
     return clean
 
 def login_view(request):
     raw_next = request.POST.get('next') or request.GET.get('next')
     next_url = sanitize_next_url(raw_next)
-    
+
     if request.user.is_authenticated:
         return redirect(next_url)
-        
+
     error_message = None
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
-        
+
         user = authenticate(request, username=username, password=password)
         if user is not None:
             if not user.is_active:
@@ -119,21 +196,15 @@ def login_view(request):
     })
 
 def logout_view(request):
-    raw_next = request.POST.get('next') or request.GET.get('next')
-    next_url = sanitize_next_url(raw_next) if raw_next else None
-    
-    if not next_url:
-        referer = request.META.get('HTTP_REFERER')
-        if referer:
-            clean_ref = referer.split('?')[0].rstrip('/')
-            for suffix in ['/admin.html', '/admin', '/index.html']:
-                if clean_ref.endswith(suffix):
-                    clean_ref = clean_ref[:-len(suffix)]
-                    break
-            next_url = sanitize_next_url(clean_ref + '/')
-        else:
-            next_url = '/'
-            
+    """
+    Logout via POST only to prevent CSRF logout attacks.
+    GET requests are silently redirected to login without logging out.
+    HTTP_REFERER is intentionally ignored to prevent Open Redirect via spoofed headers.
+    """
+    if request.method != 'POST':
+        return redirect('/login/')
+    raw_next = request.POST.get('next', '').strip()
+    next_url = sanitize_next_url(raw_next) if raw_next else '/login/'
     logout(request)
     return redirect(next_url)
 
@@ -247,7 +318,8 @@ def api_users_list_create(request):
 
             return JsonResponse({'success': True, 'id': user.id, 'username': user.username})
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            logger.error(f"api_users_list_create POST error: {e}", exc_info=True)
+            return JsonResponse({'error': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง'}, status=400)
 
 @csrf_exempt
 @staff_member_required
@@ -329,7 +401,8 @@ def api_user_detail(request, user_id):
 
             return JsonResponse({'success': True, 'id': user.id})
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            logger.error(f"api_user_detail PUT error user={user_id}: {e}", exc_info=True)
+            return JsonResponse({'error': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง'}, status=400)
 
     elif request.method == "DELETE":
         if request.user.id == user.id:
@@ -383,7 +456,8 @@ def api_groups_list_create(request):
 
             return JsonResponse({'success': True, 'id': group.id, 'name': group.name})
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            logger.error(f"api_groups_list_create POST error: {e}", exc_info=True)
+            return JsonResponse({'error': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง'}, status=400)
 
 @csrf_exempt
 @staff_member_required
@@ -427,7 +501,8 @@ def api_group_detail(request, group_id):
 
             return JsonResponse({'success': True, 'id': group.id})
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+            logger.error(f"api_group_detail PUT error group={group_id}: {e}", exc_info=True)
+            return JsonResponse({'error': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง'}, status=400)
 
     elif request.method == "DELETE":
         group.delete()
@@ -474,7 +549,8 @@ def api_app_setting_detail(request, app_name):
             'description': setting.description
         })
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.error(f"api_app_setting_detail PUT error app={app_name}: {e}", exc_info=True)
+        return JsonResponse({'error': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง'}, status=400)
 
 # --- Login Logs API ---
 
@@ -485,7 +561,7 @@ def api_login_logs_list(request):
     user_id = request.GET.get('user_id')
     status = request.GET.get('status')
     search = request.GET.get('search', '').strip()
-    limit = int(request.GET.get('limit', 100))
+    limit = min(int(request.GET.get('limit', 100)), 500)  # Cap at 500 to prevent DoS
 
     qs = UserLoginLog.objects.all().select_related('user').order_by('-timestamp')
 

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noai, noimageai">
     <title>ส่งข้อความ — SC Quiz</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -26,9 +27,9 @@
                     <a href="{{ app_base }}/admin" style="display: inline-flex; align-items: center; gap: 5px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; text-decoration: none; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='rgba(59, 130, 246, 0.25)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.15)'">
                         <span>แอดมิน ({{ user.username }})</span>
                     </a>
-                    <a href="/logout/?next={{ app_base }}/" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); color: #fca5a5; text-decoration: none; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.12)'">
+                    <form method="POST" action="/logout/" style="display:inline;">{% csrf_token %}<input type="hidden" name="next" value="{{ app_base }}/"><button type="submit" style="display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); color: #fca5a5; cursor: pointer; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.12)'">
                         <span>Logout</span>
-                    </a>
+                    </button></form>
                 </div>
 
                 <!-- Brand Header (Centered) -->

@@ -260,6 +260,61 @@ class AppSpecificAuthAndTests(TestCase):
         self.assertEqual(res_index.status_code, 200)
         self.assertIn('ไม่มี Session ในขณะนี้', res_index.content.decode('utf-8'))
 
+    def test_edit_session_api(self):
+        sessions_url = self.app_url.rstrip('/') + '/api/sessions'
+        
+        # Create a session
+        res = self.client.post(sessions_url, data=json.dumps({
+            'title': 'Original Session',
+            'description': 'Original Description',
+            'is_active': False
+        }), content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+        session_id = res.json()['id']
+
+        # Get session detail
+        detail_url = f'{sessions_url}/{session_id}'
+        res_get = self.client.get(detail_url)
+        self.assertEqual(res_get.status_code, 200)
+        self.assertEqual(res_get.json()['title'], 'Original Session')
+
+        # Edit session using PATCH
+        patch_payload = {
+            'title': 'Updated Session Title',
+            'description': 'Updated Session Description',
+            'is_active': True,
+            'rate_limit_per_minute': 15,
+            'cooldown_seconds': 45
+        }
+        res_patch = self.client.patch(
+            detail_url,
+            data=json.dumps(patch_payload),
+            content_type='application/json'
+        )
+        self.assertEqual(res_patch.status_code, 200)
+        data = res_patch.json()
+        self.assertEqual(data['title'], 'Updated Session Title')
+        self.assertEqual(data['description'], 'Updated Session Description')
+        self.assertTrue(data['is_active'])
+        self.assertEqual(data['rate_limit_per_minute'], 15)
+        self.assertEqual(data['cooldown_seconds'], 45)
+
+        # Verify in DB
+        sess = QuizSession.objects.get(id=session_id)
+        self.assertEqual(sess.title, 'Updated Session Title')
+        self.assertEqual(sess.description, 'Updated Session Description')
+        self.assertTrue(sess.is_active)
+        self.assertEqual(sess.rate_limit_per_minute, 15)
+        self.assertEqual(sess.cooldown_seconds, 45)
+
+        # Edit with empty title should return 400
+        res_err = self.client.patch(
+            detail_url,
+            data=json.dumps({'title': '   '}),
+            content_type='application/json'
+        )
+        self.assertEqual(res_err.status_code, 400)
+
     def test_profanity_filter(self):
         """Test blocking messages containing Thai or English profanity"""
         self.client.login(username='superadmin', password='superpassword123')

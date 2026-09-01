@@ -20,3 +20,11 @@ ENV/
 .DS_Store
 .vscode/
 .idea/
+
+# Secrets — NEVER commit these
+.env
+
+# Database backups
+*backup*.json
+*backup*.sql
+*dump*.sql

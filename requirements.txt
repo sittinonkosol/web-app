@@ -6,3 +6,5 @@ channels-redis>=4.3.0
 django-redis>=7.0.0
 tnprofanity>=0.4.1
 psycopg2-binary>=2.9.0
+mcrcon>=0.3.3
+psutil>=5.9.0

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noai, noimageai">
     <title>จัดการข้อความ — SC Quiz</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -148,9 +149,9 @@
                                     </a>
                                 </div>
                                 <div class="user-dropdown-divider">
-                                    <a href="/logout/?next={{ app_base }}/" class="user-dropdown-item-danger">
+                                    <form method="POST" action="/logout/" style="margin:0;">{% csrf_token %}<input type="hidden" name="next" value="{{ app_base }}/"><button type="submit" class="user-dropdown-item-danger" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:0;">
                                         <span>ออกจากระบบ (Logout)</span>
-                                    </a>
+                                    </button></form>
                                 </div>
                             </div>
                         </div>
@@ -219,6 +220,47 @@
                     <div style="display: flex; justify-content: flex-end; gap: 10px;">
                         <button type="button" id="cancel-session-btn" style="padding: 9px 16px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; cursor: pointer; color: #475569; font-weight: 500;">ยกเลิก</button>
                         <button type="submit" style="padding: 9px 18px; background: #6366f1; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; color: #fff; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);">สร้าง Session</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- EDIT SESSION MODAL -->
+        <div class="modal-overlay hidden" id="edit-session-modal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+            <div style="background: #fff; border-radius: 18px; padding: 26px; width: 90%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); font-family: 'Outfit', 'Noto Sans Thai', sans-serif;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                    <h3 style="margin: 0; font-size: 19px; color: #0f172a; font-weight: 700;">แก้ไข Session กิจกรรม</h3>
+                    <button type="button" id="close-edit-session-modal" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">✕</button>
+                </div>
+                <form id="edit-session-form">
+                    <input type="hidden" id="edit-session-id-input">
+                    <div style="margin-bottom: 14px;">
+                        <label style="display: block; font-size: 13.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">ชื่อเซสชัน / กิจกรรม *</label>
+                        <input type="text" id="edit-session-title-input" required placeholder="เช่น วันวิทยาศาสตร์ 2569, วันรับน้อง ICT" style="width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; font-family: inherit;">
+                    </div>
+                    <div style="margin-bottom: 14px;">
+                        <label style="display: block; font-size: 13.5px; font-weight: 600; color: #334155; margin-bottom: 6px;">คำอธิบายเพิ่มเติม (ไม่บังคับ)</label>
+                        <textarea id="edit-session-desc-input" placeholder="รายละเอียดหรือบันทึกของกิจกรรมนี้..." style="width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; font-family: inherit; height: 80px; resize: vertical;"></textarea>
+                    </div>
+                    <div style="margin-bottom: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Rate Limit / นาที <span style="color:#64748b;font-weight:400;">(0=ไม่จำกัด)</span></label>
+                            <input type="number" id="edit-session-rate-input" min="0" max="100" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; font-family: inherit;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">Cooldown (วินาที)</label>
+                            <input type="number" id="edit-session-cooldown-input" min="0" max="3600" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; font-family: inherit;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; color: #334155; cursor: pointer;">
+                            <input type="checkbox" id="edit-session-active-input" style="width: 16px; height: 16px; cursor: pointer;">
+                            <span>เปิดใช้งานเป็น Active Session</span>
+                        </label>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" id="cancel-edit-session-btn" style="padding: 9px 16px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; cursor: pointer; color: #475569; font-weight: 500;">ยกเลิก</button>
+                        <button type="submit" id="save-edit-session-btn" style="padding: 9px 18px; background: #6366f1; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; color: #fff; font-weight: 600; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);">บันทึกการแก้ไข</button>
                     </div>
                 </form>
             </div>

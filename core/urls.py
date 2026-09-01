@@ -2,6 +2,8 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
+    path('robots.txt', views.robots_txt, name='robots_txt'),
+
     path('', views.landing_page, name='landing'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
@@ -21,4 +23,5 @@ urlpatterns = [
 
     # Apps
     path('ict/scquizz/', include('scquizz.urls')),
+    path('mc/', include('mcmanager.urls')),
 ]

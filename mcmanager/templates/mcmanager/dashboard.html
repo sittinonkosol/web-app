@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Server Manager</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        h1, h2, h3 { margin-top: 0; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .status-online { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .status-offline { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        
+        .btn {
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+        .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+        .btn-start { background: var(--success); }
+        .btn-stop { background: var(--danger); }
+        .btn-restart { background: var(--warning); }
+        .btn-primary { background: var(--accent); }
+        
+        .terminal {
+            background: #000;
+            color: #4ade80;
+            font-family: monospace;
+            padding: 1rem;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+        }
+        .input-group { display: flex; gap: 0.5rem; }
+        input[type="text"], input[type="range"] {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: rgba(0,0,0,0.2);
+            color: white;
+        }
+        .stats-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        .stats-val { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>🎮 Minecraft Server Manager</h1>
+            <a href="/" style="color: var(--text-muted); text-decoration: none;">&larr; Back to Dashboard</a>
+        </header>
+
+        <div class="grid">
+            <!-- Controls & Status -->
+            <div class="glass-card">
+                <h2>Server Status</h2>
+                <div style="margin-bottom: 1.5rem;">
+                    <h3>PaperMC: <span id="mc-status" class="status-badge status-offline">Checking...</span></h3>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <button class="btn btn-start" onclick="controlService('papermc', 'start')">Start</button>
+                        <button class="btn btn-stop" onclick="controlService('papermc', 'stop')">Stop</button>
+                        <button class="btn btn-restart" onclick="controlService('papermc', 'restart')">Restart</button>
+                    </div>
+                </div>
+                <hr style="border-color: var(--glass-border); margin: 1.5rem 0;">
+                <div>
+                    <h3>Playit.gg Tunnel: <span id="playit-status" class="status-badge status-offline">Checking...</span></h3>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <button class="btn btn-start" onclick="controlService('playit', 'start')">Start Tunnel</button>
+                        <button class="btn btn-stop" onclick="controlService('playit', 'stop')">Stop Tunnel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resource Monitor & RAM -->
+            <div class="glass-card">
+                <h2>Resource Monitor</h2>
+                <div class="stats-box">
+                    <div>CPU Usage</div>
+                    <div class="stats-val" id="cpu-usage">0%</div>
+                </div>
+                <div class="stats-box">
+                    <div>RAM Usage</div>
+                    <div class="stats-val"><span id="ram-usage">0</span> MB</div>
+                </div>
+                
+                <h3 style="margin-top: 1.5rem;">RAM Allocation</h3>
+                <p style="color: var(--text-muted); font-size: 0.875rem;">Max safe limit: {{ max_ram }} MB</p>
+                <div class="input-group" style="align-items: center;">
+                    <input type="range" id="ram-slider" min="1024" max="{{ max_ram }}" step="512" value="{{ current_ram }}" oninput="document.getElementById('ram-val').innerText = this.value">
+                    <span style="font-weight: 600; min-width: 60px;"><span id="ram-val">{{ current_ram }}</span> MB</span>
+                    <button class="btn btn-primary" onclick="saveRam()">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Web Terminal -->
+        <div class="glass-card" style="margin-top: 1.5rem;">
+            <h2>Web Terminal</h2>
+            <div class="terminal" id="terminal-output">Connecting to log stream...</div>
+            <form id="rcon-form" class="input-group" onsubmit="sendRcon(event)">
+                <input type="text" id="rcon-cmd" placeholder="Enter command (e.g., say Hello, time set day)" autocomplete="off">
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        </div>
+        
+        <!-- Config Editor -->
+        <div class="glass-card">
+            <h2>server.properties Editor</h2>
+            <p style="color: var(--text-muted); font-size: 0.875rem;">Edit key-value pairs below. (Note: RCON settings are managed automatically).</p>
+            <div id="config-editor" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; max-height: 400px; overflow-y: auto; padding-right: 1rem;">
+                <!-- Loaded dynamically -->
+            </div>
+            <button class="btn btn-primary" onclick="saveConfig()">Save Configuration</button>
+        </div>
+    </div>
+
+    <script>
+        // Update Status & Resources
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/mc/api/status');
+                const data = await res.json();
+                
+                const mcBadge = document.getElementById('mc-status');
+                mcBadge.className = data.papermc_running ? 'status-badge status-online' : 'status-badge status-offline';
+                mcBadge.innerText = data.papermc_running ? 'Online' : 'Offline';
+                
+                const playitBadge = document.getElementById('playit-status');
+                playitBadge.className = data.playit_running ? 'status-badge status-online' : 'status-badge status-offline';
+                playitBadge.innerText = data.playit_running ? 'Online' : 'Offline';
+                
+                document.getElementById('cpu-usage').innerText = data.cpu_percent + '%';
+                document.getElementById('ram-usage').innerText = Math.round(data.ram_mb);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        setInterval(fetchStatus, 3000);
+        fetchStatus();
+
+        // Control Services
+        async function controlService(service, action) {
+            try {
+                const res = await fetch('/mc/api/action', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({service, action})
+                });
+                const data = await res.json();
+                if(data.success) {
+                    alert(`${service} ${action} command sent successfully.`);
+                    fetchStatus();
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            } catch(e) {
+                alert(`Error: ${e}`);
+            }
+        }
+
+        // Save RAM
+        async function saveRam() {
+            const ram = document.getElementById('ram-slider').value;
+            try {
+                const res = await fetch('/mc/api/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ram_mb: ram})
+                });
+                const data = await res.json();
+                if(data.success) alert('RAM updated. Restart the server to apply.');
+            } catch(e) { alert('Error saving RAM'); }
+        }
+
+        // Load & Save Config
+        let currentConfig = {};
+        async function loadConfig() {
+            const res = await fetch('/mc/api/config');
+            const data = await res.json();
+            currentConfig = data.properties;
+            const editor = document.getElementById('config-editor');
+            editor.innerHTML = '';
+            for(let key in currentConfig) {
+                if(key.startsWith('rcon')) continue; // hide rcon configs
+                
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = `
+                    <label style="display:block; font-size: 0.8rem; color: var(--text-muted);">${key}</label>
+                    <input type="text" id="cfg-${key}" value="${currentConfig[key]}" style="width: 100%; padding: 0.5rem;">
+                `;
+                editor.appendChild(wrapper);
+            }
+        }
+        
+        async function saveConfig() {
+            for(let key in currentConfig) {
+                if(key.startsWith('rcon')) continue;
+                const input = document.getElementById(`cfg-${key}`);
+                if(input) currentConfig[key] = input.value;
+            }
+            try {
+                const res = await fetch('/mc/api/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({properties: currentConfig})
+                });
+                const data = await res.json();
+                if(data.success) alert('Configuration saved! Restart server to apply.');
+            } catch(e) { alert('Error saving config'); }
+        }
+        loadConfig();
+
+        // Web Terminal
+        const term = document.getElementById('terminal-output');
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws/mc/logs/`;
+        let ws;
+        
+        function connectWs() {
+            ws = new WebSocket(wsUrl);
+            ws.onmessage = (e) => {
+                term.textContent += e.data;
+                term.scrollTop = term.scrollHeight;
+            };
+            ws.onclose = () => {
+                setTimeout(connectWs, 3000);
+            };
+        }
+        connectWs();
+
+        async function sendRcon(e) {
+            e.preventDefault();
+            const cmdInput = document.getElementById('rcon-cmd');
+            const cmd = cmdInput.value;
+            if(!cmd) return;
+            
+            term.textContent += `> ${cmd}\n`;
+            term.scrollTop = term.scrollHeight;
+            cmdInput.value = '';
+            
+            try {
+                const res = await fetch('/mc/api/rcon', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({command: cmd})
+                });
+                const data = await res.json();
+                if(data.response) {
+                    term.textContent += `< ${data.response}\n`;
+                    term.scrollTop = term.scrollHeight;
+                }
+            } catch(err) {
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>

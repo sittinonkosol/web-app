@@ -129,9 +129,26 @@ def sanitize_text(val, max_len=1000):
     val = str(val).replace('\x00', '').strip()
     return val[:max_len]
 
+# --- Permission helper for scquizz APIs ---
+def _require_moderator(request):
+    """
+    Returns a JsonResponse error if the request user is not authenticated
+    or does not have moderator+ access on 'scquizz'. Returns None if OK.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'กรุณาเข้าสู่ระบบก่อนทำรายการ'}, status=401)
+    if not has_app_permission(request.user, 'scquizz', min_role='moderator'):
+        return JsonResponse({'error': 'ไม่มีสิทธิ์เข้าถึง ต้องการสิทธิ์ moderator ขึ้นไป'}, status=403)
+    return None
+
 # --- Sessions API ---
 @csrf_exempt
 def sessions_view(request):
+    # Both GET and POST require moderator access
+    auth_err = _require_moderator(request)
+    if auth_err:
+        return auth_err
+
     if request.method == "GET":
         sessions = QuizSession.objects.all().order_by("-created_at")
         data = [
@@ -169,7 +186,7 @@ def sessions_view(request):
                 description=desc,
                 is_active=is_active or not QuizSession.objects.filter(is_active=True).exists()
             )
-            logger.info(f"Session created: {sess.id!r} title={sess.title!r}")
+            logger.info(f"Session created: {sess.id!r} title={sess.title!r} by user={request.user.username!r}")
             notify_update()
             return JsonResponse({
                 "success": True,
@@ -184,7 +201,8 @@ def sessions_view(request):
                 "cooldown_seconds": sess.cooldown_seconds,
             })
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            logger.error(f"sessions_view POST error: {e}", exc_info=True)
+            return JsonResponse({"error": "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง"}, status=400)
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
@@ -192,6 +210,9 @@ def sessions_view(request):
 @require_http_methods(["PATCH"])
 def update_session_settings(request, session_id):
     """อัปเดตการตั้งค่า Rate Limit และ Cooldown ของ Session"""
+    auth_err = _require_moderator(request)
+    if auth_err:
+        return auth_err
     sess = QuizSession.objects.filter(id=session_id).first()
     if not sess:
         return JsonResponse({"error": "Session not found"}, status=404)
@@ -204,18 +225,22 @@ def update_session_settings(request, session_id):
             val = int(body['cooldown_seconds'])
             sess.cooldown_seconds = max(0, val)
         sess.save()
-        logger.info(f"Session settings updated: {sess.id!r} rate={sess.rate_limit_per_minute}/min cooldown={sess.cooldown_seconds}s")
+        logger.info(f"Session settings updated: {sess.id!r} rate={sess.rate_limit_per_minute}/min cooldown={sess.cooldown_seconds}s by user={request.user.username!r}")
         return JsonResponse({
             "success": True,
             "rate_limit_per_minute": sess.rate_limit_per_minute,
             "cooldown_seconds": sess.cooldown_seconds,
         })
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
+        logger.error(f"update_session_settings error session={session_id}: {e}", exc_info=True)
+        return JsonResponse({"error": "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง"}, status=400)
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def activate_session(request, session_id):
+    auth_err = _require_moderator(request)
+    if auth_err:
+        return auth_err
     sess = QuizSession.objects.filter(id=session_id).first()
     if not sess:
         return JsonResponse({"error": "Session not found"}, status=404)
@@ -226,26 +251,98 @@ def activate_session(request, session_id):
     return JsonResponse({"success": True, "active_id": sess.id, "active_title": sess.title})
 
 @csrf_exempt
-@require_http_methods(["DELETE"])
-def delete_session(request, session_id):
+@require_http_methods(["GET", "PUT", "PATCH", "DELETE"])
+def session_detail_view(request, session_id):
+    auth_err = _require_moderator(request)
+    if auth_err:
+        return auth_err
     sess = QuizSession.objects.filter(id=session_id).first()
     if not sess:
         return JsonResponse({"error": "Session not found"}, status=404)
-    was_active = sess.is_active
-    logger.info(f"Session deleted: {sess.id!r} title={sess.title!r}")
-    sess.delete()
-    if was_active:
-        remaining = QuizSession.objects.first()
-        if remaining:
-            remaining.is_active = True
-            remaining.save()
-    notify_update()
-    return JsonResponse({"success": True})
+
+    if request.method == "GET":
+        return JsonResponse({
+            "id": sess.id,
+            "title": sess.title,
+            "description": sess.description,
+            "is_active": sess.is_active,
+            "created_at": sess.created_at.strftime('%Y-%m-%d %H:%M'),
+            "messages_count": sess.messages.count(),
+            "polls_count": sess.polls.count(),
+            "rate_limit_per_minute": sess.rate_limit_per_minute,
+            "cooldown_seconds": sess.cooldown_seconds,
+        })
+
+    elif request.method in ["PUT", "PATCH"]:
+        try:
+            body = json.loads(request.body)
+            if "title" in body:
+                title = sanitize_text(body.get("title", ""), max_len=200)
+                if not title:
+                    return JsonResponse({"error": "กรุณาระบุชื่อ Session"}, status=400)
+                sess.title = title
+
+            if "description" in body:
+                sess.description = sanitize_text(body.get("description", ""), max_len=1000)
+
+            if "is_active" in body:
+                is_active = bool(body.get("is_active"))
+                if is_active and not sess.is_active:
+                    QuizSession.objects.exclude(id=sess.id).update(is_active=False)
+                    sess.is_active = True
+                elif not is_active and sess.is_active:
+                    sess.is_active = False
+
+            if "rate_limit_per_minute" in body:
+                val = int(body["rate_limit_per_minute"])
+                sess.rate_limit_per_minute = max(0, val)
+
+            if "cooldown_seconds" in body:
+                val = int(body["cooldown_seconds"])
+                sess.cooldown_seconds = max(0, val)
+
+            sess.save()
+            logger.info(f"Session updated: {sess.id!r} title={sess.title!r} by user={request.user.username!r}")
+            notify_update()
+
+            return JsonResponse({
+                "success": True,
+                "id": sess.id,
+                "title": sess.title,
+                "description": sess.description,
+                "is_active": sess.is_active,
+                "created_at": sess.created_at.strftime('%Y-%m-%d %H:%M'),
+                "messages_count": sess.messages.count(),
+                "polls_count": sess.polls.count(),
+                "rate_limit_per_minute": sess.rate_limit_per_minute,
+                "cooldown_seconds": sess.cooldown_seconds,
+            })
+        except Exception as e:
+            logger.error(f"session_detail_view PUT error session={session_id}: {e}", exc_info=True)
+            return JsonResponse({"error": "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง"}, status=400)
+
+    elif request.method == "DELETE":
+        was_active = sess.is_active
+        logger.info(f"Session deleted: {sess.id!r} title={sess.title!r} by user={request.user.username!r}")
+        sess.delete()
+        if was_active:
+            remaining = QuizSession.objects.first()
+            if remaining:
+                remaining.is_active = True
+                remaining.save()
+        notify_update()
+        return JsonResponse({"success": True})
+
+delete_session = session_detail_view
 
 # --- Messages API ---
 @csrf_exempt
 def messages_view(request):
     if request.method == "GET":
+        # GET requires at least viewer access to protect student messages
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'กรุณาเข้าสู่ระบบก่อน'}, status=401)
+
         session_id = request.GET.get("session_id")
         session = get_active_session(session_id)
         if not session:
@@ -329,14 +426,17 @@ def messages_view(request):
             resp['X-Cooldown-Seconds'] = str(session.cooldown_seconds)
             return resp
         except Exception as e:
-            logger.error(f"messages_view POST error: {e}")
-            return JsonResponse({"error": str(e)}, status=400)
+            logger.error(f"messages_view POST error: {e}", exc_info=True)
+            return JsonResponse({"error": "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง"}, status=400)
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def answer_message(request, msg_id):
+    auth_err = _require_moderator(request)
+    if auth_err:
+        return auth_err
     Message.objects.filter(id=msg_id).update(answered=1)
     notify_update()
     return JsonResponse({"success": True})
@@ -344,6 +444,9 @@ def answer_message(request, msg_id):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def delete_message(request, msg_id):
+    auth_err = _require_moderator(request)
+    if auth_err:
+        return auth_err
     Message.objects.filter(id=msg_id).delete()
     notify_update()
     return JsonResponse({"success": True})
@@ -362,7 +465,8 @@ def message_tts(request, msg_id):
         fp.seek(0)
         return HttpResponse(fp.read(), content_type="audio/mpeg")
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        logger.error(f"message_tts error msg={msg_id}: {e}", exc_info=True)
+        return JsonResponse({"error": "ไม่สามารถสร้างเสียงได้ กรุณาลองอีกครั้ง"}, status=500)
 
 # --- Polls API ---
 @csrf_exempt
@@ -371,6 +475,7 @@ def polls_view(request):
     session = get_active_session(session_id)
 
     if request.method == "GET":
+        # Public GET — clients need to see polls without login
         if not session:
             return JsonResponse([], safe=False)
         polls = Poll.objects.filter(session=session)
@@ -390,6 +495,10 @@ def polls_view(request):
         return JsonResponse(data, safe=False)
 
     elif request.method == "POST":
+        # Creating polls requires moderator access
+        auth_err = _require_moderator(request)
+        if auth_err:
+            return auth_err
         try:
             body = json.loads(request.body)
             question = sanitize_text(body.get("question", ""), max_len=500)
@@ -445,7 +554,8 @@ def polls_view(request):
                 "session_id": session.id,
             })
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            logger.error(f"polls_view POST error: {e}", exc_info=True)
+            return JsonResponse({"error": "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง"}, status=400)
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
@@ -471,6 +581,9 @@ def active_poll_view(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def activate_poll(request, poll_id):
+    auth_err = _require_moderator(request)
+    if auth_err:
+        return auth_err
     poll = Poll.objects.filter(id=poll_id).first()
     if not poll:
         return JsonResponse({"error": "Poll not found"}, status=404)
@@ -484,6 +597,9 @@ def activate_poll(request, poll_id):
 @csrf_exempt
 @require_http_methods(["POST"])
 def deactivate_poll(request, poll_id):
+    auth_err = _require_moderator(request)
+    if auth_err:
+        return auth_err
     Poll.objects.filter(id=poll_id).update(active=0)
     notify_update()
     return JsonResponse({"success": True})
@@ -491,6 +607,9 @@ def deactivate_poll(request, poll_id):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def delete_poll(request, poll_id):
+    auth_err = _require_moderator(request)
+    if auth_err:
+        return auth_err
     Poll.objects.filter(id=poll_id).delete()
     notify_update()
     return JsonResponse({"success": True})

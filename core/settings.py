@@ -3,11 +3,28 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-scquizz-secret-key-change-in-production'
+# ============================================================
+# Load .env file if present (production: set env vars in shell/systemd)
+# ============================================================
+_env_file = BASE_DIR / '.env'
+if _env_file.exists():
+    with open(_env_file) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, _, value = line.partition('=')
+                os.environ.setdefault(key.strip(), value.strip())
 
-DEBUG = True
+# ============================================================
+# Core Security Settings
+# ============================================================
+SECRET_KEY = os.environ['SECRET_KEY']  # Raises KeyError if missing — intentional
 
-ALLOWED_HOSTS = ['*']
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
+
+# Parse comma-separated ALLOWED_HOSTS from env
+_raw_hosts = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost')
+ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(',') if h.strip()]
 
 INSTALLED_APPS = [
     'daphne',
@@ -19,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core.apps.CoreConfig',
     'scquizz.apps.ScquizzConfig',
+    'mcmanager.apps.McmanagerConfig',
 ]
 
 MIDDLEWARE = [
@@ -30,6 +48,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'scquizz.middleware.RateLimitMiddleware',  # Rate Limiting via Redis
+    'core.middleware.RobotsHeaderMiddleware',  # X-Robots-Tag: noindex on all pages
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -58,11 +77,14 @@ WSGI_APPLICATION = 'core.wsgi.application'
 ASGI_APPLICATION = 'core.asgi.application'
 
 # --- Redis Channel Layer (WebSocket) ---
+_redis_host = os.environ.get('REDIS_HOST', '127.0.0.1')
+_redis_port = int(os.environ.get('REDIS_PORT', '6379'))
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [(_redis_host, _redis_port)],
         },
     }
 }
@@ -71,7 +93,7 @@ CHANNEL_LAYERS = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": f"redis://{_redis_host}:{_redis_port}/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -83,11 +105,11 @@ CACHES = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'webdc_db',
-        'USER': 'webdc',
-        'PASSWORD': 't_hcC7Jv3kNIpTMT8XgMJ3HZwO2OBG8C',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'NAME': os.environ.get('DB_NAME', 'webdc_db'),
+        'USER': os.environ.get('DB_USER', 'webdc'),
+        'PASSWORD': os.environ['DB_PASSWORD'],  # Raises KeyError if missing — intentional
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -157,11 +179,36 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
+# ============================================================
 # Security Headers
+# ============================================================
 SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'SAMEORIGIN'
+X_FRAME_OPTIONS = 'DENY'
 
-# --- Application Logging ---
+# Production-only security settings (skipped when DEBUG=True for local dev)
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+
+    # HTTPS redirect — disabled here because Cloudflare/reverse proxy handles it.
+    # Enabling this behind a proxy causes infinite redirect loops.
+    SECURE_SSL_REDIRECT = False
+
+    # HSTS: instruct browsers to only use HTTPS (1 year)
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    # Secure cookies — only sent over HTTPS
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
+
+# ============================================================
+# Application Logging
+# ============================================================
 LOG_DIR = Path('/var/log/django-app')
 
 LOGGING = {
@@ -188,6 +235,11 @@ LOGGING = {
         },
     },
     'loggers': {
+        'core': {
+            'handlers': ['console', 'scquizz_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'scquizz': {
             'handlers': ['console', 'scquizz_file'],
             'level': 'INFO',

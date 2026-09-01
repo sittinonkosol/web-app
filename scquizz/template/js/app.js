@@ -208,6 +208,7 @@
           <div class="admin-session-actions-grid" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             ${!isActive ? `<button class="btn btn-primary admin-session-btn" style="width:auto;padding:7px 14px;font-size:13px;background:linear-gradient(135deg, #10b981 0%, #059669 100%);border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 6px rgba(16,185,129,0.3);" onclick="activateSessionAPI('${s.id}')">ตั้งเป็น Active</button>` : ''}
             ${!isSelected ? `<button class="btn btn-ghost admin-session-btn" style="width:auto;padding:7px 14px;font-size:13px;border:1px solid #cbd5e1;border-radius:8px;" onclick="switchAdminSession('${s.id}')">ดูข้อมูล</button>` : ''}
+            <button class="btn btn-ghost admin-session-btn" style="width:auto;padding:7px 12px;font-size:13px;border:1px solid #cbd5e1;color:#1e293b;border-radius:8px;" onclick="openEditSessionModal('${s.id}')">✏️ แก้ไข</button>
             <button class="btn btn-ghost admin-session-btn" style="width:auto;padding:7px 12px;font-size:13px;border:1px solid #e0e7ff;color:#6366f1;border-radius:8px;" onclick="openRateLimitSettings('${s.id}', '${escapeHtml(s.title)}', ${s.rate_limit_per_minute || 10}, ${s.cooldown_seconds || 60})">ตั้งค่า Rate Limit</button>
             <button class="btn btn-ghost btn-danger-outline admin-session-btn" style="width:auto;padding:7px 12px;font-size:13px;border-radius:8px;" onclick="deleteSessionAPI('${s.id}', '${escapeHtml(s.title)}')">ลบ</button>
           </div>
@@ -215,6 +216,24 @@
       `;
     }).join('');
   }
+
+  window.openEditSessionModal = (sessionId) => {
+    const session = allSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    const modal = document.getElementById('edit-session-modal');
+    if (!modal) return;
+
+    document.getElementById('edit-session-id-input').value = session.id;
+    document.getElementById('edit-session-title-input').value = session.title || '';
+    document.getElementById('edit-session-desc-input').value = session.description || '';
+    document.getElementById('edit-session-rate-input').value = session.rate_limit_per_minute ?? 10;
+    document.getElementById('edit-session-cooldown-input').value = session.cooldown_seconds ?? 0;
+    document.getElementById('edit-session-active-input').checked = !!session.is_active;
+
+    modal.classList.remove('hidden');
+    document.getElementById('edit-session-title-input').focus();
+  };
 
   window.switchAdminSession = (sessionId) => {
     currentAdminSessionId = sessionId;
@@ -1951,6 +1970,79 @@
         } catch (err) {
           console.error(err);
           showToast(err.message || 'สร้าง Session ไม่สำเร็จ');
+        }
+      });
+    }
+  }
+
+  // Bind edit session modal
+  const editSessionModal = document.getElementById('edit-session-modal');
+  const closeEditSessionBtn = document.getElementById('close-edit-session-modal');
+  const cancelEditSessionBtn = document.getElementById('cancel-edit-session-btn');
+  const editSessionForm = document.getElementById('edit-session-form');
+
+  if (editSessionModal) {
+    const hideEditSessionModal = () => {
+      editSessionModal.classList.add('hidden');
+      if (editSessionForm) editSessionForm.reset();
+    };
+    if (closeEditSessionBtn) closeEditSessionBtn.addEventListener('click', hideEditSessionModal);
+    if (cancelEditSessionBtn) cancelEditSessionBtn.addEventListener('click', hideEditSessionModal);
+    editSessionModal.addEventListener('click', (e) => {
+      if (e.target === editSessionModal) hideEditSessionModal();
+    });
+
+    if (editSessionForm) {
+      editSessionForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const sessionId = document.getElementById('edit-session-id-input').value;
+        const title = document.getElementById('edit-session-title-input').value.trim();
+        const description = document.getElementById('edit-session-desc-input').value.trim();
+        const is_active = document.getElementById('edit-session-active-input').checked;
+        const rate_limit_per_minute = parseInt(document.getElementById('edit-session-rate-input').value, 10) || 0;
+        const cooldown_seconds = parseInt(document.getElementById('edit-session-cooldown-input').value, 10) || 0;
+
+        if (!title) {
+          showToast('กรุณาระบุชื่อ Session');
+          return;
+        }
+
+        const saveBtn = document.getElementById('save-edit-session-btn');
+        if (saveBtn) {
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'กำลังบันทึก...';
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/api/sessions/${sessionId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title,
+              description,
+              is_active,
+              rate_limit_per_minute,
+              cooldown_seconds
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to update session');
+
+          showToast('บันทึกการแก้ไข Session เรียบร้อย');
+          hideEditSessionModal();
+          await fetchSessions();
+          if (currentAdminSessionId === sessionId) {
+            fetchMessages();
+            fetchPolls();
+          }
+        } catch (err) {
+          console.error(err);
+          showToast(err.message || 'บันทึกการแก้ไขไม่สำเร็จ');
+        } finally {
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'บันทึกการแก้ไข';
+          }
         }
       });
     }

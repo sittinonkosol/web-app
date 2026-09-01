@@ -24,14 +24,27 @@ class RateLimitMiddleware:
     """
     Middleware จำกัดจำนวนการส่งข้อความต่อ IP ต่อนาที
     อ่านค่า rate_limit_per_minute จาก QuizSession ที่ Active
+    รวมถึงป้องกัน Brute Force บนหน้า Login ด้วย
     """
     RATE_LIMITED_PATHS = ['/api/messages']
+    # Login brute force: max 10 attempts/min per IP (fixed, not configurable)
+    LOGIN_PATHS = ['/login/', '/ict/scquizz/login']
+    LOGIN_LIMIT = 10
+    LOGIN_WINDOW = 60  # seconds
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        # ตรวจสอบเฉพาะ POST ที่เป็น messages endpoint
+        # --- Login brute force protection ---
+        if request.method == 'POST' and any(
+            request.path.rstrip('/') == p.rstrip('/') for p in self.LOGIN_PATHS
+        ):
+            response = self._check_login_rate_limit(request)
+            if response:
+                return response
+
+        # --- Message rate limiting ---
         if request.method == 'POST' and any(
             request.path.rstrip('/').endswith(p) for p in self.RATE_LIMITED_PATHS
         ):
@@ -39,6 +52,21 @@ class RateLimitMiddleware:
             if response:
                 return response
         return self.get_response(request)
+
+    def _check_login_rate_limit(self, request):
+        """Fixed rate limit for login: 10 POST attempts per minute per IP."""
+        ip = get_real_ip(request)
+        key = f'loginlimit:count:{ip}:{int(time.time() // self.LOGIN_WINDOW)}'
+        count = cache.get(key, 0)
+        if count >= self.LOGIN_LIMIT:
+            from django.http import HttpResponse
+            return HttpResponse(
+                'เกินจำนวนครั้งที่อนุญาต กรุณารอ 1 นาทีแล้วลองใหม่',
+                status=429,
+                content_type='text/plain; charset=utf-8'
+            )
+        cache.set(key, count + 1, timeout=self.LOGIN_WINDOW)
+        return None
 
     def _check_rate_limit(self, request):
         from scquizz.models import QuizSession
