@@ -1398,6 +1398,58 @@
         </div>
     </div>
 
+    <!-- APP ICON MODAL -->
+    <div class="modal-overlay" id="app-icon-modal">
+        <div class="modal-box" style="max-width: 480px;">
+            <div class="modal-header">
+                <h2 id="app-icon-modal-title">เปลี่ยนไอคอนแอป</h2>
+                <button class="modal-close" onclick="closeModal('app-icon-modal')">✕</button>
+            </div>
+            <form id="app-icon-form" onsubmit="saveAppIcon(event)">
+                <input type="hidden" id="app-icon-target-name">
+                <div class="modal-body">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; padding: 18px; background: rgba(0,0,0,0.25); border-radius: 14px; border: 1px solid var(--border);">
+                        <div id="app-icon-preview" style="width: 76px; height: 76px; border-radius: 18px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);">
+                            🚀
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-muted);">ตัวอย่างการแสดงผลไอคอน</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>เลือกหรือพิมพ์ไอคอน / อีโมจิ *</label>
+                        <input type="text" id="app-icon-input" class="form-control" maxlength="20" required placeholder="เช่น 🦆 หรือ 🚀 หรือ 🎮" oninput="updateIconPreview(this.value)" style="font-size: 20px; text-align: center;">
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">ไอคอนยอดนิยม (กดเลือกได้ทันที):</label>
+                        <div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px;">
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('🦆')">🦆</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('🚀')">🚀</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('🎮')">🎮</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('📱')">📱</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('📊')">📊</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('📝')">📝</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('🧩')">🧩</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('⚙️')">⚙️</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('🌐')">🌐</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('🔒')">🔒</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('📦')">📦</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('💻')">💻</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('🎨')">🎨</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('🎓')">🎓</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('⚡')">⚡</button>
+                            <button type="button" class="btn btn-ghost" style="padding: 6px; font-size: 20px; display: flex; align-items: center; justify-content: center;" onclick="selectIconPreset('🔍')">🔍</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('app-icon-modal')">ยกเลิก</button>
+                    <button type="submit" class="btn btn-primary" id="save-app-icon-btn">💾 บันทึกไอคอน</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Global State
         let allUsers = [];
@@ -1787,7 +1839,7 @@
                     <div class="app-manage-card" data-app="${a.app_name}">
                         <div class="app-card-top">
                             <div class="app-card-info">
-                                <div class="app-card-icon">${a.icon}</div>
+                                <div class="app-card-icon" style="cursor:pointer;" title="คลิกเพื่อเปลี่ยนไอคอน" onclick="openAppIconModal('${a.app_name}', '${escapeHtml(a.icon || '')}', '${escapeHtml(a.name)}')">${a.icon}</div>
                                 <div>
                                     <h3>${escapeHtml(a.name)}</h3>
                                     <div class="app-route mono">${a.url}</div>
@@ -1801,6 +1853,17 @@
                         <p style="font-size:13px; color:var(--text-muted); line-height:1.5;">${escapeHtml(a.description)}</p>
 
                         <div class="app-control-group">
+                            <div class="control-row">
+                                <div>
+                                    <strong>ไอคอนแอป (App Icon)</strong>
+                                    <div style="font-size:11.5px; color:var(--text-dim);">ไอคอนที่แสดงผลในหน้ารวมแอปและเมนู</div>
+                                </div>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="openAppIconModal('${a.app_name}', '${escapeHtml(a.icon || '')}', '${escapeHtml(a.name)}')" style="display:flex; align-items:center; gap:6px;">
+                                    <span style="font-size:18px;">${a.icon}</span>
+                                    <span>เปลี่ยนไอคอน ✎</span>
+                                </button>
+                            </div>
+
                             <div class="control-row">
                                 <div>
                                     <strong>การเปิดเป็นสาธารณะ (Public)</strong>
@@ -1835,6 +1898,49 @@
         }
 
         // --- App Settings Handlers ---
+        function openAppIconModal(appName, currentIcon, displayName) {
+            document.getElementById('app-icon-target-name').value = appName;
+            document.getElementById('app-icon-modal-title').textContent = `เปลี่ยนไอคอนแอป: ${displayName || appName}`;
+            document.getElementById('app-icon-input').value = currentIcon || '🚀';
+            updateIconPreview(currentIcon || '🚀');
+            openModal('app-icon-modal');
+        }
+
+        function selectIconPreset(icon) {
+            document.getElementById('app-icon-input').value = icon;
+            updateIconPreview(icon);
+        }
+
+        function updateIconPreview(icon) {
+            document.getElementById('app-icon-preview').textContent = icon || '🚀';
+        }
+
+        async function saveAppIcon(e) {
+            e.preventDefault();
+            const appName = document.getElementById('app-icon-target-name').value;
+            const newIcon = document.getElementById('app-icon-input').value.trim() || '🚀';
+            const btn = document.getElementById('save-app-icon-btn');
+            btn.disabled = true;
+            btn.textContent = 'กำลังบันทึก...';
+
+            try {
+                await safeFetchJson(`/api/admin/app-settings/${appName}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ icon: newIcon })
+                });
+                showToast(`เปลี่ยนไอคอนแอป "${appName}" เป็น ${newIcon} เรียบร้อยแล้ว`);
+                closeModal('app-icon-modal');
+                loadAllData();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'บันทึกไอคอนไม่สำเร็จ', true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 บันทึกไอคอน';
+            }
+        }
+
         async function updateAppPublic(appName, isPublic) {
             try {
                 await safeFetchJson(`/api/admin/app-settings/${appName}`, {
