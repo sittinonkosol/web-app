@@ -779,6 +779,90 @@
             color: var(--text-dim);
         }
         .empty-state span { font-size: 40px; display: block; margin-bottom: 12px; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .brand-text h1 { font-size: 14px; }
+            .brand-text span { font-size: 11px; }
+            .nav-actions {
+                width: 100%;
+                justify-content: space-between;
+                gap: 8px;
+            }
+            .user-pill {
+                flex: 1;
+                justify-content: center;
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            .nav-actions .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .container {
+                padding: 16px 12px 60px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(1, 1fr);
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+            .stat-card {
+                padding: 16px;
+            }
+            .tabs-header {
+                flex-wrap: nowrap;
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 6px;
+                justify-content: flex-start;
+                border: none;
+                background: transparent;
+            }
+            .tabs-header::-webkit-scrollbar {
+                height: 4px;
+            }
+            .tabs-header::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.15);
+                border-radius: 4px;
+            }
+            .hide-mobile {
+                display: none !important;
+            }
+            .tab-btn {
+                flex: 0 0 auto;
+                white-space: nowrap;
+                background: rgba(19, 27, 46, 0.6);
+                border: 1px solid var(--border);
+            }
+            .panel-header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 16px;
+            }
+            .panel-header > div {
+                width: 100%;
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+            .search-box {
+                flex: 1;
+                min-width: 100%;
+            }
+            .modal-box {
+                width: 92%;
+                margin: 20px auto;
+            }
+            th, td {
+                white-space: nowrap;
+            }
+        }
     </style>
 </head>
 <body>
@@ -789,16 +873,16 @@
             <div class="brand-logo">⚡</div>
             <div class="brand-text">
                 <h1>Central Management</h1>
-                <span>ระบบจัดการผู้ใช้ สิทธิ์ และการเข้าถึงแอป</span>
+                <span class="hide-mobile">ระบบจัดการผู้ใช้ สิทธิ์ และการเข้าถึงแอป</span>
             </div>
         </a>
         <div class="nav-actions">
             <div class="user-pill">
                 <span class="status-dot"></span>
-                <span>ผู้ดูแล: <strong>{{ user.username }}</strong></span>
+                <span><span class="hide-mobile">ผู้ดูแล: </span><strong>{{ user.username }}</strong></span>
             </div>
-            <a href="/" class="btn btn-ghost btn-sm">🚀 ไปหน้าหลัก</a>
-            <form method="POST" action="/logout/" style="display:inline;">{% csrf_token %}<input type="hidden" name="next" value="/login/"><button type="submit" class="btn btn-ghost btn-sm">🚪 ออกจากระบบ</button></form>
+            <a href="/" class="btn btn-ghost btn-sm">🚀 <span class="hide-mobile">ไปหน้าหลัก</span></a>
+            <form method="POST" action="/logout/" style="display:inline;">{% csrf_token %}<input type="hidden" name="next" value="/login/"><button type="submit" class="btn btn-ghost btn-sm">🚪 <span class="hide-mobile">ออกจากระบบ</span></button></form>
         </div>
     </header>
 
@@ -810,14 +894,14 @@
                     <div class="stat-label">ผู้ใช้งานทั้งหมด</div>
                     <div class="stat-value" id="stat-total-users">0</div>
                 </div>
-                <div class="stat-icon"></div>
+                <div class="stat-icon">👥</div>
             </div>
             <div class="stat-card">
                 <div class="stat-info">
                     <div class="stat-label">กลุ่มผู้ใช้ (Groups)</div>
                     <div class="stat-value" id="stat-total-groups">0</div>
                 </div>
-                <div class="stat-icon"></div>
+                <div class="stat-icon">🏷️</div>
             </div>
             <div class="stat-card">
                 <div class="stat-info">
@@ -831,7 +915,7 @@
                     <div class="stat-label">แอปที่เป็น Public</div>
                     <div class="stat-value" id="stat-public-apps">0</div>
                 </div>
-                <div class="stat-icon"></div>
+                <div class="stat-icon">🌐</div>
             </div>
         </div>
 
@@ -1416,6 +1500,21 @@
             }
         }
 
+        function toggleGroupPerms(groupId) {
+            const hiddenBox = document.getElementById(`perms-hidden-${groupId}`);
+            const btn = document.getElementById(`perms-btn-${groupId}`);
+            if (!hiddenBox) return;
+            const isHidden = hiddenBox.classList.contains('hidden');
+            if (isHidden) {
+                hiddenBox.classList.remove('hidden');
+                if (btn) btn.innerHTML = '▲ ซ่อนแอปที่ไม่ได้ตั้งค่า';
+            } else {
+                hiddenBox.classList.add('hidden');
+                const count = hiddenBox.getAttribute('data-count') || '';
+                if (btn) btn.innerHTML = `+${count} แอป (ไม่ได้ตั้งค่า)`;
+            }
+        }
+
         function renderGroupsTable() {
             const tbody = document.getElementById('groups-table-body');
             if (allGroups.length === 0) {
@@ -1449,17 +1548,43 @@
                     `;
                 }
 
-                let permsHtml = '';
+                let visiblePerms = [];
+                let hiddenPerms = [];
+
                 allApps.forEach(a => {
-                    const role = g.app_permissions[a.app_name] || 'viewer';
-                    let roleClass = 'role-viewer';
-                    let roleLabel = 'Viewer';
+                    const role = g.app_permissions[a.app_name] || 'none';
+                    let roleClass = 'role-none';
+                    let roleLabel = 'ไม่มีสิทธิ์';
                     if (role === 'admin') { roleClass = 'role-admin'; roleLabel = 'Admin'; }
                     else if (role === 'moderator') { roleClass = 'role-moderator'; roleLabel = 'Moderator'; }
-                    else if (role === 'none') { roleClass = 'role-none'; roleLabel = 'No Access'; }
+                    else if (role === 'viewer') { roleClass = 'role-viewer'; roleLabel = 'Viewer'; }
 
-                    permsHtml += `<span class="role-pill ${roleClass}">${a.icon} ${a.name}: ${roleLabel}</span>`;
+                    const pillHtml = `<span class="role-pill ${roleClass}">${a.icon} ${a.name}: ${roleLabel}</span>`;
+                    
+                    if (role === 'none') {
+                        hiddenPerms.push(pillHtml);
+                    } else {
+                        visiblePerms.push(pillHtml);
+                    }
                 });
+
+                let permsHtml = `<div class="members-cell-wrapper"><div class="members-pill-box">${visiblePerms.join('')}`;
+                
+                if (hiddenPerms.length > 0) {
+                    permsHtml += `
+                            <span class="badge-members-more" id="perms-btn-${g.id}" onclick="toggleGroupPerms(${g.id})">+${hiddenPerms.length} แอป (ไม่ได้ตั้งค่า)</span>
+                        </div>
+                        <div class="members-scrollbox hidden" id="perms-hidden-${g.id}" data-count="${hiddenPerms.length}">
+                            ${hiddenPerms.join('')}
+                        </div>
+                    </div>`;
+                } else {
+                    permsHtml += `</div></div>`;
+                }
+
+                if (visiblePerms.length === 0 && hiddenPerms.length === 0) {
+                    permsHtml = '<span style="color:var(--text-dim); font-size:12px;">ไม่ได้กำหนดสิทธิ์</span>';
+                }
 
                 return `
                     <tr>
