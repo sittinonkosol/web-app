@@ -741,3 +741,194 @@ def get_tunnel_ping(domain="jakarta-baghdad.tun.ply.gg"):
         pass
     return None
 
+def get_player_entity_data(player_name, host='127.0.0.1', port=25575, password='', server_path='/wdc/PaperMC'):
+    """
+    Fetch comprehensive real-time Entity properties / NBT for a player via RCON 'data get entity'
+    or fallback to offline playerdata .dat file.
+    """
+    import nbtlib
+
+    def _nbt_to_dict(obj):
+        if isinstance(obj, dict):
+            return {str(k): _nbt_to_dict(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [_nbt_to_dict(item) for item in obj]
+        elif hasattr(obj, 'tolist'):
+            return [_nbt_to_dict(item) for item in obj.tolist()]
+        elif type(obj).__name__ == 'ndarray':
+            return [_nbt_to_dict(item) for item in obj.tolist()]
+        elif hasattr(obj, 'unpack'):
+            val = obj.unpack()
+            if isinstance(val, (dict, list)) or hasattr(val, 'tolist') or type(val).__name__ == 'ndarray':
+                return _nbt_to_dict(val)
+            return val
+        elif isinstance(obj, (int, float, str, bool)):
+            return obj
+        return str(obj)
+
+    is_online = False
+    raw_nbt = {}
+    raw_snbt = ""
+    source = "none"
+
+    def _query_rcon_prop(prop):
+        if not password:
+            return None
+        r = send_rcon_command(f"data get entity {player_name} {prop}", host=host, port=port, password=password)
+        idx = r.find("has the following entity data: ")
+        if idx != -1:
+            raw = r[idx + len("has the following entity data: "):].strip()
+            try:
+                return _nbt_to_dict(nbtlib.parse_nbt(raw))
+            except Exception:
+                return raw
+        return None
+
+    # 1. Try Live RCON 'data get entity <player_name>'
+    if password:
+        resp = send_rcon_command(f"data get entity {player_name}", host=host, port=port, password=password)
+        if resp and "has the following entity data:" in resp:
+            is_online = True
+            source = "rcon_live"
+            
+            # Fetch targeted live properties to prevent Minecraft truncation issues
+            live_props = [
+                'Pos', 'Rotation', 'Motion', 'Health', 'foodLevel', 'foodSaturationLevel', 
+                'XpLevel', 'XpP', 'XpTotal', 'Air', 'Dimension', 'playerGameType', 
+                'abilities', 'Inventory', 'EnderItems', 'ActiveEffects', 'attributes', 'UUID', 'Score'
+            ]
+            for prop in live_props:
+                val = _query_rcon_prop(prop)
+                if val is not None:
+                    raw_nbt[prop] = val
+
+            import json as _j
+            raw_snbt = _j.dumps(raw_nbt, indent=2)
+
+    # 2. If not online or RCON didn't return data, try offline .dat or .dat_old files
+    if not raw_nbt:
+        # Find UUID in usercache.json
+        usercache_path = os.path.join(server_path, 'usercache.json')
+        p_uuid = None
+        if os.path.exists(usercache_path):
+            try:
+                with open(usercache_path, 'r', encoding='utf-8') as f:
+                    cache = json.load(f)
+                    for entry in cache:
+                        if entry.get('name', '').lower() == player_name.lower():
+                            p_uuid = entry.get('uuid')
+                            break
+            except Exception:
+                pass
+        
+        if not p_uuid:
+            import uuid as _uuid_mod
+            p_uuid = str(_uuid_mod.uuid3(_uuid_mod.NAMESPACE_DNS, f"OfflinePlayer:{player_name}"))
+        
+        if p_uuid:
+            # Possible locations for player .dat / .dat_old
+            candidates = [
+                os.path.join(server_path, 'world', 'players', 'data', f"{p_uuid}.dat"),
+                os.path.join(server_path, 'world', 'players', 'data', f"{p_uuid}.dat_old"),
+                os.path.join(server_path, 'world', 'playerdata', f"{p_uuid}.dat"),
+                os.path.join(server_path, 'world', 'playerdata', f"{p_uuid}.dat_old"),
+                os.path.join(server_path, 'world', 'data', f"{p_uuid}.dat"),
+            ]
+            for cpath in candidates:
+                if os.path.exists(cpath):
+                    try:
+                        nbt_file = nbtlib.load(cpath)
+                        fallback_nbt = _nbt_to_dict(nbt_file)
+                        raw_nbt = fallback_nbt
+                        raw_snbt = str(nbt_file)
+                        source = "offline_file"
+                        break
+                    except Exception:
+                        pass
+
+    if not raw_nbt:
+        return {
+            "success": False,
+            "player": player_name,
+            "is_online": is_online,
+            "error": f"Player '{player_name}' is currently offline. Real-time Entity Properties (NBT) will be actively reported when the player joins the game."
+        }    # Extract structured summaries
+    pos = raw_nbt.get('Pos', [0.0, 0.0, 0.0])
+    if not isinstance(pos, (list, tuple)):
+        pos = [0.0, 0.0, 0.0]
+    
+    rot = raw_nbt.get('Rotation', [0.0, 0.0])
+    if not isinstance(rot, (list, tuple)):
+        rot = [0.0, 0.0]
+        
+    motion = raw_nbt.get('Motion', [0.0, 0.0, 0.0])
+    if not isinstance(motion, (list, tuple)):
+        motion = [0.0, 0.0, 0.0]
+        
+    abilities = raw_nbt.get('abilities', {})
+    if not isinstance(abilities, dict):
+        abilities = {}
+    
+    gamemode_map = {0: "Survival", 1: "Creative", 2: "Adventure", 3: "Spectator"}
+    raw_gm = raw_nbt.get('playerGameType', 0)
+    if isinstance(raw_gm, (int, float)):
+        raw_gm = int(raw_gm)
+    else:
+        raw_gm = 0
+    
+    dimension_clean = raw_nbt.get('Dimension', 'minecraft:overworld')
+    if isinstance(dimension_clean, str) and ':' in dimension_clean:
+        dimension_clean = dimension_clean.split(':')[-1].replace('_', ' ').title()
+
+    summary = {
+        "player_name": player_name,
+        "is_online": is_online,
+        "source": source,
+        "dimension": dimension_clean,
+        "pos": {
+            "x": round(float(pos[0]), 2) if len(pos) > 0 else 0.0,
+            "y": round(float(pos[1]), 2) if len(pos) > 1 else 0.0,
+            "z": round(float(pos[2]), 2) if len(pos) > 2 else 0.0,
+        },
+        "rotation": {
+            "yaw": round(float(rot[0]), 1) if len(rot) > 0 else 0.0,
+            "pitch": round(float(rot[1]), 1) if len(rot) > 1 else 0.0,
+        },
+        "motion": [round(float(m), 4) for m in motion if isinstance(m, (int, float))],
+        "health": round(float(raw_nbt.get('Health', 20.0)), 1) if isinstance(raw_nbt.get('Health'), (int, float)) else 20.0,
+        "absorption": round(float(raw_nbt.get('AbsorptionAmount', 0.0)), 1) if isinstance(raw_nbt.get('AbsorptionAmount'), (int, float)) else 0.0,
+        "food_level": int(raw_nbt.get('foodLevel', 20)) if isinstance(raw_nbt.get('foodLevel'), (int, float)) else 20,
+        "food_saturation": round(float(raw_nbt.get('foodSaturationLevel', 5.0)), 1) if isinstance(raw_nbt.get('foodSaturationLevel'), (int, float)) else 5.0,
+        "food_exhaustion": round(float(raw_nbt.get('foodExhaustionLevel', 0.0)), 2) if isinstance(raw_nbt.get('foodExhaustionLevel'), (int, float)) else 0.0,
+        "air": int(raw_nbt.get('Air', 300)) if isinstance(raw_nbt.get('Air'), (int, float)) else 300,
+        "xp_level": int(raw_nbt.get('XpLevel', 0)) if isinstance(raw_nbt.get('XpLevel'), (int, float)) else 0,
+        "xp_progress": round(float(raw_nbt.get('XpP', 0.0)) * 100, 1) if isinstance(raw_nbt.get('XpP'), (int, float)) else 0.0,
+        "xp_total": int(raw_nbt.get('XpTotal', 0)) if isinstance(raw_nbt.get('XpTotal'), (int, float)) else 0,
+        "gamemode": gamemode_map.get(raw_gm, "Survival"),
+        "flying": bool(abilities.get('flying', 0)),
+        "mayfly": bool(abilities.get('mayfly', 0)),
+        "invulnerable": bool(abilities.get('invulnerable', 0) or raw_nbt.get('Invulnerable', 0)),
+        "instabuild": bool(abilities.get('instabuild', 0)),
+        "walk_speed": round(float(abilities.get('walkSpeed', 0.1)), 3) if isinstance(abilities.get('walkSpeed'), (int, float)) else 0.1,
+        "fly_speed": round(float(abilities.get('flySpeed', 0.05)), 3) if isinstance(abilities.get('flySpeed'), (int, float)) else 0.05,
+        "score": int(raw_nbt.get('Score', 0)) if isinstance(raw_nbt.get('Score'), (int, float)) else 0,
+        "fire_ticks": int(raw_nbt.get('Fire', -20)) if isinstance(raw_nbt.get('Fire'), (int, float)) else -20,
+        "fall_distance": round(float(raw_nbt.get('FallDistance', 0.0)), 1) if isinstance(raw_nbt.get('FallDistance'), (int, float)) else 0.0,
+        "on_ground": bool(raw_nbt.get('OnGround', 1)),
+        "selected_item_slot": int(raw_nbt.get('SelectedItemSlot', 0)) if isinstance(raw_nbt.get('SelectedItemSlot'), (int, float)) else 0,
+        "inventory": raw_nbt.get('Inventory', []) if isinstance(raw_nbt.get('Inventory'), list) else [],
+        "ender_items": raw_nbt.get('EnderItems', []) if isinstance(raw_nbt.get('EnderItems'), list) else [],
+        "active_effects": (raw_nbt.get('active_effects', []) or raw_nbt.get('ActiveEffects', [])) if isinstance(raw_nbt.get('active_effects') or raw_nbt.get('ActiveEffects'), list) else [],
+        "attributes": (raw_nbt.get('attributes', []) or raw_nbt.get('Attributes', [])) if isinstance(raw_nbt.get('attributes') or raw_nbt.get('Attributes'), list) else [],
+    }
+
+    return {
+        "success": True,
+        "player": player_name,
+        "is_online": is_online,
+        "source": source,
+        "summary": summary,
+        "raw_nbt": raw_nbt,
+        "raw_snbt": raw_snbt
+    }
+

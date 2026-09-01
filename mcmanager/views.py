@@ -33,6 +33,7 @@ from .utils import (
     get_network_bandwidth,
     get_tunnel_ping,
     query_minecraft_slp,
+    get_player_entity_data,
 )
 
 @require_app_access('mcmanager', 'viewer')
@@ -73,10 +74,20 @@ def api_server_status(request):
     net_stats = get_network_bandwidth()
     
     slp_data = query_minecraft_slp(port=25565) if mc_status else {}
+    is_ready = bool(slp_data and 'version' in slp_data)
     players_info = slp_data.get('players', {})
+    
+    if not mc_status:
+        server_state = "offline"
+    elif not is_ready:
+        server_state = "init"
+    else:
+        server_state = "online"
     
     return JsonResponse({
         "papermc_running": mc_status,
+        "papermc_ready": is_ready,
+        "server_state": server_state,
         "playit_running": playit_status,
         "playit_domain": "jakarta-baghdad.tun.ply.gg",
         "ping_ms": ping_ms,
@@ -265,6 +276,46 @@ def api_players(request):
             return JsonResponse({"success": False, "error": msg}, status=400)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
+
+@require_http_methods(["GET"])
+@require_app_access('mcmanager', 'viewer')
+def api_player_entity_data(request):
+    try:
+        player_name = request.GET.get('player', '').strip()
+        if not player_name:
+            return JsonResponse({"success": False, "error": "Player name parameter is required"})
+        
+        settings = ServerSetting.get_settings()
+        data = get_player_entity_data(
+            player_name, 
+            host='127.0.0.1', 
+            port=settings.rcon_port, 
+            password=settings.rcon_password, 
+            server_path=settings.server_path
+        )
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({"success": False, "error": f"Entity fetch error: {str(e)}"})
+
+ITEM_ICONS_DIR = os.path.join(os.path.dirname(__file__), 'templates', 'mcmanager', 'Minecraft_Item')
+
+@require_http_methods(["GET"])
+def api_item_icon(request, item_name):
+    """Serve Minecraft item PNG icons dynamically."""
+    from django.http import FileResponse, Http404
+    clean_name = item_name.replace('minecraft:', '').strip().lower()
+    if clean_name.endswith('.png'):
+        clean_name = clean_name[:-4]
+    
+    file_path = os.path.join(ITEM_ICONS_DIR, f"{clean_name}.png")
+    if os.path.isfile(file_path):
+        return FileResponse(open(file_path, 'rb'), content_type='image/png')
+    
+    # Fallback to barrier if not found
+    fallback_path = os.path.join(ITEM_ICONS_DIR, 'barrier.png')
+    if os.path.isfile(fallback_path):
+        return FileResponse(open(fallback_path, 'rb'), content_type='image/png')
+    raise Http404("Item icon not found")
 
 # ============================================================
 # File Manager API

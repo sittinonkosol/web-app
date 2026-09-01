@@ -10,9 +10,11 @@ urlpatterns = [
     
     # Advanced Features
     path('api/players', views.api_players, name='api_mc_players'),
+    path('api/player/entity-data', views.api_player_entity_data, name='api_mc_player_entity_data'),
     path('api/files', views.api_files, name='api_mc_files'),
     path('api/backups', views.api_backups, name='api_mc_backups'),
     path('api/backups/download/<str:filename>', views.api_download_backup, name='api_mc_download_backup'),
     path('api/logs/download', views.api_download_log, name='api_mc_download_log'),
     path('api/logs/clear', views.api_clear_log, name='api_mc_clear_log'),
+    path('items/<str:item_name>.png', views.api_item_icon, name='mc_item_icon'),
 ]

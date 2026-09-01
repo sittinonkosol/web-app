@@ -167,34 +167,74 @@ class ConsoleConsumer(AsyncWebsocketConsumer):
         while not os.path.exists(log_path):
             await asyncio.sleep(2)
 
-        try:
-            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
-                f.seek(0, os.SEEK_END)
-                last_pos = f.tell()
+        f = None
+        current_inode = None
+        last_pos = 0
 
-                while True:
-                    if os.path.exists(log_path):
-                        current_size = os.path.getsize(log_path)
-                        if current_size < last_pos:
-                            # Log file was truncated or server restarted
+        try:
+            while True:
+                if not os.path.exists(log_path):
+                    if f:
+                        try:
+                            f.close()
+                        except Exception:
+                            pass
+                        f = None
+                    await asyncio.sleep(1)
+                    continue
+
+                try:
+                    stat = os.stat(log_path)
+                except OSError:
+                    await asyncio.sleep(0.5)
+                    continue
+
+                # If file not opened yet, or log file was rotated/recreated (inode changed)
+                if f is None or stat.st_ino != current_inode:
+                    if f:
+                        try:
+                            f.close()
+                        except Exception:
+                            pass
+                    try:
+                        f = open(log_path, 'r', encoding='utf-8', errors='ignore')
+                        is_initial_open = (current_inode is None)
+                        current_inode = stat.st_ino
+
+                        if is_initial_open:
+                            # Start tailing from current end of file (initial buffer was already sent)
+                            f.seek(0, os.SEEK_END)
+                            last_pos = f.tell()
+                        else:
+                            # Server restarted and created a fresh log file: read from start
                             f.seek(0, os.SEEK_SET)
                             last_pos = 0
+                    except Exception:
+                        f = None
+                        await asyncio.sleep(0.5)
+                        continue
 
-                        new_data = f.read()
-                        if new_data:
-                            last_pos = f.tell()
-                            lines = [
-                                line for line in new_data.split('\n')
-                                if 'Thread RCON Client' not in line
-                            ]
-                            filtered_new = '\n'.join(lines).strip()
-                            if filtered_new:
-                                await self.send(text_data=json.dumps({
-                                    "type": "console_message",
-                                    "message": filtered_new + '\n'
-                                }))
+                # If file was truncated in place
+                if stat.st_size < last_pos:
+                    f.seek(0, os.SEEK_SET)
+                    last_pos = 0
 
-                    await asyncio.sleep(0.3)
+                new_data = f.read()
+                if new_data:
+                    last_pos = f.tell()
+                    lines = [
+                        line for line in new_data.split('\n')
+                        if 'Thread RCON Client' not in line
+                    ]
+                    filtered_new = '\n'.join(lines).strip()
+                    if filtered_new:
+                        await self.send(text_data=json.dumps({
+                            "type": "console_message",
+                            "message": filtered_new + '\n'
+                        }))
+
+                await asyncio.sleep(0.3)
+
         except asyncio.CancelledError:
             pass
         except Exception as e:
@@ -205,6 +245,12 @@ class ConsoleConsumer(AsyncWebsocketConsumer):
                 }))
             except Exception:
                 pass
+        finally:
+            if f:
+                try:
+                    f.close()
+                except Exception:
+                    pass
 
 # Backward compatibility alias
 LogConsumer = ConsoleConsumer

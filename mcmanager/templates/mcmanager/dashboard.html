@@ -120,6 +120,15 @@
         .status-dot.online { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
         .status-dot.offline { background: var(--danger); }
         .status-dot.warn { background: var(--warn); }
+        @keyframes pulse-init {
+            0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 6px var(--warn); }
+            50% { transform: scale(1.3); opacity: 0.6; box-shadow: 0 0 14px var(--warn); }
+        }
+        .status-dot.init {
+            background: #fde047;
+            box-shadow: 0 0 10px #fde047;
+            animation: pulse-init 1.2s infinite ease-in-out;
+        }
 
         .badge {
             display: inline-flex;
@@ -162,6 +171,7 @@
         .btn-warn { background: rgba(234, 179, 8, 0.15); border-color: rgba(234, 179, 8, 0.4); color: #fde047; }
         .btn-warn:hover { background: rgba(234, 179, 8, 0.25); }
         .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+        .btn:disabled, .btn[disabled] { opacity: 0.35; cursor: not-allowed !important; pointer-events: none; transform: none !important; box-shadow: none !important; filter: grayscale(0.5); }
 
         /* Nav Tabs */
         .nav-tabs {
@@ -624,6 +634,170 @@
             margin: 4px 0;
         }
 
+        /* Entity Properties Modal Styles */
+        .entity-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .entity-stat-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .entity-stat-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .entity-stat-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-top: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .entity-meter {
+            height: 5px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 4px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .entity-meter-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        .entity-tab-nav {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 14px;
+            padding-bottom: 2px;
+            flex-wrap: wrap;
+        }
+        .entity-tab-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            color: var(--text-dim);
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .entity-tab-btn:hover {
+            color: var(--text-main);
+            background: var(--surface-hover);
+        }
+        .entity-tab-btn.active {
+            background: rgba(74, 222, 128, 0.12);
+            color: var(--grass-400);
+            border-color: rgba(74, 222, 128, 0.25);
+        }
+        .mc-inv-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 5px;
+        }
+        .mc-inv-slot {
+            aspect-ratio: 1/1;
+            background: #0f1219;
+            border: 1.5px solid #232a3b;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            padding: 3px;
+        }
+        .mc-inv-slot:hover {
+            border-color: var(--grass-400);
+            background: #192030;
+            z-index: 2;
+            transform: scale(1.04);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .mc-inv-slot.has-item {
+            border-color: rgba(255,255,255,0.22);
+            background: #131822;
+        }
+        .mc-inv-icon {
+            width: 32px;
+            height: 32px;
+            image-rendering: pixelated;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+            transition: transform 0.15s ease;
+            pointer-events: none;
+        }
+        .mc-inv-slot:hover .mc-inv-icon {
+            transform: scale(1.15);
+        }
+        .mc-inv-count {
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
+            pointer-events: none;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .mc-inv-name {
+            font-size: 9.5px;
+            color: var(--text-soft);
+            text-align: center;
+            padding: 2px 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        .mc-effect-badge {
+            background: rgba(168, 85, 247, 0.12);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            color: #c084fc;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .nbt-raw-box {
+            background: #080a0f;
+            border: 1px solid var(--line-strong);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #86efac;
+            max-height: 380px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+
         /* Property Card & Desktop Hover Tooltip */
         .prop-card {
             position: relative;
@@ -732,9 +906,9 @@
                 </div>
 
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="btn btn-primary" onclick="controlAction('papermc', 'start')">Start</button>
-                    <button class="btn btn-danger" onclick="controlAction('papermc', 'stop')">Stop</button>
-                    <button class="btn btn-warn" onclick="controlAction('papermc', 'restart')">Restart</button>
+                    <button id="btn-server-start" class="btn btn-primary" onclick="controlAction('papermc', 'start')">Start</button>
+                    <button id="btn-server-stop" class="btn btn-danger" onclick="controlAction('papermc', 'stop')">Stop</button>
+                    <button id="btn-server-restart" class="btn btn-warn" onclick="controlAction('papermc', 'restart')">Restart</button>
                     <a href="/" class="btn" style="color: var(--text-dim);">Main Menu</a>
                 </div>
             </div>
@@ -786,9 +960,9 @@
                         <p style="color: var(--text-dim); font-size: 12.5px; margin: 2px 0 0;">Dedicated game proxy routing external traffic into local port 25565</p>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-sm btn-primary" onclick="controlAction('playit', 'start')">Start Tunnel</button>
-                        <button class="btn btn-sm btn-danger" onclick="controlAction('playit', 'stop')">Stop Tunnel</button>
-                        <button class="btn btn-sm btn-warn" onclick="controlAction('playit', 'restart')">Restart Tunnel</button>
+                        <button id="btn-playit-start" class="btn btn-sm btn-primary" onclick="controlAction('playit', 'start')">Start Tunnel</button>
+                        <button id="btn-playit-stop" class="btn btn-sm btn-danger" onclick="controlAction('playit', 'stop')">Stop Tunnel</button>
+                        <button id="btn-playit-restart" class="btn btn-sm btn-warn" onclick="controlAction('playit', 'restart')">Restart Tunnel</button>
                     </div>
                 </div>
 
@@ -1119,6 +1293,190 @@
         </div>
     </div>
 
+    <!-- Strict Type-to-Confirm Modal (for DELETE confirmation) -->
+    <div class="modal-overlay" id="modal-prompt-confirm">
+        <div class="modal-card" style="max-width: 490px; border-left: 4px solid var(--danger);">
+            <div class="modal-header">
+                <h3 style="margin:0; font-size:16px; color: #fca5a5; display: flex; align-items: center; gap: 8px;" id="prompt-confirm-title">
+                    ⚠️ Critical Action Confirmation
+                </h3>
+                <button class="btn btn-sm" onclick="closePromptConfirmModal(false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="prompt-confirm-message" style="margin:0 0 14px; font-size:14px; line-height:1.6; color:var(--text-soft); white-space: pre-line;"></p>
+                <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px;">
+                    <div style="font-size: 12.5px; color: var(--text-dim); margin-bottom: 6px;">
+                        To proceed, please type <b style="color: #f87171; font-family: 'JetBrains Mono', monospace;" id="prompt-confirm-badge">DELETE</b> in the box below:
+                    </div>
+                    <input type="text" id="prompt-confirm-input" placeholder="Type DELETE to confirm" style="font-family: 'JetBrains Mono', monospace; font-weight: 600; letter-spacing: 1px; border-color: rgba(239, 68, 68, 0.4); width: 100%; box-sizing: border-box;" autocomplete="off">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closePromptConfirmModal(false)">Cancel</button>
+                <button class="btn btn-danger" id="prompt-confirm-ok-btn" onclick="closePromptConfirmModal(true)" disabled>Delete & Reset World</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-time Player Entity Properties Modal -->
+    <div class="modal-overlay" id="modal-player-entity">
+        <div class="modal-card" style="max-width: 840px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="background: #11141c; padding: 14px 20px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img id="entity-modal-avatar" src="https://mc-heads.net/avatar/Steve/36" width="36" height="36" style="border-radius: 6px; background: #000;" onerror="this.src='https://mc-heads.net/avatar/Steve/36'">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <h3 style="margin: 0; font-size: 16px; font-family: 'JetBrains Mono', monospace;" id="entity-modal-player-name">Player</h3>
+                            <span id="entity-modal-status-badge" class="badge badge-ok"><span class="status-dot online"></span> Online</span>
+                            <span id="entity-modal-dim-badge" class="badge badge-info">Overworld</span>
+                            <span id="entity-modal-gm-badge" class="badge" style="background: rgba(255,255,255,0.08); color: var(--text-soft);">Survival</span>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;" id="entity-modal-source-text">
+                            Source: Live RCON Entity NBT
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <label style="display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--text-dim); cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="entity-auto-refresh-chk" checked onchange="toggleEntityAutoRefresh(this)">
+                        Live (2s)
+                    </label>
+                    <button class="btn btn-sm" onclick="refreshCurrentEntityData()" title="Refresh now">🔄</button>
+                    <button class="btn btn-sm" onclick="closeEntityPropertiesModal()">✕</button>
+                </div>
+            </div>
+
+            <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 16px 20px;">
+                <!-- Tab Selector -->
+                <div class="entity-tab-nav">
+                    <button class="entity-tab-btn active" id="btn-tab-ent-overview" onclick="switchEntityTab('overview')">📊 Vitals & Overview</button>
+                    <button class="entity-tab-btn" id="btn-tab-ent-inventory" onclick="switchEntityTab('inventory')">🎒 Inventory & Equipment</button>
+                    <button class="entity-tab-btn" id="btn-tab-ent-effects" onclick="switchEntityTab('effects')">🧪 Effects & Attributes</button>
+                    <button class="entity-tab-btn" id="btn-tab-ent-raw" onclick="switchEntityTab('raw')">🔍 Raw NBT (JSON)</button>
+                </div>
+
+                <!-- Entity Tab 1: Vitals & Overview -->
+                <div id="entity-subtab-overview" class="entity-subtab-content">
+                    <div class="entity-stat-grid">
+                        <div class="entity-stat-card">
+                            <div class="entity-stat-label"><span>Health</span> <span>❤️</span></div>
+                            <div class="entity-stat-value" id="entity-val-health">20.0 / 20.0</div>
+                            <div class="entity-meter"><div class="entity-meter-fill" id="entity-bar-health" style="width: 100%; background: #ef4444;"></div></div>
+                        </div>
+                        <div class="entity-stat-card">
+                            <div class="entity-stat-label"><span>Food & Saturation</span> <span>🍗</span></div>
+                            <div class="entity-stat-value" id="entity-val-food">20 (5.0 sat)</div>
+                            <div class="entity-meter"><div class="entity-meter-fill" id="entity-bar-food" style="width: 100%; background: #f97316;"></div></div>
+                        </div>
+                        <div class="entity-stat-card">
+                            <div class="entity-stat-label"><span>Experience</span> <span>✨</span></div>
+                            <div class="entity-stat-value" id="entity-val-xp">Lvl 0 (0%)</div>
+                            <div class="entity-meter"><div class="entity-meter-fill" id="entity-bar-xp" style="width: 0%; background: #22c55e;"></div></div>
+                        </div>
+                        <div class="entity-stat-card">
+                            <div class="entity-stat-label"><span>Oxygen Air</span> <span>🫧</span></div>
+                            <div class="entity-stat-value" id="entity-val-air">300 / 300</div>
+                            <div class="entity-meter"><div class="entity-meter-fill" id="entity-bar-air" style="width: 100%; background: #38bdf8;"></div></div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                        <!-- Location & Coordinates Card -->
+                        <div class="entity-stat-card">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span style="font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase;">Coordinates & Position</span>
+                                <button class="btn btn-sm" onclick="copyEntityCoordinates()" style="padding: 2px 8px; font-size: 11px;">Copy Pos</button>
+                            </div>
+                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 13.5px; color: var(--grass-400); font-weight: 600;" id="entity-val-pos">
+                                X: 0.00 | Y: 0.00 | Z: 0.00
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-soft); margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap;" id="entity-val-rot">
+                                <span>Yaw: 0.0°</span> <span>Pitch: 0.0°</span> <span>Fall: 0.0m</span>
+                            </div>
+                        </div>
+
+                        <!-- Player Abilities & State Card -->
+                        <div class="entity-stat-card">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px;">Abilities & Status</div>
+                            <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="entity-badges-abilities">
+                                <span class="badge" style="background: rgba(255,255,255,0.06);">Walking (0.1)</span>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-dim); margin-top: 8px;" id="entity-val-motion">
+                                Motion: [0, 0, 0] | On Ground: Yes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Entity Tab 2: Inventory & Equipment -->
+                <div id="entity-subtab-inventory" class="entity-subtab-content" style="display: none;">
+                    <div style="margin-bottom: 14px;">
+                        <div style="font-size: 11.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;">Equipped Armor & Hands</div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;" id="entity-equipment-slots">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 14px;">
+                        <div style="font-size: 11.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;">Main Inventory (Slots 0-35)</div>
+                        <div class="mc-inv-grid" id="entity-inv-grid">
+                            <!-- 36 Slots Populated via JS -->
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="font-size: 11.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;">Ender Chest (27 Slots)</div>
+                        <div class="mc-inv-grid" id="entity-ender-grid">
+                            <!-- 27 Slots Populated via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Entity Tab 3: Effects & Attributes -->
+                <div id="entity-subtab-effects" class="entity-subtab-content" style="display: none;">
+                    <div style="margin-bottom: 16px;">
+                        <div style="font-size: 11.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;">Active Potion Effects</div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="entity-effects-list">
+                            <span style="color: var(--text-dim); font-size: 13px;">No active potion effects.</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="font-size: 11.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;">Entity Attributes</div>
+                        <div class="table-wrap">
+                            <table class="msm-table" style="font-size: 12.5px;">
+                                <thead>
+                                    <tr>
+                                        <th>Attribute Name</th>
+                                        <th>Base Value</th>
+                                        <th>Modifiers / Extra</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="entity-attributes-tbody">
+                                    <tr><td colspan="3" style="color:var(--text-dim);">No attributes loaded.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Entity Tab 4: Raw NBT JSON -->
+                <div id="entity-subtab-raw" class="entity-subtab-content" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 12px; color: var(--text-dim);">Full JSON serialized representation of Entity NBT:</span>
+                        <button class="btn btn-sm" onclick="copyRawEntityNbt()">Copy JSON</button>
+                    </div>
+                    <pre class="nbt-raw-box" id="entity-raw-nbt-code">Loading NBT...</pre>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="background: #11141c; padding: 12px 20px;">
+                <span style="font-size: 11.5px; color: var(--text-dim); margin-right: auto;" id="entity-modal-updated-time">Last updated: Just now</span>
+                <button class="btn" onclick="closeEntityPropertiesModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div id="toasts-container"></div>
 
@@ -1176,6 +1534,60 @@
             }
         }
 
+        let promptConfirmResolver = null;
+        function showPromptConfirm(title, message, requiredText = 'DELETE') {
+            return new Promise((resolve) => {
+                promptConfirmResolver = resolve;
+                const titleEl = document.getElementById('prompt-confirm-title');
+                const msgEl = document.getElementById('prompt-confirm-message');
+                const input = document.getElementById('prompt-confirm-input');
+                const btn = document.getElementById('prompt-confirm-ok-btn');
+                const reqBadge = document.getElementById('prompt-confirm-badge');
+
+                if (titleEl) titleEl.innerText = title || '⚠️ Confirm Deletion';
+                if (msgEl) msgEl.innerText = message;
+                if (reqBadge) reqBadge.innerText = requiredText;
+                
+                input.value = '';
+                btn.disabled = true;
+
+                input.oninput = () => {
+                    btn.disabled = (input.value.trim() !== requiredText);
+                };
+                input.onkeydown = (e) => {
+                    if (e.key === 'Enter' && input.value.trim() === requiredText) {
+                        e.preventDefault();
+                        closePromptConfirmModal(true);
+                    }
+                };
+
+                openModal('modal-prompt-confirm');
+                setTimeout(() => input.focus(), 120);
+            });
+        }
+
+        function closePromptConfirmModal(result) {
+            closeModal('modal-prompt-confirm');
+            if (promptConfirmResolver) {
+                promptConfirmResolver(result);
+                promptConfirmResolver = null;
+            }
+        }
+
+        function scrollConsoleToBottom() {
+            if (!consoleEl) return;
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+            requestAnimationFrame(() => {
+                if (consoleEl) consoleEl.scrollTop = consoleEl.scrollHeight;
+            });
+            setTimeout(() => {
+                if (consoleEl) consoleEl.scrollTop = consoleEl.scrollHeight;
+            }, 60);
+            setTimeout(() => {
+                if (consoleEl) consoleEl.scrollTop = consoleEl.scrollHeight;
+            }, 180);
+        }
+
         function switchTab(tabId) {
             currentTab = tabId;
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -1187,6 +1599,11 @@
             const content = document.getElementById(`tab-${tabId}`);
             if (content) content.classList.add('active');
 
+            if (tabId === 'console') {
+                if (autoScroll) scrollConsoleToBottom();
+                const rconInput = document.getElementById('rcon-input');
+                if (rconInput) setTimeout(() => rconInput.focus(), 80);
+            }
             if (tabId === 'players') loadPlayers();
             if (tabId === 'files') loadFiles(currentDir);
             if (tabId === 'backups') loadBackups();
@@ -1209,17 +1626,28 @@
                 
                 isPapermcRunning = data.papermc_running;
                 isPlayitRunning = data.playit_running;
+                const serverState = data.server_state || (isPapermcRunning ? (data.papermc_ready ? 'online' : 'init') : 'offline');
 
                 // Header Badge
                 const dot = document.getElementById('header-status-dot');
                 const text = document.getElementById('header-status-text');
                 const badge = document.getElementById('header-status-badge');
                 
-                dot.className = isPapermcRunning ? 'status-dot online' : 'status-dot offline';
-                text.innerText = isPapermcRunning ? 'Online' : 'Offline';
-                badge.className = isPapermcRunning ? 'badge badge-ok' : 'badge badge-danger';
+                if (serverState === 'online') {
+                    dot.className = 'status-dot online';
+                    text.innerText = 'Online';
+                    badge.className = 'badge badge-ok';
+                } else if (serverState === 'init') {
+                    dot.className = 'status-dot init';
+                    text.innerText = 'Initializing...';
+                    badge.className = 'badge badge-warn';
+                } else {
+                    dot.className = 'status-dot offline';
+                    text.innerText = 'Offline';
+                    badge.className = 'badge badge-danger';
+                }
                 
-                document.getElementById('header-uptime').innerText = data.uptime;
+                document.getElementById('header-uptime').innerText = serverState === 'offline' ? 'Offline' : data.uptime;
                 document.getElementById('stat-cpu').innerText = data.cpu_percent + '%';
                 document.getElementById('stat-ram').innerText = (data.ram_mb / 1024).toFixed(2);
                 if (document.getElementById('stat-players') && data.players_online !== undefined) {
@@ -1262,10 +1690,29 @@
                 const pDot = document.getElementById('playit-dot');
                 const pText = document.getElementById('playit-text');
                 const pBtn = document.getElementById('playit-toggle-btn');
-                pDot.className = isPlayitRunning ? 'status-dot online' : 'status-dot offline';
-                pText.innerText = isPlayitRunning ? 'Online' : 'Offline';
-                pBtn.innerText = isPlayitRunning ? 'Stop' : 'Start';
-                pBtn.className = isPlayitRunning ? 'btn btn-sm btn-danger' : 'btn btn-sm btn-primary';
+                if (pDot) pDot.className = isPlayitRunning ? 'status-dot online' : 'status-dot offline';
+                if (pText) pText.innerText = isPlayitRunning ? 'Online' : 'Offline';
+                if (pBtn) {
+                    pBtn.innerText = isPlayitRunning ? 'Stop' : 'Start';
+                    pBtn.className = isPlayitRunning ? 'btn btn-sm btn-danger' : 'btn btn-sm btn-primary';
+                }
+
+                // Dynamic Button States
+                const btnServerStart = document.getElementById('btn-server-start');
+                const btnServerStop = document.getElementById('btn-server-stop');
+                const btnServerRestart = document.getElementById('btn-server-restart');
+
+                if (btnServerStart) btnServerStart.disabled = (serverState === 'online' || serverState === 'init');
+                if (btnServerStop) btnServerStop.disabled = (serverState === 'offline');
+                if (btnServerRestart) btnServerRestart.disabled = (serverState === 'offline' || serverState === 'init');
+
+                const btnPlayitStart = document.getElementById('btn-playit-start');
+                const btnPlayitStop = document.getElementById('btn-playit-stop');
+                const btnPlayitRestart = document.getElementById('btn-playit-restart');
+
+                if (btnPlayitStart) btnPlayitStart.disabled = isPlayitRunning;
+                if (btnPlayitStop) btnPlayitStop.disabled = !isPlayitRunning;
+                if (btnPlayitRestart) btnPlayitRestart.disabled = !isPlayitRunning;
 
             } catch(e) { console.error('Status fetch error:', e); }
         }
@@ -1273,8 +1720,39 @@
         fetchStatus();
         loadPlayers();
 
-        // --- Actions ---
+        // --- Actions with Warning Popups ---
         async function controlAction(service, action) {
+            // Popup Warnings for dangerous / service-interrupting actions
+            if (service === 'papermc' && action === 'stop') {
+                const confirmed = await showConfirm(
+                    '⚠️ Stop Minecraft Server',
+                    'Are you sure you want to STOP the Minecraft server?\nAll online players will be disconnected and world progress will be saved to disk.',
+                    true
+                );
+                if (!confirmed) return;
+            } else if (service === 'papermc' && action === 'restart') {
+                const confirmed = await showConfirm(
+                    '🔄 Restart Minecraft Server',
+                    'Are you sure you want to RESTART the Minecraft server?\nThe server will save world data, disconnect online players, and reboot immediately.',
+                    false
+                );
+                if (!confirmed) return;
+            } else if (service === 'playit' && action === 'stop') {
+                const confirmed = await showConfirm(
+                    '⚠️ Stop Playit.gg Tunnel',
+                    'Are you sure you want to STOP the game tunnel proxy?\nExternal players will not be able to connect until the tunnel is started again.',
+                    true
+                );
+                if (!confirmed) return;
+            } else if (service === 'playit' && action === 'restart') {
+                const confirmed = await showConfirm(
+                    '🔄 Restart Playit.gg Tunnel',
+                    'Are you sure you want to RESTART the game tunnel proxy?',
+                    false
+                );
+                if (!confirmed) return;
+            }
+
             try {
                 const res = await fetch('/mc/api/action', {
                     method: 'POST',
@@ -1283,7 +1761,7 @@
                 });
                 const data = await res.json();
                 if(data.success) {
-                    showToast(`${service} ${action} command sent successfully.`, 'success');
+                    showToast(`${service === 'papermc' ? 'PaperMC Server' : 'Playit Tunnel'} ${action} command sent successfully.`, 'success');
                     fetchStatus();
                 } else {
                     showToast(`Error: ${data.error}`, 'error');
@@ -1297,10 +1775,10 @@
         }
 
         async function triggerResetWorld() {
-            const confirmed = await showConfirm(
-                '⚠️ Reset World Confirmation',
-                'This will PERMANENTLY DELETE all world data (Overworld, Nether, The End) and reset your map!\nAre you absolutely sure you want to proceed?',
-                true
+            const confirmed = await showPromptConfirm(
+                '⚠️ Reset Minecraft World (Irreversible)',
+                'This will PERMANENTLY DELETE all world data (Overworld, Nether, The End) and reset your map!\nAll existing player builds, items, and progression will be wiped.',
+                'DELETE'
             );
             if(!confirmed) return;
 
@@ -2153,7 +2631,7 @@
                 }
 
                 if (autoScroll) {
-                    consoleEl.scrollTop = consoleEl.scrollHeight;
+                    scrollConsoleToBottom();
                 }
             }
         }
@@ -2166,7 +2644,7 @@
                 btn.style.color = autoScroll ? 'var(--grass-400)' : '#f87171';
             }
             if (autoScroll && consoleEl) {
-                consoleEl.scrollTop = consoleEl.scrollHeight;
+                scrollConsoleToBottom();
             }
         }
 
@@ -2180,7 +2658,7 @@
             } else {
                 if (btn) btn.innerText = '⛶ Fullscreen';
             }
-            if (autoScroll && consoleEl) consoleEl.scrollTop = consoleEl.scrollHeight;
+            if (autoScroll && consoleEl) scrollConsoleToBottom();
         }
 
         function copyConsoleOutput() {
@@ -2217,7 +2695,7 @@
                 }
             });
 
-            if (autoScroll) consoleEl.scrollTop = consoleEl.scrollHeight;
+            if (autoScroll) scrollConsoleToBottom();
         }
 
         function connectWs() {
@@ -2245,6 +2723,9 @@
                             consoleEl.innerHTML = '';
                         }
                         appendConsoleLines(data.message);
+                        if (data.is_initial) {
+                            scrollConsoleToBottom();
+                        }
                     }
                 } catch(err) {
                     appendConsoleLines(e.data);
@@ -2378,9 +2859,9 @@
             tbody.innerHTML = filtered.map(p => `
                 <tr>
                     <td>
-                        <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openEntityPropertiesModal('${p.name}', ${p.online})" title="Click to view real-time Entity Properties">
                             <img src="https://mc-heads.net/avatar/${p.name}/28" width="28" height="28" style="border-radius:4px; background:#000;" onerror="this.src='https://mc-heads.net/avatar/Steve/28'">
-                            <span style="font-weight:600; color:var(--text-main); font-family:'JetBrains Mono', monospace;">${p.name}</span>
+                            <span style="font-weight:600; color:var(--text-main); font-family:'JetBrains Mono', monospace; text-decoration: underline dotted var(--text-dim);">${p.name}</span>
                         </div>
                     </td>
                     <td>
@@ -2404,6 +2885,11 @@
                                 Actions ▾
                             </button>
                             <div class="player-dropdown-menu">
+                                <button class="player-dropdown-item item-primary" onclick="openEntityPropertiesModal('${p.name}', ${p.online})">
+                                    👁️ View Entity Data
+                                </button>
+                                <div class="player-dropdown-divider"></div>
+
                                 ${p.is_op 
                                     ? `<button class="player-dropdown-item item-warn" onclick="playerAction('deop', '${p.name}')">Remove OP (Deop)</button>` 
                                     : `<button class="player-dropdown-item" onclick="playerAction('op', '${p.name}')">Make OP</button>`}
@@ -2927,6 +3413,319 @@
                 if(data.success) showToast('server.properties saved successfully! Restart server to apply.', 'success');
                 else showToast('Save error: ' + data.error, 'error');
             } catch(e) { showToast('Save error: ' + e, 'error'); }
+        }
+
+        // ============================================================
+        // REAL-TIME ENTITY PROPERTIES VIEW (data get entity)
+        // ============================================================
+        let currentEntityPlayer = null;
+        let entityRefreshInterval = null;
+        let currentRawEntityJson = null;
+        let currentEntityPos = null;
+
+        async function openEntityPropertiesModal(playerName, isOnline) {
+            currentEntityPlayer = playerName;
+            document.querySelectorAll('.player-dropdown.open').forEach(d => d.classList.remove('open'));
+            
+            // Set initial header info
+            document.getElementById('entity-modal-player-name').innerText = playerName;
+            document.getElementById('entity-modal-avatar').src = `https://mc-heads.net/avatar/${playerName}/36`;
+            
+            const statusBadge = document.getElementById('entity-modal-status-badge');
+            statusBadge.className = isOnline ? 'badge badge-ok' : 'badge badge-danger';
+            statusBadge.innerHTML = `<span class="status-dot ${isOnline ? 'online' : 'offline'}"></span> ${isOnline ? 'Online' : 'Offline'}`;
+            
+            document.getElementById('entity-raw-nbt-code').innerText = 'Fetching entity NBT data...';
+            switchEntityTab('overview');
+            openModal('modal-player-entity');
+            
+            // Initial fetch
+            await refreshCurrentEntityData();
+            
+            // Setup auto-refresh if checkbox checked
+            const chk = document.getElementById('entity-auto-refresh-chk');
+            if (chk && chk.checked) {
+                startEntityAutoRefresh();
+            }
+        }
+
+        function closeEntityPropertiesModal() {
+            closeModal('modal-player-entity');
+            stopEntityAutoRefresh();
+            currentEntityPlayer = null;
+        }
+
+        function toggleEntityAutoRefresh(el) {
+            if (el.checked) {
+                startEntityAutoRefresh();
+            } else {
+                stopEntityAutoRefresh();
+            }
+        }
+
+        function startEntityAutoRefresh() {
+            stopEntityAutoRefresh();
+            entityRefreshInterval = setInterval(() => {
+                const modal = document.getElementById('modal-player-entity');
+                if (currentEntityPlayer && modal && modal.classList.contains('open')) {
+                    refreshCurrentEntityData(true);
+                } else {
+                    stopEntityAutoRefresh();
+                }
+            }, 2000);
+        }
+
+        function stopEntityAutoRefresh() {
+            if (entityRefreshInterval) {
+                clearInterval(entityRefreshInterval);
+                entityRefreshInterval = null;
+            }
+        }
+
+        function switchEntityTab(tabKey) {
+            document.querySelectorAll('.entity-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.entity-subtab-content').forEach(c => c.style.display = 'none');
+
+            const activeBtn = document.getElementById(`btn-tab-ent-${tabKey}`);
+            const activeTab = document.getElementById(`entity-subtab-${tabKey}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            if (activeTab) activeTab.style.display = 'block';
+        }
+
+        async function refreshCurrentEntityData(isSilent = false) {
+            if (!currentEntityPlayer) return;
+            try {
+                const res = await fetch(`/mc/api/player/entity-data?player=${encodeURIComponent(currentEntityPlayer)}`);
+                const data = await res.json();
+                if (!data.success) {
+                    if (!isSilent) showToast(data.error || 'Failed to load entity properties', 'warn');
+                    document.getElementById('entity-raw-nbt-code').innerText = data.error || 'No entity NBT data available (Player is offline).';
+                    document.getElementById('entity-modal-source-text').innerText = 'Status: Offline (No active NBT stream)';
+                    return;
+                }
+                renderEntityProperties(data);
+            } catch(e) {
+                if (!isSilent) showToast(`Entity fetch error: ${e}`, 'error');
+            }
+        }
+
+        function renderEntityProperties(data) {
+            const s = data.summary;
+            currentRawEntityJson = data.raw_nbt;
+            
+            // Header Badges
+            document.getElementById('entity-modal-dim-badge').innerText = s.dimension || 'Overworld';
+            document.getElementById('entity-modal-gm-badge').innerText = s.gamemode || 'Survival';
+            document.getElementById('entity-modal-source-text').innerText = s.source === 'rcon_live' ? 'Source: Live RCON (data get entity)' : 'Source: Saved .dat file';
+            document.getElementById('entity-modal-updated-time').innerText = `Last updated: ${new Date().toLocaleTimeString()}`;
+
+            // Vitals
+            const maxHealth = 20.0;
+            const hp = s.health !== undefined ? s.health : 20.0;
+            document.getElementById('entity-val-health').innerText = `${hp.toFixed(1)} / ${maxHealth.toFixed(1)}${s.absorption > 0 ? ` (+${s.absorption.toFixed(1)}💛)` : ''}`;
+            const hpPercent = Math.min(100, Math.max(0, (hp / maxHealth) * 100));
+            document.getElementById('entity-bar-health').style.width = `${hpPercent}%`;
+
+            const food = s.food_level !== undefined ? s.food_level : 20;
+            const sat = s.food_saturation !== undefined ? s.food_saturation : 5.0;
+            document.getElementById('entity-val-food').innerText = `${food} / 20 (${sat.toFixed(1)} sat)`;
+            document.getElementById('entity-bar-food').style.width = `${Math.min(100, (food / 20) * 100)}%`;
+
+            const xpLvl = s.xp_level !== undefined ? s.xp_level : 0;
+            const xpProg = s.xp_progress !== undefined ? s.xp_progress : 0;
+            document.getElementById('entity-val-xp').innerText = `Lvl ${xpLvl} (${xpProg.toFixed(0)}%) | Total: ${s.xp_total || 0}`;
+            document.getElementById('entity-bar-xp').style.width = `${Math.min(100, xpProg)}%`;
+
+            const air = s.air !== undefined ? s.air : 300;
+            document.getElementById('entity-val-air').innerText = `${air} / 300`;
+            document.getElementById('entity-bar-air').style.width = `${Math.min(100, (air / 300) * 100)}%`;
+
+            // Position & Rotation
+            if (s.pos) {
+                currentEntityPos = s.pos;
+                document.getElementById('entity-val-pos').innerText = `X: ${s.pos.x.toFixed(2)} | Y: ${s.pos.y.toFixed(2)} | Z: ${s.pos.z.toFixed(2)}`;
+            }
+            if (s.rotation) {
+                document.getElementById('entity-val-rot').innerHTML = `
+                    <span>Yaw: ${s.rotation.yaw.toFixed(1)}°</span>
+                    <span>Pitch: ${s.rotation.pitch.toFixed(1)}°</span>
+                    <span>Fall: ${(s.fall_distance || 0).toFixed(1)}m</span>
+                    ${s.fire_ticks > 0 ? `<span style="color:#f97316;">🔥 Fire: ${s.fire_ticks}t</span>` : ''}
+                `;
+            }
+
+            // Abilities Badges
+            const badgesWrap = document.getElementById('entity-badges-abilities');
+            badgesWrap.innerHTML = `
+                <span class="badge ${s.flying ? 'badge-ok' : ''}" style="background: ${s.flying ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255,255,255,0.06)'};">
+                    ${s.flying ? '✈️ Flying' : 'Walking'}
+                </span>
+                ${s.invulnerable ? '<span class="badge badge-warn">🛡️ Invulnerable</span>' : ''}
+                ${s.instabuild ? '<span class="badge badge-info">⚡ Instabuild</span>' : ''}
+                ${s.mayfly ? '<span class="badge badge-info">May Fly</span>' : ''}
+                <span class="badge" style="background:rgba(255,255,255,0.06);">Walk Spd: ${s.walk_speed || 0.1}</span>
+            `;
+
+            const mot = s.motion || [0, 0, 0];
+            document.getElementById('entity-val-motion').innerText = `Motion: [${mot.join(', ')}] | On Ground: ${s.on_ground ? 'Yes' : 'No'}`;
+
+            // Inventory & Equipment
+            renderEquipmentAndInventory(s);
+
+            // Effects
+            const effList = document.getElementById('entity-effects-list');
+            if (s.active_effects && s.active_effects.length > 0) {
+                effList.innerHTML = s.active_effects.map(ef => {
+                    const idClean = (ef.id || 'effect').replace('minecraft:', '').replace('_', ' ').toUpperCase();
+                    const amp = (ef.amplifier || 0) + 1;
+                    const durSec = Math.round((ef.duration || 0) / 20);
+                    const mins = Math.floor(durSec / 60);
+                    const secs = durSec % 60;
+                    const durStr = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                    return `
+                        <div class="mc-effect-badge">
+                            <span>✨ ${idClean} ${amp > 1 ? amp : ''}</span>
+                            <span style="opacity:0.75; font-size:11px;">(${durStr})</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                effList.innerHTML = `<span style="color: var(--text-dim); font-size: 13px;">No active potion effects.</span>`;
+            }
+
+            // Attributes
+            const attrTbody = document.getElementById('entity-attributes-tbody');
+            if (s.attributes && s.attributes.length > 0) {
+                attrTbody.innerHTML = s.attributes.map(a => {
+                    const nameClean = (a.id || a.Name || 'attribute').replace('minecraft:generic.', '').replace('generic.', '').replace(/_/g, ' ');
+                    const baseVal = a.base !== undefined ? a.base : (a.Base !== undefined ? a.Base : '--');
+                    return `
+                        <tr>
+                            <td style="font-family:'JetBrains Mono', monospace; font-weight:600; text-transform:capitalize;">${nameClean}</td>
+                            <td style="font-family:'JetBrains Mono', monospace; color:var(--grass-400);">${baseVal}</td>
+                            <td style="color:var(--text-dim); font-size:11.5px;">${a.modifiers ? `${a.modifiers.length} modifiers` : 'None'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                attrTbody.innerHTML = `<tr><td colspan="3" style="color:var(--text-dim);">No special attributes defined.</td></tr>`;
+            }
+
+            // Raw NBT JSON
+            document.getElementById('entity-raw-nbt-code').innerText = JSON.stringify(data.raw_nbt, null, 2);
+        }
+
+        function getMinecraftItemIconUrl(itemId) {
+            if (!itemId) return '';
+            const clean = itemId.replace('minecraft:', '').toLowerCase().trim();
+            return `/mc/items/${clean}.png`;
+        }
+
+        function renderEquipmentAndInventory(summary) {
+            const inv = summary.inventory || [];
+            const ender = summary.ender_items || [];
+
+            // Map slots: 100=feet, 101=legs, 102=chest, 103=head, -106=offhand
+            const slotMap = {};
+            inv.forEach(item => {
+                slotMap[item.Slot] = item;
+            });
+
+            const equipSlots = [
+                { label: 'Helmet', slot: 103, icon: '🪖', defaultIcon: '/mc/items/iron_helmet.png' },
+                { label: 'Chestplate', slot: 102, icon: '🦺', defaultIcon: '/mc/items/iron_chestplate.png' },
+                { label: 'Leggings', slot: 101, icon: '👖', defaultIcon: '/mc/items/iron_leggings.png' },
+                { label: 'Boots', slot: 100, icon: '👢', defaultIcon: '/mc/items/iron_boots.png' },
+                { label: 'Offhand', slot: -106, icon: '🛡️', defaultIcon: '/mc/items/shield.png' },
+                { label: 'Selected Hotbar', slot: summary.selected_item_slot || 0, icon: '⚔️', defaultIcon: '/mc/items/iron_sword.png' }
+            ];
+
+            const equipContainer = document.getElementById('entity-equipment-slots');
+            equipContainer.innerHTML = equipSlots.map(eq => {
+                const it = slotMap[eq.slot];
+                const itemName = it ? it.id.replace('minecraft:', '').replace(/_/g, ' ') : 'Empty';
+                const itemIcon = it ? getMinecraftItemIconUrl(it.id) : '';
+                return `
+                    <div class="entity-stat-card" style="padding:8px 10px; display:flex; align-items:center; gap:10px;">
+                        <div style="width:38px; height:38px; border-radius:6px; background:#0f1219; border:1.5px solid ${it ? 'rgba(255,255,255,0.2)' : '#232a3b'}; display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative;">
+                            ${it ? `
+                                <img src="${itemIcon}" class="mc-inv-icon" alt="${itemName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <span style="font-size:18px; display:none;">${eq.icon}</span>
+                                ${(it.count && it.count > 1) ? `<span class="mc-inv-count">${it.count}</span>` : ''}
+                            ` : `
+                                <span style="font-size:18px; opacity:0.3; filter:grayscale(1);">${eq.icon}</span>
+                            `}
+                        </div>
+                        <div style="overflow:hidden; flex:1;">
+                            <div style="font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.3px;">${eq.label}</div>
+                            <div style="font-size:12px; font-weight:600; color:${it ? 'var(--grass-400)' : 'var(--text-faint)'}; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; text-transform:capitalize;" title="${it ? `${it.id} x${it.count || 1}` : 'Empty'}">
+                                ${itemName} ${it && (it.count > 1) ? `x${it.count}` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Main Inventory Grid 0 to 35
+            const invGrid = document.getElementById('entity-inv-grid');
+            let invHtml = '';
+            for (let i = 0; i < 36; i++) {
+                const it = slotMap[i];
+                if (it) {
+                    const cleanName = it.id.replace('minecraft:', '').replace(/_/g, ' ');
+                    const itemIcon = getMinecraftItemIconUrl(it.id);
+                    invHtml += `
+                        <div class="mc-inv-slot has-item" title="${it.id} (Slot ${i}) x${it.count || 1}">
+                            <img class="mc-inv-icon" src="${itemIcon}" alt="${cleanName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="mc-inv-name" style="display:none;">${cleanName}</div>
+                            ${(it.count && it.count > 1) ? `<span class="mc-inv-count">${it.count}</span>` : ''}
+                        </div>
+                    `;
+                } else {
+                    invHtml += `<div class="mc-inv-slot" title="Slot ${i} (Empty)"></div>`;
+                }
+            }
+            invGrid.innerHTML = invHtml;
+
+            // Ender Chest Grid 0 to 26
+            const enderMap = {};
+            ender.forEach(item => { enderMap[item.Slot] = item; });
+            const enderGrid = document.getElementById('entity-ender-grid');
+            let enderHtml = '';
+            for (let i = 0; i < 27; i++) {
+                const it = enderMap[i];
+                if (it) {
+                    const cleanName = it.id.replace('minecraft:', '').replace(/_/g, ' ');
+                    const itemIcon = getMinecraftItemIconUrl(it.id);
+                    enderHtml += `
+                        <div class="mc-inv-slot has-item" title="${it.id} (Slot ${i}) x${it.count || 1}">
+                            <img class="mc-inv-icon" src="${itemIcon}" alt="${cleanName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="mc-inv-name" style="display:none;">${cleanName}</div>
+                            ${(it.count && it.count > 1) ? `<span class="mc-inv-count">${it.count}</span>` : ''}
+                        </div>
+                    `;
+                } else {
+                    enderHtml += `<div class="mc-inv-slot" title="Slot ${i} (Empty)"></div>`;
+                }
+            }
+            enderGrid.innerHTML = enderHtml;
+        }
+
+        function copyEntityCoordinates() {
+            if (currentEntityPos) {
+                const posStr = `/tp ${currentEntityPos.x.toFixed(2)} ${currentEntityPos.y.toFixed(2)} ${currentEntityPos.z.toFixed(2)}`;
+                navigator.clipboard.writeText(posStr).then(() => {
+                    showToast(`Copied teleport command: ${posStr}`, 'info');
+                });
+            }
+        }
+
+        function copyRawEntityNbt() {
+            if (currentRawEntityJson) {
+                navigator.clipboard.writeText(JSON.stringify(currentRawEntityJson, null, 2)).then(() => {
+                    showToast('Raw Entity NBT JSON copied to clipboard!', 'success');
+                });
+            }
         }
 
         function formatBytes(bytes) {
