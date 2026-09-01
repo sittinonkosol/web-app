@@ -431,13 +431,13 @@
         {% if success %}
         <!-- ─── Success State ─── -->
         <div class="success-state">
-            <div class="success-icon"></div>
+            <div class="success-icon">✅</div>
             <h2>ลงทะเบียนสำเร็จ!</h2>
             <p>บัญชีของคุณถูกสร้างเรียบร้อยแล้ว</p>
             <div class="username-badge">@{{ username }}</div>
 
             <div class="pending-notice">
-                <span class="notice-icon"></span>
+                <span class="notice-icon">⏳</span>
                 <div class="notice-text">
                     <strong>รอการอนุมัติจากผู้ดูแลระบบ</strong><br>
                     บัญชีของคุณกำลังรอการตรวจสอบและอนุมัติจาก Admin
@@ -471,14 +471,14 @@
         {% else %}
         <!-- ─── Registration Form ─── -->
         <div class="card-header">
-            <div class="badge-icon"></div>
+            <div class="badge-icon">✨</div>
             <h1>สมัครสมาชิก</h1>
             <p class="subtitle">สร้างบัญชีสำหรับ Central Portal</p>
         </div>
 
         {% if errors.non_field_errors %}
         <div class="error-alert">
-            <span></span>
+            <span>⚠️</span>
             <span>{{ errors.non_field_errors }}</span>
         </div>
         {% endif %}
@@ -502,10 +502,10 @@
                         maxlength="150"
                         class="{% if errors.username %}input-error{% endif %}"
                     >
-                    <span class="input-icon"></span>
+                    <span class="input-icon">👤</span>
                 </div>
                 {% if errors.username %}
-                <div class="field-error"><span></span>{{ errors.username }}</div>
+                <div class="field-error"><span>⚠️</span>{{ errors.username }}</div>
                 {% endif %}
             </div>
 
@@ -522,10 +522,10 @@
                         autocomplete="email"
                         class="{% if errors.email %}input-error{% endif %}"
                     >
-                    <span class="input-icon"></span>
+                    <span class="input-icon">✉️</span>
                 </div>
                 {% if errors.email %}
-                <div class="field-error"><span></span>{{ errors.email }}</div>
+                <div class="field-error"><span>⚠️</span>{{ errors.email }}</div>
                 {% endif %}
             </div>
 
@@ -542,7 +542,7 @@
                         autocomplete="new-password"
                         class="{% if errors.password %}input-error{% endif %}"
                     >
-                    <span class="input-icon"></span>
+                    <span class="input-icon">🔑</span>
                     <button type="button" class="toggle-pw-btn" id="toggle-pw1" aria-label="แสดง/ซ่อนรหัสผ่าน">
                         <svg id="eye-icon-1" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </button>
@@ -555,7 +555,7 @@
                 </div>
                 <div class="strength-label" id="strength-label"></div>
                 {% if errors.password %}
-                <div class="field-error"><span></span>{{ errors.password }}</div>
+                <div class="field-error"><span>⚠️</span>{{ errors.password }}</div>
                 {% endif %}
             </div>
 
@@ -572,14 +572,14 @@
                         autocomplete="new-password"
                         class="{% if errors.confirm_password %}input-error{% endif %}"
                     >
-                    <span class="input-icon"></span>
+                    <span class="input-icon">🔒</span>
                     <button type="button" class="toggle-pw-btn" id="toggle-pw2" aria-label="แสดง/ซ่อนรหัสผ่าน">
                         <svg id="eye-icon-2" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </button>
                 </div>
                 <div id="match-indicator" style="font-size:0.8rem; margin-top:5px; display:none;"></div>
                 {% if errors.confirm_password %}
-                <div class="field-error"><span></span>{{ errors.confirm_password }}</div>
+                <div class="field-error"><span>⚠️</span>{{ errors.confirm_password }}</div>
                 {% endif %}
             </div>
 
