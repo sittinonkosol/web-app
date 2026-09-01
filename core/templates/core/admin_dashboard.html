@@ -97,30 +97,162 @@
             color: var(--text-muted);
         }
 
+        /* User Dropdown Navigation */
         .nav-actions {
             display: flex;
             align-items: center;
             gap: 12px;
+            position: relative;
         }
 
-        .user-pill {
+        .nav-dropdown {
+            position: relative;
+        }
+
+        .user-dropdown-btn {
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.05);
+            gap: 9px;
+            background: rgba(255, 255, 255, 0.06);
             border: 1px solid var(--border);
-            padding: 6px 14px;
+            padding: 7px 14px;
             border-radius: 30px;
             font-size: 13.5px;
             color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
         }
 
-        .user-pill .status-dot {
+        .user-dropdown-btn:hover, .user-dropdown-btn.active {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .user-dropdown-btn .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
             background: var(--success);
             box-shadow: 0 0 8px var(--success);
+            flex-shrink: 0;
+        }
+
+        .dropdown-chevron {
+            font-size: 9px;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+        }
+
+        .user-dropdown-btn.active .dropdown-chevron {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            width: 220px;
+            background: rgba(19, 27, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 8px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 1000;
+            animation: dropdownFadeIn 0.2s ease-out;
+        }
+
+        .dropdown-menu.show {
+            display: flex;
+        }
+
+        @keyframes dropdownFadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dropdown-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+        }
+
+        .user-avatar-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .user-meta {
+            overflow: hidden;
+        }
+
+        .user-meta-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-meta-role {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: #cbd5e1;
+            text-decoration: none;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .dropdown-item-danger {
+            color: #f87171;
+        }
+
+        .dropdown-item-danger:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+        }
+
+        .dropdown-item .item-icon {
+            font-size: 14px;
         }
 
         .btn {
@@ -789,25 +921,20 @@
             }
             .navbar {
                 padding: 12px 16px;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
+                justify-content: space-between;
                 gap: 12px;
             }
             .brand-text h1 { font-size: 14px; }
             .brand-text span { font-size: 11px; }
-            .nav-actions {
-                width: 100%;
-                justify-content: space-between;
-                gap: 8px;
+            .user-dropdown-btn {
+                padding: 6px 11px;
+                font-size: 12.5px;
+                gap: 6px;
             }
-            .user-pill {
-                flex: 1;
-                justify-content: center;
-                padding: 6px 10px;
-                font-size: 12px;
-            }
-            .nav-actions .btn {
-                padding: 6px 12px;
-                font-size: 12px;
+            .dropdown-menu {
+                right: 0;
+                width: 210px;
             }
             .container {
                 padding: 16px 12px 60px;
@@ -894,12 +1021,35 @@
             </div>
         </a>
         <div class="nav-actions">
-            <div class="user-pill">
-                <span class="status-dot"></span>
-                <span><span class="hide-mobile">ผู้ดูแล: </span><strong>{{ user.username }}</strong></span>
+            <div class="nav-dropdown" id="nav-user-dropdown">
+                <button type="button" class="user-dropdown-btn" onclick="toggleNavDropdown(event)" aria-expanded="false">
+                    <span class="status-dot"></span>
+                    <span><strong>{{ user.username }}</strong></span>
+                    <span class="dropdown-chevron">▼</span>
+                </button>
+                <div class="dropdown-menu" id="user-dropdown-menu">
+                    <div class="dropdown-header">
+                        <div class="user-avatar-sm">👤</div>
+                        <div class="user-meta">
+                            <div class="user-meta-name">{{ user.username }}</div>
+                            <div class="user-meta-role">ผู้ดูแลระบบ (Admin)</div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="/" class="dropdown-item">
+                        <span class="item-icon">🚀</span>
+                        <span>ไปหน้าหลัก (Portal)</span>
+                    </a>
+                    <form method="POST" action="/logout/" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="/login/">
+                        <button type="submit" class="dropdown-item dropdown-item-danger">
+                            <span class="item-icon">🚪</span>
+                            <span>ออกจากระบบ</span>
+                        </button>
+                    </form>
+                </div>
             </div>
-            <a href="/" class="btn btn-ghost btn-sm">🚀 <span class="hide-mobile">ไปหน้าหลัก</span></a>
-            <form method="POST" action="/logout/" style="display:inline;">{% csrf_token %}<input type="hidden" name="next" value="/login/"><button type="submit" class="btn btn-ghost btn-sm">🚪 <span class="hide-mobile">ออกจากระบบ</span></button></form>
         </div>
     </header>
 
@@ -2067,6 +2217,31 @@
                 showToast(err.message || 'ลบไม่สำเร็จ', true);
             }
         }
+        // ─── Navbar Dropdown ─────────────────────────────────────────────
+        function toggleNavDropdown(e) {
+            e.stopPropagation();
+            const btn = document.querySelector('.user-dropdown-btn');
+            const menu = document.getElementById('user-dropdown-menu');
+            if (!menu) return;
+            const isOpen = menu.classList.contains('show');
+            if (isOpen) {
+                menu.classList.remove('show');
+                if (btn) btn.classList.remove('active');
+            } else {
+                menu.classList.add('show');
+                if (btn) btn.classList.add('active');
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('nav-user-dropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                const menu = document.getElementById('user-dropdown-menu');
+                const btn = document.querySelector('.user-dropdown-btn');
+                if (menu) menu.classList.remove('show');
+                if (btn) btn.classList.remove('active');
+            }
+        });
     </script>
 </body>
 </html>
