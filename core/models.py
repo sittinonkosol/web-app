@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Group
 class AppSetting(models.Model):
     app_name = models.CharField(max_length=100, primary_key=True)
     display_name = models.CharField(max_length=200, blank=True)
-    icon = models.CharField(max_length=50, default='🚀')
+    icon = models.CharField(max_length=255, default='🚀')
     description = models.TextField(blank=True)
     is_public = models.BooleanField(default=True, help_text="True if accessible without login")
     min_role_required = models.CharField(

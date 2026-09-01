@@ -20,6 +20,7 @@ urlpatterns = [
     path('api/admin/groups/<int:group_id>', views.api_group_detail, name='api_admin_group_detail'),
     path('api/admin/app-settings', views.api_app_settings_list, name='api_admin_app_settings'),
     path('api/admin/app-settings/<str:app_name>', views.api_app_setting_detail, name='api_admin_app_setting_detail'),
+    path('api/admin/app-settings/<str:app_name>/upload-icon', views.api_app_setting_upload_icon, name='api_admin_app_setting_upload_icon'),
     path('api/admin/login-logs', views.api_login_logs_list, name='api_admin_login_logs'),
     path('api/admin/users/<int:user_id>/login-logs', views.api_user_login_logs, name='api_admin_user_login_logs'),
     path('api/admin/registrations/pending', views.api_pending_registrations, name='api_admin_pending_registrations'),
@@ -29,4 +30,12 @@ urlpatterns = [
     # Apps
     path('ict/scquizz/', include('scquizz.urls')),
     path('mc/', include('mcmanager.urls')),
+]
+
+from django.conf import settings
+from django.views.static import serve
+from django.urls import re_path
+
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]

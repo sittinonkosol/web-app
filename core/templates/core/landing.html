@@ -186,7 +186,17 @@
             transition: transform 0.4s ease;
         }
 
-        .app-card:hover .app-icon {
+        .app-img-icon {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            border-radius: 12px;
+            display: inline-block;
+            transition: transform 0.4s ease;
+        }
+
+        .app-card:hover .app-icon,
+        .app-card:hover .app-img-icon {
             transform: scale(1.1) rotate(5deg);
         }
 
@@ -478,7 +488,11 @@
                 {% for app in apps %}
                 <a href="{{ app.url }}" class="app-card">
                     <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-start; margin-bottom: 1rem;">
-                        <span class="app-icon" style="margin-bottom: 0;">{{ app.icon }}</span>
+                        {% if app.icon|slice:":7" == "/media/" or app.icon|slice:":8" == "https://" or app.icon|slice:":7" == "http://" or app.icon|slice:":5" == "data:" %}
+                            <img src="{{ app.icon }}" alt="{{ app.name }}" class="app-img-icon">
+                        {% else %}
+                            <span class="app-icon" style="margin-bottom: 0;">{{ app.icon }}</span>
+                        {% endif %}
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                             {% if app.is_public %}
                             <span style="font-size: 11.5px; padding: 3px 10px; border-radius: 20px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 600;"> Public</span>

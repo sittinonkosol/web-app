@@ -1400,24 +1400,32 @@
 
     <!-- APP ICON MODAL -->
     <div class="modal-overlay" id="app-icon-modal">
-        <div class="modal-box" style="max-width: 480px;">
+        <div class="modal-box" style="max-width: 500px;">
             <div class="modal-header">
                 <h2 id="app-icon-modal-title">เปลี่ยนไอคอนแอป</h2>
                 <button class="modal-close" onclick="closeModal('app-icon-modal')">✕</button>
             </div>
-            <form id="app-icon-form" onsubmit="saveAppIcon(event)">
+
+            <!-- Modal Tabs -->
+            <div style="display: flex; gap: 8px; margin: 16px 20px 0; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+                <button type="button" class="btn btn-sm" id="icon-tab-emoji-btn" onclick="switchIconMode('emoji')" style="background: var(--primary-gradient); color: #fff;">😀 เลือกอีโมจิ</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="icon-tab-upload-btn" onclick="switchIconMode('upload')">📁 อัปโหลดรูปภาพ (PNG/JPG/SVG)</button>
+            </div>
+
+            <!-- TAB 1: EMOJI / TEXT -->
+            <form id="app-icon-emoji-form" onsubmit="saveAppIcon(event)">
                 <input type="hidden" id="app-icon-target-name">
-                <div class="modal-body">
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; padding: 18px; background: rgba(0,0,0,0.25); border-radius: 14px; border: 1px solid var(--border);">
-                        <div id="app-icon-preview" style="width: 76px; height: 76px; border-radius: 18px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);">
+                <div class="modal-body" id="icon-panel-emoji">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; margin-bottom: 18px; padding: 18px; background: rgba(0,0,0,0.25); border-radius: 14px; border: 1px solid var(--border);">
+                        <div id="app-icon-preview" style="width: 76px; height: 76px; border-radius: 18px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35); overflow: hidden;">
                             🚀
                         </div>
                         <div style="font-size: 13px; color: var(--text-muted);">ตัวอย่างการแสดงผลไอคอน</div>
                     </div>
 
                     <div class="form-group">
-                        <label>เลือกหรือพิมพ์ไอคอน / อีโมจิ *</label>
-                        <input type="text" id="app-icon-input" class="form-control" maxlength="20" required placeholder="เช่น 🦆 หรือ 🚀 หรือ 🎮" oninput="updateIconPreview(this.value)" style="font-size: 20px; text-align: center;">
+                        <label>พิมพ์ไอคอน หรือเลือกจากด้านล่าง *</label>
+                        <input type="text" id="app-icon-input" class="form-control" maxlength="50" placeholder="เช่น 🦆 หรือ 🚀 หรือ 🎮" oninput="updateIconPreview(this.value)" style="font-size: 18px; text-align: center;">
                     </div>
 
                     <div class="form-group">
@@ -1442,9 +1450,31 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer" id="icon-footer-emoji">
                     <button type="button" class="btn btn-ghost" onclick="closeModal('app-icon-modal')">ยกเลิก</button>
-                    <button type="submit" class="btn btn-primary" id="save-app-icon-btn">💾 บันทึกไอคอน</button>
+                    <button type="submit" class="btn btn-primary" id="save-app-icon-btn">💾 บันทึกอีโมจิ</button>
+                </div>
+            </form>
+
+            <!-- TAB 2: UPLOAD IMAGE -->
+            <form id="app-icon-upload-form" onsubmit="uploadAppIconFile(event)" style="display: none;">
+                <div class="modal-body" id="icon-panel-upload">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; margin-bottom: 18px; padding: 18px; background: rgba(0,0,0,0.25); border-radius: 14px; border: 1px solid var(--border);">
+                        <div id="app-icon-upload-preview" style="width: 76px; height: 76px; border-radius: 18px; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35); overflow: hidden;">
+                            📁
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-muted);" id="app-icon-upload-hint">ตัวอย่างรูปภาพที่เลือก</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>เลือกไฟล์รูปภาพ (PNG, JPG, SVG, WebP) *</label>
+                        <input type="file" id="app-icon-file-input" accept="image/png, image/jpeg, image/webp, image/svg+xml, image/gif" class="form-control" onchange="previewUploadedFile(event)" style="padding: 8px;">
+                        <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 6px;">ขนาดไฟล์สูงสุด 5 MB (แนะนำรูปภาพ PNG พื้นหลังโปร่งใส)</div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="icon-footer-upload">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('app-icon-modal')">ยกเลิก</button>
+                    <button type="submit" class="btn btn-primary" id="upload-app-icon-btn">📤 อัปโหลดและบันทึกรูปภาพ</button>
                 </div>
             </form>
         </div>
@@ -1782,7 +1812,7 @@
                     else if (role === 'moderator') { roleClass = 'role-moderator'; roleLabel = 'Moderator'; }
                     else if (role === 'viewer') { roleClass = 'role-viewer'; roleLabel = 'Viewer'; }
 
-                    const pillHtml = `<span class="role-pill ${roleClass}">${a.icon} ${a.name}: ${roleLabel}</span>`;
+                    const pillHtml = `<span class="role-pill ${roleClass}">${formatAppIcon(a.icon, '16px')} ${escapeHtml(a.name)}: ${roleLabel}</span>`;
                     
                     if (role === 'none') {
                         hiddenPerms.push(pillHtml);
@@ -1839,7 +1869,9 @@
                     <div class="app-manage-card" data-app="${a.app_name}">
                         <div class="app-card-top">
                             <div class="app-card-info">
-                                <div class="app-card-icon" style="cursor:pointer;" title="คลิกเพื่อเปลี่ยนไอคอน" onclick="openAppIconModal('${a.app_name}', '${escapeHtml(a.icon || '')}', '${escapeHtml(a.name)}')">${a.icon}</div>
+                                <div class="app-card-icon" style="cursor:pointer; display:flex; align-items:center; justify-content:center; overflow:hidden;" title="คลิกเพื่อเปลี่ยนไอคอน" onclick="openAppIconModal('${a.app_name}', '${escapeHtml(a.icon || '')}', '${escapeHtml(a.name)}')">
+                                    ${formatAppIcon(a.icon, '38px')}
+                                </div>
                                 <div>
                                     <h3>${escapeHtml(a.name)}</h3>
                                     <div class="app-route mono">${a.url}</div>
@@ -1856,10 +1888,10 @@
                             <div class="control-row">
                                 <div>
                                     <strong>ไอคอนแอป (App Icon)</strong>
-                                    <div style="font-size:11.5px; color:var(--text-dim);">ไอคอนที่แสดงผลในหน้ารวมแอปและเมนู</div>
+                                    <div style="font-size:11.5px; color:var(--text-dim);">เลือกอีโมจิ หรืออัปโหลดรูปภาพ PNG/JPG</div>
                                 </div>
-                                <button type="button" class="btn btn-ghost btn-sm" onclick="openAppIconModal('${a.app_name}', '${escapeHtml(a.icon || '')}', '${escapeHtml(a.name)}')" style="display:flex; align-items:center; gap:6px;">
-                                    <span style="font-size:18px;">${a.icon}</span>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="openAppIconModal('${a.app_name}', '${escapeHtml(a.icon || '')}', '${escapeHtml(a.name)}')" style="display:flex; align-items:center; gap:8px;">
+                                    <span>${formatAppIcon(a.icon, '20px')}</span>
                                     <span>เปลี่ยนไอคอน ✎</span>
                                 </button>
                             </div>
@@ -1901,9 +1933,110 @@
         function openAppIconModal(appName, currentIcon, displayName) {
             document.getElementById('app-icon-target-name').value = appName;
             document.getElementById('app-icon-modal-title').textContent = `เปลี่ยนไอคอนแอป: ${displayName || appName}`;
-            document.getElementById('app-icon-input').value = currentIcon || '🚀';
-            updateIconPreview(currentIcon || '🚀');
+            document.getElementById('app-icon-file-input').value = '';
+            document.getElementById('app-icon-upload-hint').textContent = 'ตัวอย่างรูปภาพที่เลือก';
+            
+            const isImage = currentIcon && (currentIcon.startsWith('/media/') || currentIcon.startsWith('http') || currentIcon.startsWith('data:'));
+            
+            if (isImage) {
+                switchIconMode('upload');
+                document.getElementById('app-icon-upload-preview').innerHTML = `<img src="${escapeHtml(currentIcon)}" style="width:100%; height:100%; object-fit:contain; border-radius:18px;">`;
+                document.getElementById('app-icon-input').value = '';
+                document.getElementById('app-icon-preview').textContent = '🚀';
+            } else {
+                switchIconMode('emoji');
+                document.getElementById('app-icon-input').value = currentIcon || '🚀';
+                updateIconPreview(currentIcon || '🚀');
+                document.getElementById('app-icon-upload-preview').innerHTML = '📁';
+            }
+
             openModal('app-icon-modal');
+        }
+
+        function switchIconMode(mode) {
+            const emojiForm = document.getElementById('app-icon-emoji-form');
+            const uploadForm = document.getElementById('app-icon-upload-form');
+            const emojiBtn = document.getElementById('icon-tab-emoji-btn');
+            const uploadBtn = document.getElementById('icon-tab-upload-btn');
+
+            if (mode === 'upload') {
+                emojiForm.style.display = 'none';
+                uploadForm.style.display = 'block';
+                uploadBtn.style.background = 'var(--primary-gradient)';
+                uploadBtn.style.color = '#fff';
+                uploadBtn.classList.remove('btn-ghost');
+                emojiBtn.style.background = 'transparent';
+                emojiBtn.style.color = 'var(--text-muted)';
+                emojiBtn.classList.add('btn-ghost');
+            } else {
+                emojiForm.style.display = 'block';
+                uploadForm.style.display = 'none';
+                emojiBtn.style.background = 'var(--primary-gradient)';
+                emojiBtn.style.color = '#fff';
+                emojiBtn.classList.remove('btn-ghost');
+                uploadBtn.style.background = 'transparent';
+                uploadBtn.style.color = 'var(--text-muted)';
+                uploadBtn.classList.add('btn-ghost');
+            }
+        }
+
+        function previewUploadedFile(event) {
+            const file = event.target.files[0];
+            const previewContainer = document.getElementById('app-icon-upload-preview');
+            const hint = document.getElementById('app-icon-upload-hint');
+
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('ขนาดไฟล์เกิน 5 MB', true);
+                    event.target.value = '';
+                    previewContainer.innerHTML = '⚠️';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewContainer.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:contain; border-radius:18px;">`;
+                    hint.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function uploadAppIconFile(e) {
+            e.preventDefault();
+            const appName = document.getElementById('app-icon-target-name').value;
+            const fileInput = document.getElementById('app-icon-file-input');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showToast('กรุณาเลือกไฟล์รูปภาพก่อน', true);
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('icon_file', file);
+
+            const btn = document.getElementById('upload-app-icon-btn');
+            btn.disabled = true;
+            btn.textContent = 'กำลังอัปโหลด...';
+
+            try {
+                const res = await fetch(`/api/admin/app-settings/${appName}/upload-icon`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.error || 'อัปโหลดไม่สำเร็จ');
+                }
+                showToast(`อัปโหลดรูปภาพไอคอนสำหรับ "${appName}" สำเร็จ`);
+                closeModal('app-icon-modal');
+                loadAllData();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || 'อัปโหลดรูปภาพไม่สำเร็จ', true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📤 อัปโหลดและบันทึกรูปภาพ';
+            }
         }
 
         function selectIconPreset(icon) {
@@ -1912,7 +2045,12 @@
         }
 
         function updateIconPreview(icon) {
-            document.getElementById('app-icon-preview').textContent = icon || '🚀';
+            const previewEl = document.getElementById('app-icon-preview');
+            if (icon && (icon.startsWith('/media/') || icon.startsWith('http') || icon.startsWith('data:'))) {
+                previewEl.innerHTML = `<img src="${escapeHtml(icon)}" style="width:100%; height:100%; object-fit:contain; border-radius:18px;">`;
+            } else {
+                previewEl.textContent = icon || '🚀';
+            }
         }
 
         async function saveAppIcon(e) {
@@ -1929,7 +2067,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ icon: newIcon })
                 });
-                showToast(`เปลี่ยนไอคอนแอป "${appName}" เป็น ${newIcon} เรียบร้อยแล้ว`);
+                showToast(`เปลี่ยนไอคอนแอป "${appName}" เรียบร้อยแล้ว`);
                 closeModal('app-icon-modal');
                 loadAllData();
             } catch (err) {
@@ -1937,7 +2075,7 @@
                 showToast(err.message || 'บันทึกไอคอนไม่สำเร็จ', true);
             } finally {
                 btn.disabled = false;
-                btn.textContent = '💾 บันทึกไอคอน';
+                btn.textContent = '💾 บันทึกอีโมจิ';
             }
         }
 

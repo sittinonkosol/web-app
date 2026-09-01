@@ -750,6 +750,56 @@ def api_app_setting_detail(request, app_name):
         logger.error(f"api_app_setting_detail PUT error app={app_name}: {e}", exc_info=True)
         return JsonResponse({'error': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง'}, status=400)
 
+
+@csrf_exempt
+@staff_member_required
+@require_http_methods(["POST"])
+def api_app_setting_upload_icon(request, app_name):
+    """
+    Allow super-admin / staff to upload a custom PNG/JPG/SVG/WebP/GIF icon image for an app.
+    """
+    if 'icon_file' not in request.FILES:
+        return JsonResponse({'error': 'กรุณาเลือกไฟล์รูปภาพเพื่ออัปโหลด'}, status=400)
+
+    uploaded_file = request.FILES['icon_file']
+
+    import os
+    import time
+    from django.conf import settings as django_settings
+
+    allowed_extensions = ['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif']
+    ext = os.path.splitext(uploaded_file.name)[1].lower()
+    if ext not in allowed_extensions:
+        return JsonResponse({'error': f'ประเภทไฟล์ไม่ถูกต้อง อนุญาตเฉพาะ {", ".join(allowed_extensions)}'}, status=400)
+
+    if uploaded_file.size > 5 * 1024 * 1024:
+        return JsonResponse({'error': 'ขนาดไฟล์ต้องไม่เกิน 5 MB'}, status=400)
+
+    try:
+        setting = get_app_setting(app_name)
+        icons_dir = django_settings.MEDIA_ROOT / 'app_icons'
+        os.makedirs(icons_dir, exist_ok=True)
+
+        filename = f"{app_name}_{int(time.time())}{ext}"
+        filepath = icons_dir / filename
+
+        with open(filepath, 'wb+') as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+
+        icon_url = f"/media/app_icons/{filename}"
+        setting.icon = icon_url
+        setting.save()
+
+        return JsonResponse({
+            'success': True,
+            'app_name': setting.app_name,
+            'icon': setting.icon
+        })
+    except Exception as e:
+        logger.error(f"api_app_setting_upload_icon error for {app_name}: {e}", exc_info=True)
+        return JsonResponse({'error': 'เกิดข้อผิดพลาดในการอัปโหลดไฟล์ กรุณาลองใหม่อีกครั้ง'}, status=500)
+
 # --- Login Logs API ---
 
 @csrf_exempt
