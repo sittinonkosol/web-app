@@ -9,7 +9,6 @@ from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.db import transaction
 
@@ -74,6 +73,20 @@ User-agent: AhrefsBot
 Disallow: /
 """
     return HttpResponse(content, content_type='text/plain')
+
+
+def favicon(request):
+    """Serve a lightweight default SVG favicon."""
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+        '<rect width="32" height="32" rx="7" fill="#181a20"/>'
+        '<path d="M7 10h18M7 16h18M7 22h18" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>'
+        '<circle cx="21" cy="10" r="1.5" fill="#34d399"/>'
+        '<circle cx="21" cy="16" r="1.5" fill="#34d399"/>'
+        '<circle cx="21" cy="22" r="1.5" fill="#34d399"/>'
+        '</svg>'
+    )
+    return HttpResponse(svg, content_type='image/svg+xml')
 
 
 from .models import AppSetting, UserAppPermission, GroupAppPermission, UserLoginLog
@@ -439,12 +452,20 @@ def admin_dashboard_view(request):
 
 # --- Users API ---
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET", "POST"])
 def api_users_list_create(request):
     if request.method == "GET":
-        users = User.objects.all().prefetch_related('groups', 'app_permissions').order_by('id')
+        # Pagination support
+        try:
+            limit = min(int(request.GET.get('limit', 500)), 500)
+            offset = max(int(request.GET.get('offset', 0)), 0)
+        except (ValueError, TypeError):
+            limit, offset = 500, 0
+
+        users_qs = User.objects.all().prefetch_related('groups', 'app_permissions').order_by('id')
+        total = users_qs.count()
+        users = users_qs[offset: offset + limit]
         installed_apps = get_installed_user_apps()
         user_list = []
         for u in users:
@@ -466,7 +487,7 @@ def api_users_list_create(request):
                 'groups': [{'id': g.id, 'name': g.name} for g in u.groups.all()],
                 'app_permissions': perms,
             })
-        return JsonResponse({'users': user_list})
+        return JsonResponse({'users': user_list, 'total': total, 'limit': limit, 'offset': offset})
 
     elif request.method == "POST":
         try:
@@ -519,7 +540,6 @@ def api_users_list_create(request):
             logger.error(f"api_users_list_create POST error: {e}", exc_info=True)
             return JsonResponse({'error': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง'}, status=400)
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET", "PUT", "DELETE"])
 def api_user_detail(request, user_id):
@@ -611,7 +631,6 @@ def api_user_detail(request, user_id):
 
 # --- Groups API ---
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET", "POST"])
 def api_groups_list_create(request):
@@ -657,7 +676,6 @@ def api_groups_list_create(request):
             logger.error(f"api_groups_list_create POST error: {e}", exc_info=True)
             return JsonResponse({'error': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง'}, status=400)
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET", "PUT", "DELETE"])
 def api_group_detail(request, group_id):
@@ -708,14 +726,12 @@ def api_group_detail(request, group_id):
 
 # --- App Settings API ---
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET"])
 def api_app_settings_list(request):
     apps_list = get_installed_user_apps()
     return JsonResponse({'apps': apps_list})
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["PUT"])
 def api_app_setting_detail(request, app_name):
@@ -751,7 +767,6 @@ def api_app_setting_detail(request, app_name):
         return JsonResponse({'error': 'เกิดข้อผิดพลาด กรุณาลองอีกครั้ง'}, status=400)
 
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["POST"])
 def api_app_setting_upload_icon(request, app_name):
@@ -765,15 +780,56 @@ def api_app_setting_upload_icon(request, app_name):
 
     import os
     import time
+    import re as _re
     from django.conf import settings as django_settings
 
-    allowed_extensions = ['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif']
+    ALLOWED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.gif']  # SVG handled separately
+    MAGIC_BYTES = {
+        b'\x89PNG': '.png',
+        b'\xff\xd8\xff': '.jpg',
+        b'RIFF': '.webp',  # WebP starts with RIFF...WEBP
+        b'GIF8': '.gif',
+    }
+
     ext = os.path.splitext(uploaded_file.name)[1].lower()
-    if ext not in allowed_extensions:
-        return JsonResponse({'error': f'ประเภทไฟล์ไม่ถูกต้อง อนุญาตเฉพาะ {", ".join(allowed_extensions)}'}, status=400)
+    allow_svg = ext == '.svg'
+
+    if ext not in ALLOWED_EXTENSIONS and not allow_svg:
+        return JsonResponse({'error': f'ประเภทไฟล์ไม่ถูกต้อง อนุญาตเฉพาะ {", ".join(ALLOWED_EXTENSIONS + [".svg"])}'}, status=400)
 
     if uploaded_file.size > 5 * 1024 * 1024:
         return JsonResponse({'error': 'ขนาดไฟล์ต้องไม่เกิน 5 MB'}, status=400)
+
+    # Read file content for validation (max 8 MB buffer)
+    file_content = uploaded_file.read(8 * 1024 * 1024)
+    uploaded_file.seek(0)
+
+    if allow_svg:
+        # SVG security: reject files containing active content
+        try:
+            svg_text = file_content.decode('utf-8', errors='replace')
+        except Exception:
+            return JsonResponse({'error': 'ไฟล์ SVG ไม่ถูกต้อง'}, status=400)
+        svg_lower = svg_text.lower()
+        FORBIDDEN_SVG_PATTERNS = [
+            '<script', 'javascript:', 'vbscript:', 'data:text/html',
+            'onload=', 'onerror=', 'onclick=', 'onmouseover=',
+            'onfocus=', 'onblur=', 'onmouseenter=', '<iframe',
+            '<object', '<embed', '<use ', 'xlink:href',
+        ]
+        for pattern in FORBIDDEN_SVG_PATTERNS:
+            if pattern in svg_lower:
+                logger.warning(f"Blocked SVG upload with forbidden pattern '{pattern}' for app={app_name} ip={_get_client_ip_from_request(request)}")
+                return JsonResponse({'error': f'ไฟล์ SVG ไม่ปลอดภัย: พบ active content ("{pattern}") ซึ่งไม่อนุญาต'}, status=400)
+    else:
+        # Validate magic bytes for raster images
+        valid_magic = False
+        for magic, expected_ext in MAGIC_BYTES.items():
+            if file_content.startswith(magic):
+                valid_magic = True
+                break
+        if not valid_magic:
+            return JsonResponse({'error': 'ไฟล์ไม่ใช่รูปภาพที่ถูกต้อง (magic bytes ไม่ตรงกับนามสกุลไฟล์)'}, status=400)
 
     try:
         setting = get_app_setting(app_name)
@@ -802,7 +858,6 @@ def api_app_setting_upload_icon(request, app_name):
 
 # --- Login Logs API ---
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET"])
 def api_login_logs_list(request):
@@ -835,7 +890,6 @@ def api_login_logs_list(request):
 
     return JsonResponse({'logs': logs})
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET"])
 def api_user_login_logs(request, user_id):
@@ -857,7 +911,6 @@ def api_user_login_logs(request, user_id):
 
 # --- Pending Registrations API ---
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["GET"])
 def api_pending_registrations(request):
@@ -877,7 +930,6 @@ def api_pending_registrations(request):
     return JsonResponse({'pending': data, 'count': len(data)})
 
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["POST"])
 def api_approve_registration(request, user_id):
@@ -891,7 +943,6 @@ def api_approve_registration(request, user_id):
     return JsonResponse({'success': True, 'username': user.username})
 
 
-@csrf_exempt
 @staff_member_required
 @require_http_methods(["DELETE"])
 def api_reject_registration(request, user_id):

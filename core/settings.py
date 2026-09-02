@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'scquizz.middleware.RateLimitMiddleware',  # Rate Limiting via Redis
     'core.middleware.RobotsHeaderMiddleware',  # X-Robots-Tag: noindex on all pages
+    'core.middleware.ContentSecurityPolicyMiddleware',  # Content-Security-Policy header
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -185,7 +186,17 @@ USE_X_FORWARDED_PORT = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
+# ============================================================
+# Cookie Security (apply to ALL environments)
+# ============================================================
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# ============================================================
 # Production-only security settings (skipped when DEBUG=True for local dev)
+# ============================================================
 if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
 
@@ -201,10 +212,6 @@ if not DEBUG:
     # Secure cookies — only sent over HTTPS
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_HTTPONLY = True
-    CSRF_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
-    CSRF_COOKIE_SAMESITE = 'Lax'
 
 # ============================================================
 # Application Logging

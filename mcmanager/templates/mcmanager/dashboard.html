@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minecraft Server Manager</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Press+Start+2P&display=swap" rel="stylesheet">
     
@@ -333,33 +334,6 @@
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.4; transform: scale(0.85); }
-        }
-        .console-quick-bar {
-            background: #0d1017;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 6px 14px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-        .quick-cmd-btn {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #94a3b8;
-            padding: 3px 9px;
-            border-radius: 6px;
-            font-size: 11.5px;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            user-select: none;
-        }
-        .quick-cmd-btn:hover {
-            background: rgba(74, 222, 128, 0.15);
-            border-color: rgba(74, 222, 128, 0.4);
-            color: #4ade80;
         }
         .console-output {
             flex: 1;
@@ -960,8 +934,10 @@
             <div class="card" style="border-left: 4px solid var(--grass-500);">
                 <div class="card-header">
                     <div>
-                        <h3 class="card-title" style="margin: 0;">Playit.gg Game Tunnel</h3>
-                        <p style="color: var(--text-dim); font-size: 12.5px; margin: 2px 0 0;">Dedicated game proxy routing external traffic into local port 25565</p>
+                        <h3 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                            <span>Playit.gg Game Tunnels</span>
+                            <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 11px; font-weight: 600;">nak1-server</span>
+                        </h3>
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button id="btn-playit-start" class="btn btn-sm btn-primary" onclick="controlAction('playit', 'start')">Start Tunnel</button>
@@ -970,13 +946,65 @@
                     </div>
                 </div>
 
-                <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 10px;">
-                    <div>
-                        <div style="font-size: 11.5px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Minecraft Server Address</div>
-                        <div style="font-size: 20px; font-weight: 700; color: var(--grass-400); font-family: 'JetBrains Mono', monospace; margin-top: 4px;" id="game-domain-display">jakarta-baghdad.tun.ply.gg</div>
-                        <div style="font-size: 12px; color: var(--text-faint); margin-top: 2px;">Route: <code style="color: var(--text-soft);">127.0.0.1:25565 (TCP) ➔ jakarta-baghdad.tun.ply.gg</code></div>
+                <!-- Server Address Cards (Java & Bedrock) -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 14px; margin-top: 14px;">
+                    <!-- Minecraft Bedrock Edition -->
+                    <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #38bdf8, #0ea5e9);"></div>
+                        <div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 28px; height: 28px; min-width: 28px; background: #ffffff; border-radius: 7px; display: flex; align-items: center; justify-content: center; padding: 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.35);">
+                                        <img src="/mc/assets/image/bedrock.png" alt="Bedrock" style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                                    </div>
+                                    <span style="font-size: 14.5px; font-weight: 700; color: #fff;">Minecraft Bedrock</span>
+                                </div>
+                                <span class="badge" style="background: rgba(251, 191, 36, 0.15); color: var(--gold-400); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 11px;">PORT 25167</span>
+                            </div>
+
+                            <div style="background: var(--inset); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 11.5px; color: var(--text-dim);">Domain:</span>
+                                    <span style="font-size: 14.5px; font-weight: 700; color: #38bdf8; font-family: 'JetBrains Mono', monospace;" id="bedrock-domain-display">cynthia-interested.tun.ply.gg</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 11.5px; color: var(--text-dim);">Direct IP:</span>
+                                    <span style="font-size: 13px; font-weight: 600; color: var(--text-soft); font-family: 'JetBrains Mono', monospace;" id="bedrock-ip-display">147.185.221.215</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 11.5px; color: var(--text-dim);">Port:</span>
+                                    <span style="font-size: 13.5px; font-weight: 700; color: var(--gold-400); font-family: 'JetBrains Mono', monospace;">25167</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                            <button class="btn btn-primary btn-sm" onclick="copyText('cynthia-interested.tun.ply.gg:25167', 'Bedrock Full Address')">Copy Bedrock Address</button>
+                        </div>
                     </div>
-                    <button class="btn btn-primary" onclick="copyText('jakarta-baghdad.tun.ply.gg', 'Minecraft Game Address')">Copy Address</button>
+
+                    <!-- Minecraft Java Edition -->
+                    <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #4ade80, #22c55e);"></div>
+                        <div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 28px; height: 28px; min-width: 28px; background: #ffffff; border-radius: 7px; display: flex; align-items: center; justify-content: center; padding: 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.35);">
+                                        <img src="/mc/assets/image/java.png" alt="Java" style="width: 100%; height: 100%; object-fit: contain; display: block;">
+                                    </div>
+                                    <span style="font-size: 14.5px; font-weight: 700; color: #fff;">Minecraft Java</span>
+                                </div>
+                                <span class="badge" style="background: rgba(74, 222, 128, 0.15); color: var(--grass-400); font-family: 'JetBrains Mono', monospace; font-size: 11px;">PORT 25565</span>
+                            </div>
+
+                            <div style="background: var(--inset); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 14px 12px; margin-top: 6px;">
+                                <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">Server Address (Default Port)</div>
+                                <div style="font-size: 16px; font-weight: 700; color: var(--grass-400); font-family: 'JetBrains Mono', monospace; margin-top: 4px; word-break: break-all;" id="game-domain-display">jakarta-baghdad.tun.ply.gg</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                            <button class="btn btn-primary btn-sm" onclick="copyText('jakarta-baghdad.tun.ply.gg', 'Minecraft Java Address')">Copy Java Address</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Live Tunnel Telemetry Bar -->
@@ -1002,10 +1030,19 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; font-size: 13.5px;">
                     <div><span style="color: var(--text-dim);">Root Path:</span> <code style="color: var(--grass-400);">/wdc/PaperMC</code></div>
                     <div><span style="color: var(--text-dim);">Systemd Service:</span> <code>papermc.service</code></div>
-                    <div><span style="color: var(--text-dim);">Game Port:</span> <code>25565</code></div>
+                    <div><span style="color: var(--text-dim);">Java Port:</span> <code>25565</code></div>
+                    <div><span style="color: var(--text-dim);">Bedrock Port:</span> <code>25167</code></div>
                     <div><span style="color: var(--text-dim);">RCON Port:</span> <code>{{ rcon_port }}</code></div>
                     <div><span style="color: var(--text-dim);">Max RAM Limit:</span> <b>{{ max_ram_gb }} GB</b></div>
                     <div><span style="color: var(--text-dim);">Current Allocation:</span> <b>{{ current_ram_gb }} GB</b></div>
+                    <div style="grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--line);">
+                        <span style="color: var(--text-dim); font-size: 13px;">Installed Plugins:</span>
+                        <span class="badge" style="background: rgba(74, 222, 128, 0.12); color: var(--grass-400); font-weight: 600;">🗺️ Chunky</span>
+                        <span class="badge" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; font-weight: 600;">🎮 Geyser-Spigot</span>
+                        <span class="badge" style="background: rgba(251, 191, 36, 0.12); color: var(--gold-400); font-weight: 600;">🧩 PlaceholderAPI</span>
+                        <span class="badge" style="background: rgba(168, 85, 247, 0.12); color: #c084fc; font-weight: 600;">👕 SkinsRestorer</span>
+                        <button class="btn btn-sm" style="margin-left: auto; padding: 4px 12px; font-size: 12px; background: rgba(99, 102, 241, 0.18); border-color: rgba(99, 102, 241, 0.4); color: #a5b4fc;" onclick="openModal('modal-plugin-commands')">📖 Mod Commands ➔</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1036,23 +1073,13 @@
                         <button class="btn btn-sm" onclick="copyConsoleOutput()" title="Copy output to clipboard">Copy</button>
                         <button class="btn btn-sm" onclick="clearConsole()" title="Clear screen">Clear</button>
                         <button class="btn btn-sm" onclick="toggleFullscreenConsole()" title="Toggle Fullscreen" id="btn-fullscreen">⛶ Fullscreen</button>
+                        <button class="btn btn-sm" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4); display: inline-flex; align-items: center; gap: 5px; font-weight: 600;" onclick="openModal('modal-plugin-commands')" title="Open Mod/Plugin Command Cheat Sheet">
+                            📖 Mod Commands
+                        </button>
                         <a href="/mc/api/logs/download" class="btn btn-sm" download>Download Log</a>
                     </div>
                 </div>
 
-                <!-- Quick Action Command Bar -->
-                <div class="console-quick-bar">
-                    <span style="color: var(--text-dim); font-size: 11px; font-weight: 600; text-transform: uppercase;">Presets:</span>
-                    <button class="quick-cmd-btn" onclick="sendQuickCommand('list')">/list</button>
-                    <button class="quick-cmd-btn" onclick="sendQuickCommand('tps')">/tps</button>
-                    <button class="quick-cmd-btn" onclick="sendQuickCommand('help')">/help</button>
-                    <button class="quick-cmd-btn" onclick="sendQuickCommand('save-all')">/save-all</button>
-                    <button class="quick-cmd-btn" onclick="sendQuickCommand('whitelist list')">/whitelist list</button>
-                    <button class="quick-cmd-btn" onclick="sendQuickCommand('time set day')">/time set day</button>
-                    <button class="quick-cmd-btn" onclick="sendQuickCommand('weather clear')">/weather clear</button>
-                    <button class="quick-cmd-btn" onclick="sendQuickCommand('seed')">/seed</button>
-                </div>
-                
                 <div class="console-output" id="console-output">Connecting to Minecraft interactive console...</div>
 
                 <form class="console-input-bar" onsubmit="sendConsoleCommand(event)">
@@ -1344,7 +1371,7 @@
         <div class="modal-card" style="max-width: 840px; width: 95vw; max-height: 90vh; display: flex; flex-direction: column;">
             <div class="modal-header" style="background: #11141c; padding: 14px 20px;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <img id="entity-modal-avatar" src="https://mc-heads.net/avatar/Steve/36" width="36" height="36" style="border-radius: 6px; background: #000;" onerror="this.src='https://mc-heads.net/avatar/Steve/36'">
+                    <img id="entity-modal-avatar" src="https://mc-heads.net/avatar/Steve/36" width="36" height="36" style="border-radius: 6px; background: #000;" onerror="this.onerror=null; this.src=STEVE_AVATAR_SVG;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <h3 style="margin: 0; font-size: 16px; font-family: 'JetBrains Mono', monospace;" id="entity-modal-player-name">Player</h3>
@@ -1498,6 +1525,44 @@
         </div>
     </div>
 
+    <!-- Mod & Plugin Commands Cheat Sheet Modal -->
+    <div class="modal-overlay" id="modal-plugin-commands">
+        <div class="modal-card" style="max-width: 960px; max-height: 88vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="margin: 0; font-size: 17px; display: flex; align-items: center; gap: 8px;">
+                        <span>📖 Mod &amp; Plugin Commands Reference</span>
+                        <span class="badge badge-ok" style="font-size: 11px;">4 Plugins Active</span>
+                    </h3>
+                    <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-dim);">คำสั่งของ Plugin และ Mod ทั้งหมดที่ติดตั้งอยู่ในเซิร์ฟเวอร์ — สามารถกดรันได้ทันที หรือแทรกใส่ Console</p>
+                </div>
+                <button class="btn btn-sm" onclick="closeModal('modal-plugin-commands')">✕</button>
+            </div>
+
+            <!-- Filter & Search Toolbar -->
+            <div style="padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="plugin-cmd-chips">
+                    <button class="chip-filter active" onclick="filterPluginCategory('all', this)">All Commands (<span id="count-cmd-all">0</span>)</button>
+                    <button class="chip-filter" onclick="filterPluginCategory('chunky', this)">🗺️ Chunky</button>
+                    <button class="chip-filter" onclick="filterPluginCategory('geyser', this)">🎮 Geyser</button>
+                    <button class="chip-filter" onclick="filterPluginCategory('papi', this)">🧩 PlaceholderAPI</button>
+                    <button class="chip-filter" onclick="filterPluginCategory('skins', this)">👕 SkinsRestorer</button>
+                    <button class="chip-filter" onclick="filterPluginCategory('spark', this)">⚡ spark &amp; Core</button>
+                </div>
+                <input type="text" id="plugin-cmd-search" placeholder="Search commands or keywords..." oninput="searchPluginCommands()" style="max-width: 250px; padding: 6px 12px; font-size: 12.5px; border-radius: 6px; background: var(--inset); border: 1px solid var(--line); color: var(--text-main);">
+            </div>
+
+            <div class="modal-body" style="overflow-y: auto; flex: 1; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px;" id="plugin-commands-container">
+                <!-- Dynamically populated via renderPluginCommands -->
+            </div>
+
+            <div class="modal-footer" style="padding: 12px 20px; justify-content: space-between; align-items: center; background: #11141c;">
+                <span style="font-size: 12px; color: var(--text-dim);">💡 กด <b>Run Now</b> เพื่อส่งคำสั่งเข้าเซิร์ฟเวอร์ทันที หรือกด <b>Insert</b> เพื่อนำไปใส่ใน Console</span>
+                <button class="btn" onclick="closeModal('modal-plugin-commands')">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div id="toasts-container"></div>
 
@@ -1505,9 +1570,11 @@
     <!-- JAVASCRIPT LOGIC -->
     <!-- ============================================================ -->
     <script>
+        const STEVE_AVATAR_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 8 8'%3E%3Crect width='8' height='8' fill='%23383a40'/%3E%3Crect x='2' y='2' width='4' height='4' fill='%23c4a482'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%23222'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%23222'/%3E%3Crect x='3' y='5' width='2' height='1' fill='%23824b35'/%3E%3C/svg%3E";
         let currentTab = 'overview';
         let isPapermcRunning = false;
         let isPlayitRunning = false;
+        let allPlayers = [];
 
         // --- Toast & Confirm System ---
         function showToast(msg, type = 'success') {
@@ -1707,6 +1774,16 @@
                     hPlayit.style.color = isPlayitRunning ? 'var(--ok)' : 'var(--danger)';
                 }
 
+                if (data.playit_domain && document.getElementById('game-domain-display')) {
+                    document.getElementById('game-domain-display').innerText = data.playit_domain;
+                }
+                if (data.bedrock_domain && document.getElementById('bedrock-domain-display')) {
+                    document.getElementById('bedrock-domain-display').innerText = data.bedrock_domain;
+                }
+                if (data.bedrock_ip && document.getElementById('bedrock-ip-display')) {
+                    document.getElementById('bedrock-ip-display').innerText = data.bedrock_ip;
+                }
+
                 // Playit Status
                 const pDot = document.getElementById('playit-dot');
                 const pText = document.getElementById('playit-text');
@@ -1737,9 +1814,6 @@
 
             } catch(e) { console.error('Status fetch error:', e); }
         }
-        setInterval(fetchStatus, 3000);
-        fetchStatus();
-        loadPlayers();
 
         // --- Actions with Warning Popups ---
         async function controlAction(service, action) {
@@ -2178,6 +2252,43 @@
                     "report": { desc: "Alias for timings paste" },
                     "reset": { desc: "Reset collected timings data" },
                     "verbatim": { desc: "Toggle verbatim detailed timings logging" }
+                }
+            },
+
+            // === Chunky (World Pre-generation) Plugin ===
+            "chunky": {
+                desc: "Chunky world pre-generation tool",
+                subcommands: {
+                    "start": { desc: "Start a new chunk generation task" },
+                    "pause": { desc: "Pause current generation task" },
+                    "continue": { desc: "Continue paused generation task" },
+                    "cancel": { desc: "Stop and delete current or saved tasks" },
+                    "progress": { desc: "Display current generation progress and ETA" },
+                    "selection": { desc: "Display current target world and radius selection" },
+                    "world": { desc: "Set the world target", params: ["<world|world_nether|world_the_end>"] },
+                    "worldborder": { desc: "Use the world border center and radius" },
+                    "center": { desc: "Set center block coordinates", params: ["<x>", "<z>"] },
+                    "spawn": { desc: "Set center to world spawn point" },
+                    "radius": { desc: "Set generation radius in blocks", params: ["<radius_blocks>"] },
+                    "shape": { desc: "Set generation shape", subcommands: { "circle": { desc: "Generate circle" }, "square": { desc: "Generate square" } } },
+                    "trim": { desc: "Delete chunks outside selection (Danger!)" },
+                    "quiet": { desc: "Set update message interval in seconds", params: ["<seconds>"] },
+                    "silent": { desc: "Toggle displaying update messages" },
+                    "reload": { desc: "Reload Chunky configuration" }
+                }
+            },
+
+            // === Geyser-Spigot (Bedrock Bridge) Plugin ===
+            "geyser": {
+                desc: "Geyser Bedrock bridge management",
+                subcommands: {
+                    "version": { desc: "Show current Geyser version and update check" },
+                    "reload": { desc: "Reload Geyser configurations" },
+                    "list": { desc: "List all players connected through Geyser Bedrock" },
+                    "dump": { desc: "Dump Geyser debug info for bug reports" },
+                    "connectiontest": { desc: "Test whether Bedrock address is reachable", params: ["<ip:port>"] },
+                    "help": { desc: "Show help for registered Geyser commands" },
+                    "stop": { desc: "Shut down Geyser proxy" }
                 }
             },
 
@@ -2761,7 +2872,6 @@
             };
             ws.onerror = () => { try { ws.close(); } catch(e) {} };
         }
-        connectWs();
 
         async function sendConsoleCommand(e) {
             if (e) e.preventDefault();
@@ -2811,16 +2921,167 @@
         function sendQuickCommand(cmd) {
             const input = document.getElementById('rcon-input');
             if (input) {
-                input.value = cmd;
+                input.value = '/' + cmd.replace(/^\//, '');
                 sendConsoleCommand();
+            }
+        }
+
+        // ============================================================
+        // MOD & PLUGIN COMMANDS CHEAT SHEET
+        // ============================================================
+        const PLUGIN_COMMANDS_DATA = [
+            // Chunky
+            { plugin: 'chunky', name: 'chunky progress', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'แสดงความคืบหน้าการโหลด Chunk (เปอร์เซ็นต์, เวลาที่เหลือ, chunks/sec)', desc_en: 'Show chunk generation progress & ETA', sample: 'chunky progress', can_run: true },
+            { plugin: 'chunky', name: 'chunky start', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'เริ่มสร้าง chunk ตามรัศมีและ world ที่กำหนด', desc_en: 'Start generating chunks with configured radius', sample: 'chunky start', can_run: true },
+            { plugin: 'chunky', name: 'chunky pause', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'หยุดการ render chunk ชั่วคราว (บันทึกจุดที่ค้างไว้)', desc_en: 'Pause current chunk generation and save progress', sample: 'chunky pause', can_run: true },
+            { plugin: 'chunky', name: 'chunky continue', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'ทำต่อจากจุดที่ pause ไว้', desc_en: 'Continue previous paused chunk generation task', sample: 'chunky continue', can_run: true },
+            { plugin: 'chunky', name: 'chunky cancel', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'ยกเลิกงาน render chunk ปัจจุบันและลบประวัติงาน', desc_en: 'Cancel and stop chunk generation task', sample: 'chunky cancel', can_run: true },
+            { plugin: 'chunky', name: 'chunky selection', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'ตรวจสอบค่าขอบเขตและ world ที่กำลังเลือกอยู่', desc_en: 'Display currently configured world and bounds', sample: 'chunky selection', can_run: true },
+            { plugin: 'chunky', name: 'chunky radius <blocks>', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'กำหนดรัศมีบล็อกที่ต้องการ generate (เช่น 2500 หรือ 5000)', desc_en: 'Set radius in blocks from center', sample: 'chunky radius 2500', can_run: false },
+            { plugin: 'chunky', name: 'chunky world <world>', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'เลือกโลกที่ต้องการ generate (world, world_nether, world_the_end)', desc_en: 'Set target world for chunk pre-generation', sample: 'chunky world world', can_run: false },
+            { plugin: 'chunky', name: 'chunky center <x> <z>', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'ตั้งพิกัดจุดศูนย์กลางในการสร้าง chunk', desc_en: 'Set center coordinate for chunk generation', sample: 'chunky center 0 0', can_run: false },
+            { plugin: 'chunky', name: 'chunky shape <circle|square>', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'กำหนดรูปทรงการสร้าง chunk (วงกลม หรือ สี่เหลี่ยม)', desc_en: 'Set generation shape (circle, square)', sample: 'chunky shape circle', can_run: false },
+            { plugin: 'chunky', name: 'chunky trim', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'ลบ chunk ทั้งหมดที่อยู่นอกเขต selection (ช่วยประหยัดเนื้อที่ดิสก์)', desc_en: 'Delete all chunks outside selection area', sample: 'chunky trim', can_run: true },
+            { plugin: 'chunky', name: 'chunky reload', category: 'chunky', pluginName: 'Chunky', badgeColor: '#4ade80', badgeBg: 'rgba(74,222,128,0.15)', desc_th: 'โหลดการตั้งค่า Chunky ใหม่', desc_en: 'Reload Chunky configuration', sample: 'chunky reload', can_run: true },
+
+            // Geyser
+            { plugin: 'geyser', name: 'geyser version', category: 'geyser', pluginName: 'Geyser', badgeColor: '#38bdf8', badgeBg: 'rgba(56,189,248,0.15)', desc_th: 'ตรวจสอบเวอร์ชัน Geyser-Spigot และเช็คอัปเดต', desc_en: 'Check current Geyser version & update status', sample: 'geyser version', can_run: true },
+            { plugin: 'geyser', name: 'geyser list', category: 'geyser', pluginName: 'Geyser', badgeColor: '#38bdf8', badgeBg: 'rgba(56,189,248,0.15)', desc_th: 'แสดงรายชื่อผู้เล่น Minecraft Bedrock ที่กำลังเชื่อมต่ออยู่', desc_en: 'List all currently connected Bedrock players', sample: 'geyser list', can_run: true },
+            { plugin: 'geyser', name: 'geyser reload', category: 'geyser', pluginName: 'Geyser', badgeColor: '#38bdf8', badgeBg: 'rgba(56,189,248,0.15)', desc_th: 'รีโหลดคอนฟิก Geyser (ผู้เล่น Bedrock จะตัดการเชื่อมต่อชั่วคราว)', desc_en: 'Reload Geyser configurations', sample: 'geyser reload', can_run: true },
+            { plugin: 'geyser', name: 'geyser dump', category: 'geyser', pluginName: 'Geyser', badgeColor: '#38bdf8', badgeBg: 'rgba(56,189,248,0.15)', desc_th: 'สร้าง Diagnostic Dump Link สำหรับแก้ปัญหา / bug reports', desc_en: 'Dump server diagnostic data to a shareable link', sample: 'geyser dump', can_run: true },
+            { plugin: 'geyser', name: 'geyser connectiontest <ip:port>', category: 'geyser', pluginName: 'Geyser', badgeColor: '#38bdf8', badgeBg: 'rgba(56,189,248,0.15)', desc_th: 'ทดสอบการเชื่อมต่อพอร์ต Bedrock ภายนอก', desc_en: 'Test if Bedrock server port is reachable', sample: 'geyser connectiontest 127.0.0.1:25167', can_run: false },
+            { plugin: 'geyser', name: 'geyser help', category: 'geyser', pluginName: 'Geyser', badgeColor: '#38bdf8', badgeBg: 'rgba(56,189,248,0.15)', desc_th: 'แสดงคู่มือคำสั่งทั้งหมดของ Geyser', desc_en: 'Display all available Geyser subcommands', sample: 'geyser help', can_run: true },
+            { plugin: 'geyser', name: 'geyser stop', category: 'geyser', pluginName: 'Geyser', badgeColor: '#38bdf8', badgeBg: 'rgba(56,189,248,0.15)', desc_th: 'ปิดการทำงานของระบบ Geyser Bedrock Bridge', desc_en: 'Shut down Geyser service', sample: 'geyser stop', can_run: true },
+
+            // PlaceholderAPI
+            { plugin: 'papi', name: 'papi list', category: 'papi', pluginName: 'PlaceholderAPI', badgeColor: '#fbbf24', badgeBg: 'rgba(251,191,36,0.15)', desc_th: 'แสดงรายการ Placeholder Expansions ทั้งหมดที่ลงไว้', desc_en: 'List all active registered placeholder expansions', sample: 'papi list', can_run: true },
+            { plugin: 'papi', name: 'papi reload', category: 'papi', pluginName: 'PlaceholderAPI', badgeColor: '#fbbf24', badgeBg: 'rgba(251,191,36,0.15)', desc_th: 'รีโหลดคอนฟิกของ PlaceholderAPI', desc_en: 'Reload PlaceholderAPI configuration and expansions', sample: 'papi reload', can_run: true },
+            { plugin: 'papi', name: 'papi ecloud download <expansion>', category: 'papi', pluginName: 'PlaceholderAPI', badgeColor: '#fbbf24', badgeBg: 'rgba(251,191,36,0.15)', desc_th: 'ดาวน์โหลด Expansion เพิ่มเติมจาก eCloud (เช่น player, server)', desc_en: 'Download expansion from eCloud repository', sample: 'papi ecloud download player', can_run: false },
+            { plugin: 'papi', name: 'papi parse <player|--null> <placeholder>', category: 'papi', pluginName: 'PlaceholderAPI', badgeColor: '#fbbf24', badgeBg: 'rgba(251,191,36,0.15)', desc_th: 'ทดสอบการแปลง placeholder ออกมาเป็นค่าจริง', desc_en: 'Parse and test placeholder string output', sample: 'papi parse --null %server_tps%', can_run: false },
+            { plugin: 'papi', name: 'papi dump', category: 'papi', pluginName: 'PlaceholderAPI', badgeColor: '#fbbf24', badgeBg: 'rgba(251,191,36,0.15)', desc_th: 'ส่งออกข้อมูล debug ของ PlaceholderAPI', desc_en: 'Dump system placeholder debug information', sample: 'papi dump', can_run: true },
+            { plugin: 'papi', name: 'papi version', category: 'papi', pluginName: 'PlaceholderAPI', badgeColor: '#fbbf24', badgeBg: 'rgba(251,191,36,0.15)', desc_th: 'ดูเวอร์ชันของ PlaceholderAPI', desc_en: 'Show installed PlaceholderAPI version', sample: 'papi version', can_run: true },
+
+            // SkinsRestorer
+            { plugin: 'skins', name: 'sr reload', category: 'skins', pluginName: 'SkinsRestorer', badgeColor: '#c084fc', badgeBg: 'rgba(192,132,252,0.15)', desc_th: 'รีโหลดการตั้งค่าของ SkinsRestorer', desc_en: 'Reload SkinsRestorer configuration and cache', sample: 'sr reload', can_run: true },
+            { plugin: 'skins', name: 'sr status', category: 'skins', pluginName: 'SkinsRestorer', badgeColor: '#c084fc', badgeBg: 'rgba(192,132,252,0.15)', desc_th: 'ตรวจสอบสถานะการเชื่อมต่อกับ Mojang Skin Server', desc_en: 'Check SkinsRestorer API status', sample: 'sr status', can_run: true },
+            { plugin: 'skins', name: 'skin set <player> <skinName>', category: 'skins', pluginName: 'SkinsRestorer', badgeColor: '#c084fc', badgeBg: 'rgba(192,132,252,0.15)', desc_th: 'เปลี่ยนสกินของผู้เล่นเป็นชื่อผู้ใช้ที่มีใน Mojang', desc_en: 'Set target player skin to specified username', sample: 'skin set Player Notch', can_run: false },
+            { plugin: 'skins', name: 'skin update <player>', category: 'skins', pluginName: 'SkinsRestorer', badgeColor: '#c084fc', badgeBg: 'rgba(192,132,252,0.15)', desc_th: 'อัปเดตสกินของผู้เล่นให้ดึงล่าสุดจาก Mojang', desc_en: 'Refresh player skin directly from Mojang servers', sample: 'skin update Player', can_run: false },
+            { plugin: 'skins', name: 'skin clear <player>', category: 'skins', pluginName: 'SkinsRestorer', badgeColor: '#c084fc', badgeBg: 'rgba(192,132,252,0.15)', desc_th: 'ล้างสกินที่ตั้งไว้ และกลับไปใช้สกินดั้งเดิม', desc_en: 'Reset player skin to default state', sample: 'skin clear Player', can_run: false },
+            { plugin: 'skins', name: 'skin url <png_url>', category: 'skins', pluginName: 'SkinsRestorer', badgeColor: '#c084fc', badgeBg: 'rgba(192,132,252,0.15)', desc_th: 'เปลี่ยนสกินจาก Direct Link รูปภาพ (.png)', desc_en: 'Set skin using a direct image URL link', sample: 'skin url https://example.com/skin.png', can_run: false },
+
+            // spark & Core
+            { plugin: 'spark', name: 'spark health', category: 'spark', pluginName: 'spark / Core', badgeColor: '#f43f5e', badgeBg: 'rgba(244,63,94,0.15)', desc_th: 'สรุปภาพรวมประสิทธิภาพเซิร์ฟเวอร์ (TPS, CPU %, Memory, Disk)', desc_en: 'Overview of server health (TPS, CPU, RAM, Disk)', sample: 'spark health', can_run: true },
+            { plugin: 'spark', name: 'spark tps', category: 'spark', pluginName: 'spark / Core', badgeColor: '#f43f5e', badgeBg: 'rgba(244,63,94,0.15)', desc_th: 'แสดงประวัติค่า TPS และ Milliseconds Per Tick (MSPT) ละเอียด', desc_en: 'Show precise tick rate and duration history', sample: 'spark tps', can_run: true },
+            { plugin: 'spark', name: 'spark ping', category: 'spark', pluginName: 'spark / Core', badgeColor: '#f43f5e', badgeBg: 'rgba(244,63,94,0.15)', desc_th: 'แสดงตารางค่าปิง Latency ของผู้เล่นทุกคนในเซิร์ฟเวอร์', desc_en: 'Show player latency and network stability', sample: 'spark ping', can_run: true },
+            { plugin: 'spark', name: 'spark gc', category: 'spark', pluginName: 'spark / Core', badgeColor: '#f43f5e', badgeBg: 'rgba(244,63,94,0.15)', desc_th: 'แสดงข้อมูลหน่วยความจำขยะ (Garbage Collection)', desc_en: 'Show JVM Garbage Collection memory metrics', sample: 'spark gc', can_run: true },
+            { plugin: 'spark', name: 'spark sampler --start', category: 'spark', pluginName: 'spark / Core', badgeColor: '#f43f5e', badgeBg: 'rgba(244,63,94,0.15)', desc_th: 'เริ่มบันทึก CPU Profiler วิเคราะห์หาสาเหตุเซิร์ฟเวอร์แล็ก', desc_en: 'Start CPU performance sampling', sample: 'spark sampler --start', can_run: true },
+            { plugin: 'spark', name: 'spark sampler --stop', category: 'spark', pluginName: 'spark / Core', badgeColor: '#f43f5e', badgeBg: 'rgba(244,63,94,0.15)', desc_th: 'หยุดบันทึก CPU Profiler และอัปโหลดออกเป็นลิงก์เว็บรายงาน', desc_en: 'Stop sampling and generate web report link', sample: 'spark sampler --stop', can_run: true },
+            { plugin: 'spark', name: 'tps', category: 'spark', pluginName: 'PaperMC Core', badgeColor: '#818cf8', badgeBg: 'rgba(129,140,248,0.15)', desc_th: 'ดูค่า TPS มาตรฐานของ PaperMC (1m, 5m, 15m)', desc_en: 'Paper standard TPS display', sample: 'tps', can_run: true },
+            { plugin: 'spark', name: 'mspt', category: 'spark', pluginName: 'PaperMC Core', badgeColor: '#818cf8', badgeBg: 'rgba(129,140,248,0.15)', desc_th: 'ดูเวลาประมวลผลต่อ 1 Tick (ควรน้อยกว่า 50.0ms)', desc_en: 'Milliseconds per tick (lower than 50ms is optimal)', sample: 'mspt', can_run: true },
+            { plugin: 'spark', name: 'save-all', category: 'spark', pluginName: 'Vanilla Core', badgeColor: '#818cf8', badgeBg: 'rgba(129,140,248,0.15)', desc_th: 'สั่งบันทึกข้อมูลโลกและผู้เล่นทั้งหมดลงดิสก์ทันที', desc_en: 'Force save all worlds and player data to disk', sample: 'save-all', can_run: true },
+            { plugin: 'spark', name: 'timings paste', category: 'spark', pluginName: 'PaperMC Core', badgeColor: '#818cf8', badgeBg: 'rgba(129,140,248,0.15)', desc_th: 'สร้างและอัปโหลดรายงาน Paper Timings สรุปปัญหาแล็ก', desc_en: 'Generate and upload Paper Timings report link', sample: 'timings paste', can_run: true }
+        ];
+
+        let currentPluginCategory = 'all';
+        let currentPluginSearch = '';
+
+        function renderPluginCommands(category = 'all', search = '') {
+            const container = document.getElementById('plugin-commands-container');
+            if (!container) return;
+
+            const filtered = PLUGIN_COMMANDS_DATA.filter(cmd => {
+                const matchCat = (category === 'all' || cmd.category === category);
+                const q = (search || '').trim().toLowerCase();
+                const matchSearch = !q || (
+                    cmd.name.toLowerCase().includes(q) ||
+                    cmd.desc_th.toLowerCase().includes(q) ||
+                    cmd.desc_en.toLowerCase().includes(q) ||
+                    cmd.pluginName.toLowerCase().includes(q)
+                );
+                return matchCat && matchSearch;
+            });
+
+            const countEl = document.getElementById('count-cmd-all');
+            if (countEl) countEl.innerText = PLUGIN_COMMANDS_DATA.length;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-dim);">
+                        <div style="font-size: 28px; margin-bottom: 8px;">🔍</div>
+                        <div style="font-size: 15px; font-weight: 600; color: #fff;">No matching commands found</div>
+                        <div style="font-size: 12.5px; margin-top: 4px;">ลองเปลี่ยนคำค้นหา หรือเลือกหมวดหมู่อื่น</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => `
+                <div style="background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 260px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span class="badge" style="background: ${item.badgeBg}; color: ${item.badgeColor}; font-size: 10.5px; font-weight: 600;">${item.pluginName}</span>
+                            <code style="font-family: 'JetBrains Mono', monospace; font-size: 13.5px; font-weight: 700; color: #fff;">/${item.name}</code>
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-soft); margin-top: 5px;">
+                            ${item.desc_th}
+                        </div>
+                        <div style="font-size: 11.5px; color: var(--text-faint); margin-top: 2px;">
+                            ${item.desc_en}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        ${item.can_run ? `
+                        <button class="btn btn-primary btn-sm" onclick="runPluginCommand('${item.sample}')" title="Execute directly in console">
+                            ▶ Run Now
+                        </button>
+                        ` : ''}
+                        <button class="btn btn-sm" onclick="insertPluginCommand('${item.sample}')" title="Insert into console input to edit parameters">
+                            ✏️ Insert
+                        </button>
+                        <button class="btn btn-sm" onclick="copyText('/${item.sample}', 'Command')" title="Copy to clipboard">
+                            📋 Copy
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterPluginCategory(cat, el) {
+            currentPluginCategory = cat;
+            if (el && el.parentElement) {
+                el.parentElement.querySelectorAll('.chip-filter').forEach(btn => btn.classList.remove('active'));
+                el.classList.add('active');
+            }
+            renderPluginCommands(currentPluginCategory, currentPluginSearch);
+        }
+
+        function searchPluginCommands() {
+            const input = document.getElementById('plugin-cmd-search');
+            currentPluginSearch = input ? input.value : '';
+            renderPluginCommands(currentPluginCategory, currentPluginSearch);
+        }
+
+        function runPluginCommand(cmd) {
+            closeModal('modal-plugin-commands');
+            switchTab('console');
+            sendQuickCommand(cmd);
+            showToast(`Executed: /${cmd}`, 'success');
+        }
+
+        function insertPluginCommand(cmd) {
+            closeModal('modal-plugin-commands');
+            switchTab('console');
+            const input = document.getElementById('rcon-input');
+            if (input) {
+                input.value = '/' + cmd.replace(/^\//, '');
+                input.focus();
+                showToast(`Command inserted into console: /${cmd.replace(/^\//, '')}`, 'info');
             }
         }
 
         // ============================================================
         // PLAYERS
         // ============================================================
-        let allPlayers = [];
-
         async function loadPlayers() {
             try {
                 const res = await fetch('/mc/api/players');
@@ -2883,7 +3144,7 @@
                 <tr>
                     <td>
                         <div style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="openEntityPropertiesModal('${p.name}', ${p.online})" title="Click to view real-time Entity Properties">
-                            <img src="https://mc-heads.net/avatar/${p.name}/28" width="28" height="28" style="border-radius:4px; background:#000;" onerror="this.src='https://mc-heads.net/avatar/Steve/28'">
+                            <img src="https://mc-heads.net/avatar/${p.name}/28" width="28" height="28" style="border-radius:4px; background:#000;" onerror="if(!this.dataset.fallback){this.dataset.fallback='1';this.src='https://mc-heads.net/avatar/Steve/28';}else{this.onerror=null;this.src=STEVE_AVATAR_SVG;}">
                             <span style="font-weight:600; color:var(--text-main); font-family:'JetBrains Mono', monospace; text-decoration: underline dotted var(--text-dim);">${p.name}</span>
                         </div>
                     </td>
@@ -3454,7 +3715,14 @@
             
             // Set initial header info
             document.getElementById('entity-modal-player-name').innerText = playerName;
-            document.getElementById('entity-modal-avatar').src = `https://mc-heads.net/avatar/${playerName}/36`;
+            const avatarEl = document.getElementById('entity-modal-avatar');
+            if (avatarEl) {
+                avatarEl.onerror = function() {
+                    this.onerror = null;
+                    this.src = STEVE_AVATAR_SVG;
+                };
+                avatarEl.src = `https://mc-heads.net/avatar/${playerName}/36`;
+            }
             
             const statusBadge = document.getElementById('entity-modal-status-badge');
             statusBadge.className = isOnline ? 'badge badge-ok' : 'badge badge-danger';
@@ -3759,6 +4027,21 @@
             const sizes = ['B', 'KB', 'MB', 'GB'];
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        // --- Dashboard Initialization ---
+        function initDashboard() {
+            fetchStatus();
+            setInterval(fetchStatus, 3000);
+            loadPlayers();
+            renderPluginCommands();
+            connectWs();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDashboard);
+        } else {
+            initDashboard();
         }
     </script>
 </body>

@@ -17,4 +17,6 @@ urlpatterns = [
     path('api/logs/download', views.api_download_log, name='api_mc_download_log'),
     path('api/logs/clear', views.api_clear_log, name='api_mc_clear_log'),
     path('items/<str:item_name>.png', views.api_item_icon, name='mc_item_icon'),
+    path('assets/image/<str:image_name>', views.api_asset_image, name='mc_asset_image'),
 ]
+

@@ -90,6 +90,9 @@ def api_server_status(request):
         "server_state": server_state,
         "playit_running": playit_status,
         "playit_domain": "jakarta-baghdad.tun.ply.gg",
+        "bedrock_domain": "cynthia-interested.tun.ply.gg",
+        "bedrock_port": 25167,
+        "bedrock_ip": "147.185.221.215",
         "ping_ms": ping_ms,
         "upload_kbps": net_stats['upload_kbps'],
         "download_kbps": net_stats['download_kbps'],
@@ -322,9 +325,11 @@ def api_player_entity_data(request):
     except Exception as e:
         return JsonResponse({"success": False, "error": f"Entity fetch error: {str(e)}"})
 
-ITEM_ICONS_DIR = os.path.join(os.path.dirname(__file__), 'templates', 'mcmanager', 'Minecraft_Item')
+ITEM_ICONS_DIR = os.path.join(os.path.dirname(__file__), 'templates', 'mcmanager', 'assets', 'Minecraft_Item')
+if not os.path.isdir(ITEM_ICONS_DIR):
+    ITEM_ICONS_DIR = os.path.join(os.path.dirname(__file__), 'templates', 'mcmanager', 'Minecraft_Item')
 
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "HEAD"])
 def api_item_icon(request, item_name):
     """Serve Minecraft item PNG icons dynamically."""
     from django.http import FileResponse, Http404
@@ -334,13 +339,33 @@ def api_item_icon(request, item_name):
     
     file_path = os.path.join(ITEM_ICONS_DIR, f"{clean_name}.png")
     if os.path.isfile(file_path):
-        return FileResponse(open(file_path, 'rb'), content_type='image/png')
+        response = FileResponse(open(file_path, 'rb'), content_type='image/png')
+        response['Cache-Control'] = 'public, max-age=86400'
+        return response
     
     # Fallback to barrier if not found
     fallback_path = os.path.join(ITEM_ICONS_DIR, 'barrier.png')
     if os.path.isfile(fallback_path):
-        return FileResponse(open(fallback_path, 'rb'), content_type='image/png')
+        response = FileResponse(open(fallback_path, 'rb'), content_type='image/png')
+        response['Cache-Control'] = 'public, max-age=86400'
+        return response
     raise Http404("Item icon not found")
+
+ASSETS_IMAGE_DIR = os.path.join(os.path.dirname(__file__), 'templates', 'mcmanager', 'assets', 'image')
+
+@require_http_methods(["GET", "HEAD"])
+def api_asset_image(request, image_name):
+    """Serve mcmanager static image assets (e.g. logos)."""
+    from django.http import FileResponse, Http404
+    clean_name = os.path.basename(image_name)
+    file_path = os.path.join(ASSETS_IMAGE_DIR, clean_name)
+    if os.path.isfile(file_path):
+        content_type = 'image/png' if clean_name.lower().endswith('.png') else 'image/jpeg'
+        response = FileResponse(open(file_path, 'rb'), content_type=content_type)
+        response['Cache-Control'] = 'public, max-age=86400'
+        return response
+    raise Http404("Image not found")
+
 
 # ============================================================
 # File Manager API

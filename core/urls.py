@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('robots.txt', views.robots_txt, name='robots_txt'),
+    path('favicon.ico', views.favicon, name='favicon'),
 
     path('', views.landing_page, name='landing'),
     path('login/', views.login_view, name='login'),

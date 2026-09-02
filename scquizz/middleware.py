@@ -27,8 +27,8 @@ class RateLimitMiddleware:
     รวมถึงป้องกัน Brute Force บนหน้า Login ด้วย
     """
     RATE_LIMITED_PATHS = ['/api/messages']
-    # Login brute force: max 10 attempts/min per IP (fixed, not configurable)
-    LOGIN_PATHS = ['/login/', '/ict/scquizz/login']
+    # Login & registration brute force: max 10 attempts/min per IP (fixed, not configurable)
+    LOGIN_PATHS = ['/login/', '/register/', '/ict/scquizz/login']
     LOGIN_LIMIT = 10
     LOGIN_WINDOW = 60  # seconds
 

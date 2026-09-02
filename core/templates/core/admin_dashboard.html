@@ -1530,8 +1530,29 @@
                 .replace(/'/g, "&#039;");
         }
 
-        // --- Safe JSON Fetcher ---
+        // --- CSRF Token Helper ---
+        function getCsrfToken() {
+            const name = 'csrftoken';
+            const cookies = document.cookie.split(';');
+            for (let c of cookies) {
+                c = c.trim();
+                if (c.startsWith(name + '=')) {
+                    return decodeURIComponent(c.slice(name.length + 1));
+                }
+            }
+            // Fallback: read from hidden input if cookie unavailable
+            const el = document.querySelector('[name=csrfmiddlewaretoken]');
+            return el ? el.value : '';
+        }
+
+        // --- Safe JSON Fetcher (auto-injects CSRF token for mutating requests) ---
         async function safeFetchJson(url, options = {}) {
+            const method = (options.method || 'GET').toUpperCase();
+            const mutating = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
+            if (mutating) {
+                options.headers = options.headers || {};
+                options.headers['X-CSRFToken'] = getCsrfToken();
+            }
             const res = await fetch(url, options);
             const contentType = res.headers.get('content-type') || '';
             if (!contentType.includes('application/json')) {
@@ -2021,6 +2042,7 @@
             try {
                 const res = await fetch(`/api/admin/app-settings/${appName}/upload-icon`, {
                     method: 'POST',
+                    headers: { 'X-CSRFToken': getCsrfToken() },
                     body: formData
                 });
                 const data = await res.json();
